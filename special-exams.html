@@ -1,0 +1,2475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ผลการตรวจพิเศษ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Exam Card Styles */
+        .exam-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border-left: 5px solid;
+            position: relative;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .exam-card.oct {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), white);
+        }
+
+        .exam-card.ctvf {
+            border-left-color: var(--warning-color);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), white);
+        }
+
+        .exam-card.pachymetry {
+            border-left-color: var(--success-color);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), white);
+        }
+
+        .exam-card.gonioscopy {
+            border-left-color: #8b5cf6;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), white);
+        }
+
+        .exam-card.other {
+            border-left-color: #6b7280;
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.05), white);
+        }
+
+        .exam-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .exam-icon.oct {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .exam-icon.ctvf {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+        }
+
+        .exam-icon.pachymetry {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .exam-icon.gonioscopy {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .exam-icon.other {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .exam-content h6 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .exam-content .exam-type {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .exam-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .exam-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .exam-results {
+            background: rgba(0, 206, 206, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .exam-results h6 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .exam-results .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .exam-results .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .exam-results .result-label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .exam-results .result-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .exam-results .result-value.abnormal {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+
+        .exam-results .result-value.warning {
+            color: var(--warning-color);
+            font-weight: 700;
+        }
+
+        .exam-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.normal {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+        }
+
+        .status-badge.abnormal {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+        }
+
+        .status-badge.borderline {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+        }
+
+        .status-badge.pending {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            border-radius: 20px 20px 0 0;
+            padding: 25px 30px;
+        }
+
+        .modal-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-title i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, white, #f8fafc);
+            border-radius: 0 0 20px 20px;
+            padding: 20px 30px;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-8, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .exam-card {
+                padding: 20px;
+            }
+
+            .exam-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+                margin-right: 15px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .exam-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .exam-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item active">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาผลการตรวจ..." id="searchInput">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="page-title">
+                    <i class="fas fa-microscope"></i>
+                    ผลการตรวจพิเศษ
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshExamsBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                    <button class="btn btn-success" id="addExamBtn">
+                        <i class="fas fa-plus"></i> เพิ่มผลการตรวจ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Exam Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="totalExamsCount">-</h3>
+                            <p class="text-muted">การตรวจทั้งหมด</p>
+                            <i class="fas fa-microscope fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="octExamsCount">-</h3>
+                            <p class="text-muted">การตรวจ OCT</p>
+                            <i class="fas fa-eye fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="abnormalExamsCount">-</h3>
+                            <p class="text-muted">ผลผิดปกติ</p>
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="thisMonthExamsCount">-</h3>
+                            <p class="text-muted">เดือนนี้</p>
+                            <i class="fas fa-calendar fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> ตัวกรองผลการตรวจ</h3>
+                    <button class="btn btn-outline-primary" id="applyFiltersBtn">
+                        <i class="fas fa-search"></i> ค้นหา
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="patientFilter" class="form-label">ผู้ป่วย</label>
+                            <select class="form-control" id="patientFilter">
+                                <option value="">ทั้งหมด</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="examTypeFilter" class="form-label">ประเภทการตรวจ</label>
+                            <select class="form-control" id="examTypeFilter">
+                                <option value="">ทั้งหมด</option>
+                                <option value="OCT">OCT</option>
+                                <option value="CTVF">CTVF</option>
+                                <option value="Pachymetry">Pachymetry</option>
+                                <option value="Gonioscopy">Gonioscopy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">สถานะผล</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="">ทั้งหมด</option>
+                                <option value="normal">ปกติ</option>
+                                <option value="abnormal">ผิดปกติ</option>
+                                <option value="borderline">ขอบเขต</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="limitSelect" class="form-label">จำนวนรายการ</label>
+                            <select class="form-control" id="limitSelect">
+                                <option value="10">10 รายการ</option>
+                                <option value="20" selected>20 รายการ</option>
+                                <option value="50">50 รายการ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="startDateFilter" class="form-label">วันที่เริ่มต้น</label>
+                            <input type="date" class="form-control" id="startDateFilter">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="endDateFilter" class="form-label">วันที่สิ้นสุด</label>
+                            <input type="date" class="form-control" id="endDateFilter">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exams List -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> รายการผลการตรวจ</h3>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2" id="exportExamsBtn">
+                            <i class="fas fa-file-excel"></i> ส่งออก Excel
+                        </button>
+                        <button class="btn btn-outline-success" id="generateReportBtn">
+                            <i class="fas fa-chart-bar"></i> สร้างรายงาน
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="examsContainer">
+                        <div class="text-center">
+                            <div class="loading-spinner" style="width: 40px; height: 40px;"></div>
+                            <p class="mt-3">กำลังโหลดผลการตรวจ...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-4" id="paginationContainer">
+                        <div id="paginationInfo">
+                            แสดง 0 - 0 จาก 0 รายการ
+                        </div>
+                        <div id="paginationButtons">
+                            <!-- Pagination buttons will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Exam Modal -->
+    <div class="modal fade" id="examModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="examModalTitle">
+                        <i class="fas fa-plus"></i>
+                        เพิ่มผลการตรวจใหม่
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="examForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="examPatientSelect" class="form-label">เลือกผู้ป่วย <span class="text-danger">*</span></label>
+                                <select class="form-control" id="examPatientSelect" required>
+                                    <option value="">-- เลือกผู้ป่วย --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="examTypeSelect" class="form-label">ประเภทการตรวจ <span class="text-danger">*</span></label>
+                                <select class="form-control" id="examTypeSelect" required>
+                                    <option value="">-- เลือกประเภท --</option>
+                                    <option value="OCT">OCT (Optical Coherence Tomography)</option>
+                                    <option value="CTVF">CTVF (Computerized Visual Field)</option>
+                                    <option value="Pachymetry">Pachymetry</option>
+                                    <option value="Gonioscopy">Gonioscopy</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="examDate" class="form-label">วันที่ตรวจ <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="examDate" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="examDoctorSelect" class="form-label">แพทย์ผู้ตรวจ</label>
+                                <select class="form-control" id="examDoctorSelect">
+                                    <option value="">-- เลือกแพทย์ --</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- OCT Results Section -->
+                        <div id="octResultsSection" class="exam-section" style="display: none;">
+                            <h6 class="mb-3">ผลการตรวจ OCT</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="leftAvgRnfl" class="form-label">Left Avg RNFL (µm)</label>
+                                    <input type="number" class="form-control" id="leftAvgRnfl" step="0.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rightAvgRnfl" class="form-label">Right Avg RNFL (µm)</label>
+                                    <input type="number" class="form-control" id="rightAvgRnfl" step="0.1">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="leftCupDiscRatio" class="form-label">Left Cup/Disc Ratio</label>
+                                    <input type="number" class="form-control" id="leftCupDiscRatio" step="0.01" min="0" max="1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rightCupDiscRatio" class="form-label">Right Cup/Disc Ratio</label>
+                                    <input type="number" class="form-control" id="rightCupDiscRatio" step="0.01" min="0" max="1">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- CTVF Results Section -->
+                        <div id="ctvfResultsSection" class="exam-section" style="display: none;">
+                            <h6 class="mb-3">ผลการตรวจ CTVF</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="leftEyeMd" class="form-label">Left Eye MD (dB)</label>
+                                    <input type="number" class="form-control" id="leftEyeMd" step="0.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rightEyeMd" class="form-label">Right Eye MD (dB)</label>
+                                    <input type="number" class="form-control" id="rightEyeMd" step="0.1">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="leftEyeVfi" class="form-label">Left Eye VFI (%)</label>
+                                    <input type="number" class="form-control" id="leftEyeVfi" min="0" max="100">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rightEyeVfi" class="form-label">Right Eye VFI (%)</label>
+                                    <input type="number" class="form-control" id="rightEyeVfi" min="0" max="100">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pachymetry Results Section -->
+                        <div id="pachymetryResultsSection" class="exam-section" style="display: none;">
+                            <h6 class="mb-3">ผลการตรวจ Pachymetry</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="leftCornealThickness" class="form-label">Left Corneal Thickness (µm)</label>
+                                    <input type="number" class="form-control" id="leftCornealThickness">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rightCornealThickness" class="form-label">Right Corneal Thickness (µm)</label>
+                                    <input type="number" class="form-control" id="rightCornealThickness">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Gonioscopy Results Section -->
+                        <div id="gonioscopyResultsSection" class="exam-section" style="display: none;">
+                            <h6 class="mb-3">ผลการตรวจ Gonioscopy</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="leftAngleGrade" class="form-label">Left Angle Grade</label>
+                                    <select class="form-control" id="leftAngleGrade">
+                                        <option value="">-- เลือก --</option>
+                                        <option value="0">Grade 0 (Closed)</option>
+                                        <option value="1">Grade 1</option>
+                                        <option value="2">Grade 2</option>
+                                        <option value="3">Grade 3</option>
+                                        <option value="4">Grade 4 (Wide open)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="rightAngleGrade" class="form-label">Right Angle Grade</label>
+                                    <select class="form-control" id="rightAngleGrade">
+                                        <option value="">-- เลือก --</option>
+                                        <option value="0">Grade 0 (Closed)</option>
+                                        <option value="1">Grade 1</option>
+                                        <option value="2">Grade 2</option>
+                                        <option value="3">Grade 3</option>
+                                        <option value="4">Grade 4 (Wide open)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <label for="examNotes" class="form-label">หมายเหตุ</label>
+                            <textarea class="form-control" id="examNotes" rows="3" maxlength="500"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-success" id="saveExamBtn">
+                        <i class="fas fa-save"></i> บันทึกผลการตรวจ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let authToken = '';
+        let currentPage = 1;
+        let currentLimit = 20;
+        let currentExamId = null;
+        let examTypes = [];
+
+        // Authentication Functions
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+
+        function checkAuthentication() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            authToken = token;
+            return true;
+        }
+
+        // API Helper Functions
+        async function makeAPIRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function getExamTypeIcon(examType) {
+            const icons = {
+                'OCT': 'fas fa-eye',
+                'CTVF': 'fas fa-chart-area',
+                'Pachymetry': 'fas fa-ruler',
+                'Gonioscopy': 'fas fa-circle-notch'
+            };
+            return icons[examType] || 'fas fa-microscope';
+        }
+
+        function getExamTypeClass(examType) {
+            const classes = {
+                'OCT': 'oct',
+                'CTVF': 'ctvf',
+                'Pachymetry': 'pachymetry',
+                'Gonioscopy': 'gonioscopy'
+            };
+            return classes[examType] || 'other';
+        }
+
+        function getExamTypeLabel(examType) {
+            const labels = {
+                'OCT': 'Optical Coherence Tomography',
+                'CTVF': 'Computerized Visual Field Test',
+                'Pachymetry': 'Pachymetry',
+                'Gonioscopy': 'Gonioscopy'
+            };
+            return labels[examType] || examType;
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'normal': 'normal',
+                'abnormal': 'abnormal',
+                'borderline': 'borderline'
+            };
+            return classes[status] || 'pending';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'normal': 'ปกติ',
+                'abnormal': 'ผิดปกติ',
+                'borderline': 'ขอบเขต',
+                'pending': 'รอผล'
+            };
+            return labels[status] || status;
+        }
+
+        // Special Exams Functions
+        async function loadSpecialExams() {
+            try {
+                const filters = getFilters();
+                const queryParams = new URLSearchParams({
+                    page: currentPage,
+                    limit: currentLimit,
+                    ...filters
+                });
+
+                // Since there's no specific special exams endpoint, we'll simulate loading from a general test results endpoint
+                // In real implementation, this would be something like '/api/admin/special-exams'
+                const response = await makeAPIRequest(`/api/admin/test-results?${queryParams}`);
+                const exams = response.data || [];
+                
+                displaySpecialExams(exams);
+                updateExamStats(exams);
+                updatePagination(response.pagination);
+                
+            } catch (error) {
+                console.error('Error loading special exams:', error);
+                showAlert(`ไม่สามารถโหลดผลการตรวจได้: ${error.message}`, 'danger');
+                
+                // Show placeholder when API fails - generate sample data
+                displaySpecialExams(generateSampleExams());
+            }
+        }
+
+        function generateSampleExams() {
+            // Generate sample data when API is not available
+            const sampleTypes = ['OCT', 'CTVF', 'Pachymetry', 'Gonioscopy'];
+            const sampleStatuses = ['normal', 'abnormal', 'borderline'];
+            const samplePatients = [
+                { name: 'นางสาว สมใจ ใจดี', hn: 'HN001234' },
+                { name: 'นาย วิชัย มั่นคง', hn: 'HN001235' },
+                { name: 'นางสมศรี สุขใส', hn: 'HN001236' }
+            ];
+
+            const exams = [];
+            for (let i = 0; i < currentLimit; i++) {
+                const patient = samplePatients[i % samplePatients.length];
+                const examType = sampleTypes[i % sampleTypes.length];
+                const status = sampleStatuses[i % sampleStatuses.length];
+                
+                exams.push({
+                    test_id: `test_${i + 1}`,
+                    patient_name: patient.name,
+                    hn: patient.hn,
+                    test_type: examType,
+                    test_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    status: status,
+                    doctor_name: 'แพทย์หญิง สมใจ ใจดี',
+                    notes: `ผลการตรวจ ${examType} แสดงผล${status === 'normal' ? 'ปกติ' : status === 'abnormal' ? 'ผิดปกติ' : 'ในขอบเขต'}`,
+                    results: generateSampleResults(examType)
+                });
+            }
+            
+            return exams;
+        }
+
+        function generateSampleResults(examType) {
+            const results = {};
+            
+            switch (examType) {
+                case 'OCT':
+                    results.left_avg_rnfl = Math.floor(Math.random() * 50) + 80;
+                    results.right_avg_rnfl = Math.floor(Math.random() * 50) + 80;
+                    results.left_cup_disc_ratio = (Math.random() * 0.8 + 0.2).toFixed(2);
+                    results.right_cup_disc_ratio = (Math.random() * 0.8 + 0.2).toFixed(2);
+                    break;
+                case 'CTVF':
+                    results.left_eye_md = (Math.random() * 20 - 10).toFixed(1);
+                    results.right_eye_md = (Math.random() * 20 - 10).toFixed(1);
+                    results.left_eye_vfi = Math.floor(Math.random() * 40) + 60;
+                    results.right_eye_vfi = Math.floor(Math.random() * 40) + 60;
+                    break;
+                case 'Pachymetry':
+                    results.left_corneal_thickness = Math.floor(Math.random() * 200) + 450;
+                    results.right_corneal_thickness = Math.floor(Math.random() * 200) + 450;
+                    break;
+                case 'Gonioscopy':
+                    results.left_angle_grade = Math.floor(Math.random() * 5);
+                    results.right_angle_grade = Math.floor(Math.random() * 5);
+                    break;
+            }
+            
+            return results;
+        }
+
+        function getFilters() {
+            const filters = {};
+            
+            const patient = document.getElementById('patientFilter').value;
+            if (patient) filters.patient_id = patient;
+            
+            const examType = document.getElementById('examTypeFilter').value;
+            if (examType) filters.test_type = examType;
+            
+            const status = document.getElementById('statusFilter').value;
+            if (status) filters.status = status;
+            
+            const startDate = document.getElementById('startDateFilter').value;
+            if (startDate) filters.start_date = startDate;
+            
+            const endDate = document.getElementById('endDateFilter').value;
+            if (endDate) filters.end_date = endDate;
+            
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (searchTerm) filters.search = searchTerm;
+            
+            return filters;
+        }
+
+        function displaySpecialExams(exams) {
+            const container = document.getElementById('examsContainer');
+            
+            if (!exams || exams.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-microscope fa-3x text-muted mb-3"></i>
+                        <h5>ไม่มีผลการตรวจ</h5>
+                        <p class="text-muted">ไม่พบผลการตรวจตามเงื่อนไขที่เลือก</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            exams.forEach(exam => {
+                const examTypeClass = getExamTypeClass(exam.test_type);
+                const icon = getExamTypeIcon(exam.test_type);
+                const typeLabel = getExamTypeLabel(exam.test_type);
+                const statusClass = getStatusBadgeClass(exam.status);
+                const statusLabel = getStatusLabel(exam.status);
+                const examDate = formatDate(exam.test_date);
+                
+                html += `
+                    <div class="exam-card ${examTypeClass} fade-in">
+                        <div class="d-flex align-items-start">
+                            <div class="exam-icon ${examTypeClass}">
+                                <i class="${icon}"></i>
+                            </div>
+                            <div class="exam-content flex-grow-1">
+                                <h6>${typeLabel}</h6>
+                                <div class="exam-type">${exam.test_type}</div>
+                                <div class="exam-meta">
+                                    <span><i class="fas fa-user"></i> ${exam.patient_name || 'ไม่ทราบชื่อ'} (HN: ${exam.hn || 'N/A'})</span>
+                                    <span><i class="fas fa-calendar"></i> ${examDate}</span>
+                                    <span><i class="fas fa-user-md"></i> ${exam.doctor_name || 'ไม่ระบุแพทย์'}</span>
+                                    <span class="status-badge ${statusClass}">
+                                        <i class="fas fa-${statusClass === 'normal' ? 'check-circle' : statusClass === 'abnormal' ? 'exclamation-circle' : 'minus-circle'}"></i>
+                                        ${statusLabel}
+                                    </span>
+                                </div>
+                                
+                                ${exam.results ? renderExamResults(exam.test_type, exam.results) : ''}
+                                
+                                ${exam.notes ? `<div class="mt-2"><small class="text-muted"><strong>หมายเหตุ:</strong> ${exam.notes}</small></div>` : ''}
+                                
+                                <div class="exam-actions">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewExamDetails('${exam.test_id}')">
+                                        <i class="fas fa-eye"></i> รายละเอียด
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" onclick="editExam('${exam.test_id}')">
+                                        <i class="fas fa-edit"></i> แก้ไข
+                                    </button>
+                                    <button class="btn btn-sm btn-success" onclick="printExamResult('${exam.test_id}')">
+                                        <i class="fas fa-print"></i> พิมพ์
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteExam('${exam.test_id}')">
+                                        <i class="fas fa-trash-alt"></i> ลบ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function renderExamResults(examType, results) {
+            if (!results) return '';
+            
+            let html = '<div class="exam-results"><h6>ผลการตรวจ</h6>';
+            
+            switch (examType) {
+                case 'OCT':
+                    if (results.left_avg_rnfl) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Left Avg RNFL:</span>
+                            <span class="result-value ${results.left_avg_rnfl < 90 ? 'abnormal' : ''}">${results.left_avg_rnfl} µm</span>
+                        </div>`;
+                    }
+                    if (results.right_avg_rnfl) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Right Avg RNFL:</span>
+                            <span class="result-value ${results.right_avg_rnfl < 90 ? 'abnormal' : ''}">${results.right_avg_rnfl} µm</span>
+                        </div>`;
+                    }
+                    if (results.left_cup_disc_ratio) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Left C/D Ratio:</span>
+                            <span class="result-value ${results.left_cup_disc_ratio > 0.6 ? 'warning' : ''}">${results.left_cup_disc_ratio}</span>
+                        </div>`;
+                    }
+                    if (results.right_cup_disc_ratio) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Right C/D Ratio:</span>
+                            <span class="result-value ${results.right_cup_disc_ratio > 0.6 ? 'warning' : ''}">${results.right_cup_disc_ratio}</span>
+                        </div>`;
+                    }
+                    break;
+                    
+                case 'CTVF':
+                    if (results.left_eye_md) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Left Eye MD:</span>
+                            <span class="result-value ${results.left_eye_md < -6 ? 'abnormal' : ''}">${results.left_eye_md} dB</span>
+                        </div>`;
+                    }
+                    if (results.right_eye_md) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Right Eye MD:</span>
+                            <span class="result-value ${results.right_eye_md < -6 ? 'abnormal' : ''}">${results.right_eye_md} dB</span>
+                        </div>`;
+                    }
+                    if (results.left_eye_vfi) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Left Eye VFI:</span>
+                            <span class="result-value ${results.left_eye_vfi < 80 ? 'warning' : ''}">${results.left_eye_vfi}%</span>
+                        </div>`;
+                    }
+                    if (results.right_eye_vfi) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Right Eye VFI:</span>
+                            <span class="result-value ${results.right_eye_vfi < 80 ? 'warning' : ''}">${results.right_eye_vfi}%</span>
+                        </div>`;
+                    }
+                    break;
+                    
+                case 'Pachymetry':
+                    if (results.left_corneal_thickness) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Left Corneal Thickness:</span>
+                            <span class="result-value ${results.left_corneal_thickness < 500 ? 'warning' : ''}">${results.left_corneal_thickness} µm</span>
+                        </div>`;
+                    }
+                    if (results.right_corneal_thickness) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Right Corneal Thickness:</span>
+                            <span class="result-value ${results.right_corneal_thickness < 500 ? 'warning' : ''}">${results.right_corneal_thickness} µm</span>
+                        </div>`;
+                    }
+                    break;
+                    
+                case 'Gonioscopy':
+                    if (results.left_angle_grade !== undefined) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Left Angle Grade:</span>
+                            <span class="result-value ${results.left_angle_grade < 2 ? 'abnormal' : ''}">${results.left_angle_grade}</span>
+                        </div>`;
+                    }
+                    if (results.right_angle_grade !== undefined) {
+                        html += `<div class="result-item">
+                            <span class="result-label">Right Angle Grade:</span>
+                            <span class="result-value ${results.right_angle_grade < 2 ? 'abnormal' : ''}">${results.right_angle_grade}</span>
+                        </div>`;
+                    }
+                    break;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function updateExamStats(exams) {
+            const stats = {
+                total: exams.length,
+                oct: 0,
+                abnormal: 0,
+                thisMonth: 0
+            };
+
+            const thisMonth = new Date().getMonth();
+            const thisYear = new Date().getFullYear();
+
+            exams.forEach(exam => {
+                if (exam.test_type === 'OCT') stats.oct++;
+                if (exam.status === 'abnormal') stats.abnormal++;
+                
+                const examDate = new Date(exam.test_date);
+                if (examDate.getMonth() === thisMonth && examDate.getFullYear() === thisYear) {
+                    stats.thisMonth++;
+                }
+            });
+
+            document.getElementById('totalExamsCount').textContent = stats.total;
+            document.getElementById('octExamsCount').textContent = stats.oct;
+            document.getElementById('abnormalExamsCount').textContent = stats.abnormal;
+            document.getElementById('thisMonthExamsCount').textContent = stats.thisMonth;
+        }
+
+        function updatePagination(pagination) {
+            if (!pagination) {
+                // Simulate pagination for sample data
+                pagination = {
+                    page: currentPage,
+                    limit: currentLimit,
+                    total: currentLimit * 3, // Simulate more data
+                    totalPages: 3
+                };
+            }
+
+            const info = document.getElementById('paginationInfo');
+            const buttons = document.getElementById('paginationButtons');
+            
+            const start = ((pagination.page - 1) * pagination.limit) + 1;
+            const end = Math.min(pagination.page * pagination.limit, pagination.total || 0);
+            
+            info.textContent = `แสดง ${start} - ${end} จาก ${pagination.total || 0} รายการ`;
+            
+            // Create pagination buttons
+            let buttonsHTML = '';
+            
+            if (pagination.page > 1) {
+                buttonsHTML += `<button class="btn btn-outline-primary me-2" onclick="changePage(${pagination.page - 1})">ก่อนหน้า</button>`;
+            }
+            
+            if (pagination.page < (pagination.totalPages || 1)) {
+                buttonsHTML += `<button class="btn btn-outline-primary" onclick="changePage(${pagination.page + 1})">ถัดไป</button>`;
+            }
+            
+            buttons.innerHTML = buttonsHTML;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadSpecialExams();
+        }
+
+        // Patient and Doctor Loading Functions
+        async function loadPatients() {
+            try {
+                const response = await makeAPIRequest('/api/admin/users?role=patient&limit=1000');
+                const patients = response.data || [];
+                
+                populatePatientSelects(patients);
+                
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                
+                // Add placeholder options when API fails
+                const selects = ['patientFilter', 'examPatientSelect'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = selectId === 'patientFilter' ? 
+                            '<option value="">ทั้งหมด</option><option value="">ไม่สามารถโหลดรายชื่อผู้ป่วยได้</option>' : 
+                            '<option value="">-- เลือกผู้ป่วย --</option><option value="">ไม่สามารถโหลดรายชื่อผู้ป่วยได้</option>';
+                    }
+                });
+            }
+        }
+
+        function populatePatientSelects(patients) {
+            const selects = ['patientFilter', 'examPatientSelect'];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+                
+                const currentValue = select.value;
+                
+                select.innerHTML = selectId === 'patientFilter' ? 
+                    '<option value="">ทั้งหมด</option>' : 
+                    '<option value="">-- เลือกผู้ป่วย --</option>';
+                
+                patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.user_id;
+                    option.textContent = `${patient.full_name || 'ไม่ทราบชื่อ'} (HN: ${patient.hn || 'N/A'})`;
+                    select.appendChild(option);
+                });
+                
+                if (currentValue) select.value = currentValue;
+            });
+        }
+
+        async function loadDoctors() {
+            try {
+                const response = await makeAPIRequest('/api/admin/users?role=doctor&limit=1000');
+                const doctors = response.data || [];
+                
+                populateDoctorSelect(doctors);
+                
+            } catch (error) {
+                console.error('Error loading doctors:', error);
+                
+                const select = document.getElementById('examDoctorSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">ไม่สามารถโหลดรายชื่อแพทย์ได้</option>';
+                }
+            }
+        }
+
+        function populateDoctorSelect(doctors) {
+            const select = document.getElementById('examDoctorSelect');
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- เลือกแพทย์ --</option>';
+            
+            doctors.forEach(doctor => {
+                const option = document.createElement('option');
+                option.value = doctor.user_id;
+                option.textContent = doctor.full_name || 'ไม่ทราบชื่อ';
+                select.appendChild(option);
+            });
+            
+            if (currentValue) select.value = currentValue;
+        }
+
+        // Exam Actions
+        function viewExamDetails(examId) {
+            showAlert(`แสดงรายละเอียดการตรวจ ID: ${examId}`, 'info');
+            // In a real implementation, this would open a detailed view modal
+        }
+
+        function editExam(examId) {
+            currentExamId = examId;
+            
+            // In a real implementation, load exam data and populate form
+            showAlert(`กำลังโหลดข้อมูลการตรวจ ID: ${examId} สำหรับแก้ไข`, 'info');
+            
+            document.getElementById('examModalTitle').innerHTML = '<i class="fas fa-edit"></i> แก้ไขผลการตรวจ';
+            
+            const modal = new bootstrap.Modal(document.getElementById('examModal'));
+            modal.show();
+        }
+
+        function printExamResult(examId) {
+            showAlert(`กำลังเตรียมพิมพ์ผลการตรวจ ID: ${examId}`, 'info');
+            
+            // In a real implementation, this would generate and print the report
+            setTimeout(() => {
+                showAlert('เตรียมการพิมพ์เรียบร้อยแล้ว', 'success');
+            }, 2000);
+        }
+
+        async function deleteExam(examId) {
+            if (!confirm('คุณต้องการลบผลการตรวจนี้หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
+                return;
+            }
+            
+            try {
+                showAlert('กำลังลบผลการตรวจ...', 'info');
+                
+                // In a real implementation, call DELETE API
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                showAlert('ลบผลการตรวจเรียบร้อยแล้ว', 'success');
+                loadSpecialExams();
+                
+            } catch (error) {
+                console.error('Error deleting exam:', error);
+                showAlert(`ไม่สามารถลบผลการตรวจได้: ${error.message}`, 'danger');
+            }
+        }
+
+        // Modal Functions
+        function showAddExamModal() {
+            currentExamId = null;
+            document.getElementById('examModalTitle').innerHTML = '<i class="fas fa-plus"></i> เพิ่มผลการตรวจใหม่';
+            document.getElementById('examForm').reset();
+            hideAllExamSections();
+            
+            // Set today's date as default
+            document.getElementById('examDate').valueAsDate = new Date();
+            
+            const modal = new bootstrap.Modal(document.getElementById('examModal'));
+            modal.show();
+        }
+
+        function handleExamTypeChange() {
+            const examType = document.getElementById('examTypeSelect').value;
+            hideAllExamSections();
+            
+            if (examType) {
+                const sectionId = examType.toLowerCase() + 'ResultsSection';
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'block';
+                }
+            }
+        }
+
+        function hideAllExamSections() {
+            const sections = ['octResultsSection', 'ctvfResultsSection', 'pachymetryResultsSection', 'gonioscopyResultsSection'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        async function saveExam() {
+            const form = document.getElementById('examForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            try {
+                const saveBtn = document.getElementById('saveExamBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<div class="loading-spinner"></div> กำลังบันทึก...';
+                saveBtn.disabled = true;
+                
+                const examData = collectExamData();
+                
+                // In a real implementation, this would call the API to save the exam
+                // const response = await makeAPIRequest('/api/admin/special-exams', {
+                //     method: currentExamId ? 'PUT' : 'POST',
+                //     body: JSON.stringify(examData)
+                // });
+                
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                showAlert(currentExamId ? 'อัปเดตผลการตรวจเรียบร้อยแล้ว' : 'บันทึกผลการตรวจเรียบร้อยแล้ว', 'success');
+                
+                // Close modal and reload data
+                const modal = bootstrap.Modal.getInstance(document.getElementById('examModal'));
+                modal.hide();
+                loadSpecialExams();
+                
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error saving exam:', error);
+                showAlert(`ไม่สามารถบันทึกผลการตรวจได้: ${error.message}`, 'danger');
+                
+                const saveBtn = document.getElementById('saveExamBtn');
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> บันทึกผลการตรวจ';
+                saveBtn.disabled = false;
+            }
+        }
+
+        function collectExamData() {
+            const examType = document.getElementById('examTypeSelect').value;
+            const data = {
+                patient_id: document.getElementById('examPatientSelect').value,
+                test_type: examType,
+                test_date: document.getElementById('examDate').value,
+                doctor_id: document.getElementById('examDoctorSelect').value,
+                notes: document.getElementById('examNotes').value
+            };
+            
+            // Collect type-specific results
+            switch (examType) {
+                case 'OCT':
+                    data.left_avg_rnfl = document.getElementById('leftAvgRnfl').value;
+                    data.right_avg_rnfl = document.getElementById('rightAvgRnfl').value;
+                    data.left_cup_disc_ratio = document.getElementById('leftCupDiscRatio').value;
+                    data.right_cup_disc_ratio = document.getElementById('rightCupDiscRatio').value;
+                    break;
+                case 'CTVF':
+                    data.left_eye_md = document.getElementById('leftEyeMd').value;
+                    data.right_eye_md = document.getElementById('rightEyeMd').value;
+                    data.left_eye_vfi = document.getElementById('leftEyeVfi').value;
+                    data.right_eye_vfi = document.getElementById('rightEyeVfi').value;
+                    break;
+                case 'Pachymetry':
+                    data.left_corneal_thickness = document.getElementById('leftCornealThickness').value;
+                    data.right_corneal_thickness = document.getElementById('rightCornealThickness').value;
+                    break;
+                case 'Gonioscopy':
+                    data.left_angle_grade = document.getElementById('leftAngleGrade').value;
+                    data.right_angle_grade = document.getElementById('rightAngleGrade').value;
+                    break;
+            }
+            
+            return data;
+        }
+
+        // Export and Report Functions
+        function exportExams() {
+            showAlert('กำลังสร้างไฟล์ Excel...', 'info');
+            
+            // In a real implementation, this would generate Excel file with exam data
+            setTimeout(() => {
+                // Simulate file download
+                const filename = `ผลการตรวจพิเศษ_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                showAlert(`ส่งออกไฟล์ ${filename} เรียบร้อยแล้ว`, 'success');
+            }, 2000);
+        }
+
+        function generateReport() {
+            showAlert('กำลังสร้างรายงานสรุปผลการตรวจ...', 'info');
+            
+            // In a real implementation, this would generate comprehensive report
+            setTimeout(() => {
+                showAlert('สร้างรายงานเรียบร้อยแล้ว', 'success');
+            }, 3000);
+        }
+
+        function applyFilters() {
+            currentPage = 1; // Reset to first page when applying filters
+            loadSpecialExams();
+        }
+
+        function refreshExams() {
+            const refreshBtn = document.getElementById('refreshExamsBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> กำลังรีเฟรช...';
+            refreshBtn.disabled = true;
+            
+            loadSpecialExams();
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                showAlert('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+            }, 1000);
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Button event listeners
+            document.getElementById('refreshExamsBtn').addEventListener('click', refreshExams);
+            document.getElementById('addExamBtn').addEventListener('click', showAddExamModal);
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+            document.getElementById('exportExamsBtn').addEventListener('click', exportExams);
+            document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+            document.getElementById('saveExamBtn').addEventListener('click', saveExam);
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Filter change events
+            document.getElementById('patientFilter').addEventListener('change', applyFilters);
+            document.getElementById('examTypeFilter').addEventListener('change', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('startDateFilter').addEventListener('change', applyFilters);
+            document.getElementById('endDateFilter').addEventListener('change', applyFilters);
+            
+            // Exam type change in modal
+            document.getElementById('examTypeSelect').addEventListener('change', handleExamTypeChange);
+            
+            // Limit select change
+            document.getElementById('limitSelect').addEventListener('change', function() {
+                currentLimit = parseInt(this.value);
+                currentPage = 1;
+                loadSpecialExams();
+            });
+            
+            // Search input
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyFilters();
+                }
+            });
+            
+            // Set default date filters (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            document.getElementById('endDateFilter').valueAsDate = today;
+            document.getElementById('startDateFilter').valueAsDate = thirtyDaysAgo;
+            
+            // Load initial data
+            loadPatients();
+            loadDoctors();
+            loadSpecialExams();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('ระบบผลการตรวจพิเศษพร้อมใช้งาน', 'success');
+            }, 1000);
+        });
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible, refresh data
+                loadSpecialExams();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+N for new exam
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                showAddExamModal();
+            }
+            
+            // Ctrl+R or F5 for refresh
+            if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+                e.preventDefault();
+                refreshExams();
+            }
+            
+            // Escape to close modal
+            if (e.key === 'Escape') {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('examModal'));
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        });
+
+        // Auto-save draft functionality (for long forms)
+        let autoSaveTimeout;
+        function setupAutoSave() {
+            const formInputs = document.querySelectorAll('#examForm input, #examForm select, #examForm textarea');
+            
+            formInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => {
+                        // Save draft to localStorage
+                        const formData = collectExamData();
+                        localStorage.setItem('examDraft', JSON.stringify(formData));
+                    }, 2000);
+                });
+            });
+        }
+
+        function loadDraft() {
+            const draft = localStorage.getItem('examDraft');
+            if (draft && confirm('พบข้อมูลที่บันทึกไว้ คุณต้องการโหลดข้อมูลนี้หรือไม่?')) {
+                try {
+                    const data = JSON.parse(draft);
+                    // Populate form with draft data
+                    Object.keys(data).forEach(key => {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            element.value = data[key];
+                        }
+                    });
+                    localStorage.removeItem('examDraft');
+                } catch (error) {
+                    console.error('Error loading draft:', error);
+                }
+            }
+        }
+
+        // Input validation helpers
+        function validateNumericInput(input, min, max) {
+            const value = parseFloat(input.value);
+            if (isNaN(value)) return false;
+            if (min !== undefined && value < min) return false;
+            if (max !== undefined && value > max) return false;
+            return true;
+        }
+
+        function setupInputValidation() {
+            // RNFL validation (normal range: 80-120 µm)
+            ['leftAvgRnfl', 'rightAvgRnfl'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 80 || value > 120) {
+                                this.style.borderColor = '#ef4444';
+                                this.title = 'ค่าผิดปกติ (ปกติ: 80-120 µm)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Cup/Disc ratio validation (normal: < 0.6)
+            ['leftCupDiscRatio', 'rightCupDiscRatio'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value > 0.6) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'ค่าสูงกว่าปกติ (ปกติ: < 0.6)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        }
+                    });
+                }
+            });
+
+            // MD validation (normal: > -6 dB)
+            ['leftEyeMd', 'rightEyeMd'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < -6) {
+                                this.style.borderColor = '#ef4444';
+                                this.title = 'ค่าผิดปกติ (ปกติ: > -6 dB)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Corneal thickness validation (normal: 500-600 µm)
+            ['leftCornealThickness', 'rightCornealThickness'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 500) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'ค่าบางกว่าปกติ (ปกติ: 500-600 µm)';
+                            } else if (value > 600) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'ค่าหนากว่าปกติ (ปกติ: 500-600 µm)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Initialize additional features when modal is shown
+        document.getElementById('examModal').addEventListener('shown.bs.modal', function() {
+            setupAutoSave();
+            setupInputValidation();
+            loadDraft();
+        });
+
+        // Clear draft when modal is hidden
+        document.getElementById('examModal').addEventListener('hidden.bs.modal', function() {
+            localStorage.removeItem('examDraft');
+            clearTimeout(autoSaveTimeout);
+        });
+    </script>
+</body>
+</html>

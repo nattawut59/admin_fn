@@ -1,0 +1,2724 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>อัปเดตข้อมูลโรคต้อหิน - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Statistics Cards */
+        .stats-card {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 30px rgba(0, 206, 206, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 206, 206, 0.4);
+        }
+
+        .stats-card h4 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .stats-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .stats-card.warning:hover {
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
+        }
+
+        .stats-card.danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .stats-card.danger:hover {
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .stats-card.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .stats-card.success:hover {
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        /* IOP Status */
+        .iop-normal {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .iop-borderline {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        .iop-high {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+            color: white;
+        }
+
+        /* File Upload Styles */
+        .file-upload-area {
+            border: 3px dashed #e2e8f0;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transition: all 0.3s ease;
+            margin: 25px 0;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            transform: translateY(-2px);
+        }
+
+        .file-upload-area.dragover {
+            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            transform: scale(1.02);
+        }
+
+        .file-upload-area i {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Tab Styles */
+        .nav-tabs {
+            border-bottom: 3px solid var(--bg-light);
+            margin-bottom: 30px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--text-light);
+            padding: 15px 25px;
+            border-radius: 12px 12px 0 0;
+            margin-right: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-bottom: 3px solid var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: transparent;
+            background: var(--bg-light);
+            color: var(--secondary-color);
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+        }
+
+        /* Action Button */
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            margin: 0 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .action-btn.delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mt-4 {
+            margin-top: 25px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .mb-4 {
+            margin-bottom: 25px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item active">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาผู้ป่วย, HN..." id="searchInput">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">
+                    <i class="fas fa-briefcase-medical"></i>
+                    อัปเดตข้อมูลโรคต้อหิน
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="generateAlertsBtn">
+                        <i class="fas fa-exclamation-triangle"></i> ตรวจสอบการแจ้งเตือน
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDataModal">
+                        <i class="fas fa-plus"></i> เพิ่มข้อมูลการตรวจ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Statistics Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card fade-in">
+                        <h4 id="totalPatientsCount">-</h4>
+                        <p>ผู้ป่วยทั้งหมด</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card warning fade-in">
+                        <h4 id="highIopCount">-</h4>
+                        <p>IOP สูงกว่าปกติ</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card danger fade-in">
+                        <h4 id="criticalAlertsCount">-</h4>
+                        <p>แจ้งเตือนเร่งด่วน</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card success fade-in">
+                        <h4 id="recentMeasurementsCount">-</h4>
+                        <p>การตรวจใหม่ (7 วัน)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management Tabs -->
+            <ul class="nav nav-tabs" id="dataManagementTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="iop-data-tab" data-bs-toggle="tab" data-bs-target="#iop-data" type="button" role="tab">
+                        <i class="fas fa-eye"></i> ข้อมูล IOP
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="test-results-tab" data-bs-toggle="tab" data-bs-target="#test-results" type="button" role="tab">
+                        <i class="fas fa-microscope"></i> ผลการตรวจพิเศษ
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button" role="tab">
+                        <i class="fas fa-bell"></i> การแจ้งเตือน
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="import-data-tab" data-bs-toggle="tab" data-bs-target="#import-data" type="button" role="tab">
+                        <i class="fas fa-file-import"></i> นำเข้าข้อมูล
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="dataManagementTabContent">
+                <!-- IOP Data Tab -->
+                <div class="tab-pane fade show active" id="iop-data" role="tabpanel">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-eye"></i> ข้อมูลการวัด IOP ล่าสุด</h3>
+                            <div>
+                                <select class="form-control" id="iopPeriodFilter" style="width: auto; display: inline-block;">
+                                    <option value="7">7 วันล่าสุด</option>
+                                    <option value="30">30 วันล่าสุด</option>
+                                    <option value="90">90 วันล่าสุด</option>
+                                    <option value="365">1 ปีล่าสุด</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="iopDataTable">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-id-card"></i> HN</th>
+                                            <th><i class="fas fa-user"></i> ชื่อผู้ป่วย</th>
+                                            <th><i class="fas fa-calendar"></i> วันที่ตรวจ</th>
+                                            <th><i class="fas fa-eye"></i> IOP ตาซ้าย</th>
+                                            <th><i class="fas fa-eye"></i> IOP ตาขวา</th>
+                                            <th><i class="fas fa-check-circle"></i> สถานะ</th>
+                                            <th><i class="fas fa-user-md"></i> แพทย์ผู้ตรวจ</th>
+                                            <th><i class="fas fa-tools"></i> การกระทำ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="iopDataBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดข้อมูล IOP...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Pagination for IOP Data -->
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div id="iopTableInfo"></div>
+                                <nav>
+                                    <ul class="pagination" id="iopPagination"></ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results Tab -->
+                <div class="tab-pane fade" id="test-results" role="tabpanel">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-microscope"></i> ผลการตรวจพิเศษ</h3>
+                            <div>
+                                <select class="form-control" id="testTypeFilter" style="width: auto; display: inline-block;">
+                                    <option value="">ทุกประเภท</option>
+                                    <option value="OCT">OCT</option>
+                                    <option value="CTVF">Visual Field</option>
+                                    <option value="Pachymetry">Pachymetry</option>
+                                    <option value="Gonioscopy">Gonioscopy</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="testResultsTable">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-id-card"></i> HN</th>
+                                            <th><i class="fas fa-user"></i> ชื่อผู้ป่วย</th>
+                                            <th><i class="fas fa-vial"></i> ประเภทการตรวจ</th>
+                                            <th><i class="fas fa-calendar"></i> วันที่ตรวจ</th>
+                                            <th><i class="fas fa-file-medical"></i> ผลการตรวจ</th>
+                                            <th><i class="fas fa-user-md"></i> แพทย์ผู้ตรวจ</th>
+                                            <th><i class="fas fa-tools"></i> การกระทำ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="testResultsBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดผลการตรวจ...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Tab -->
+                <div class="tab-pane fade" id="alerts" role="tabpanel">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bell"></i> การแจ้งเตือนที่ต้องติดตาม</h3>
+                            <div>
+                                <select class="form-control" id="alertSeverityFilter" style="width: auto; display: inline-block;">
+                                    <option value="">ทุกระดับ</option>
+                                    <option value="critical">เร่งด่วน</option>
+                                    <option value="high">สูง</option>
+                                    <option value="medium">ปานกลาง</option>
+                                    <option value="low">ต่ำ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="alertsTable">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-id-card"></i> HN</th>
+                                            <th><i class="fas fa-user"></i> ชื่อผู้ป่วย</th>
+                                            <th><i class="fas fa-tag"></i> ประเภทแจ้งเตือน</th>
+                                            <th><i class="fas fa-exclamation-circle"></i> ระดับความสำคัญ</th>
+                                            <th><i class="fas fa-comment"></i> ข้อความ</th>
+                                            <th><i class="fas fa-calendar"></i> วันที่สร้าง</th>
+                                            <th><i class="fas fa-check-circle"></i> สถานะ</th>
+                                            <th><i class="fas fa-tools"></i> การกระทำ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="alertsBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดการแจ้งเตือน...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import Data Tab -->
+                <div class="tab-pane fade" id="import-data" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card fade-in">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-eye"></i> นำเข้าข้อมูล IOP</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="file-upload-area" id="iopUploadArea">
+                                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                                        <p><strong>ลากไฟล์ CSV มาวางที่นี่</strong></p>
+                                        <p>หรือคลิกเพื่อเลือกไฟล์</p>
+                                        <small class="text-muted">รองรับไฟล์ .csv เท่านั้น (ขนาดไม่เกิน 10MB)</small>
+                                        <input type="file" id="iopFileInput" accept=".csv" style="display: none;">
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-outline-primary" onclick="downloadIOPTemplate()">
+                                            <i class="fas fa-download"></i> ดาวน์โหลดไฟล์ตัวอย่าง
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="iopUploadProgress" style="display: none;">
+                                        <div class="progress">
+                                            <div class="progress-bar" id="iopProgressBar" style="width: 0%"></div>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <span id="iopUploadStatus">กำลังอัปโหลด...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card fade-in">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-microscope"></i> นำเข้าผลการตรวจพิเศษ</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="file-upload-area" id="testUploadArea">
+                                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                                        <p><strong>ลากไฟล์ CSV มาวางที่นี่</strong></p>
+                                        <p>หรือคลิกเพื่อเลือกไฟล์</p>
+                                        <small class="text-muted">รองรับไฟล์ .csv เท่านั้น (ขนาดไม่เกิน 10MB)</small>
+                                        <input type="file" id="testFileInput" accept=".csv" style="display: none;">
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-outline-primary" onclick="downloadTestTemplate()">
+                                            <i class="fas fa-download"></i> ดาวน์โหลดไฟล์ตัวอย่าง
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="testUploadProgress" style="display: none;">
+                                        <div class="progress">
+                                            <div class="progress-bar" id="testProgressBar" style="width: 0%"></div>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <span id="testUploadStatus">กำลังอัปโหลด...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Import History -->
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> ประวัติการนำเข้าข้อมูล</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="importHistoryTable">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-calendar"></i> วันที่นำเข้า</th>
+                                            <th><i class="fas fa-tag"></i> ประเภทข้อมูล</th>
+                                            <th><i class="fas fa-file"></i> ไฟล์</th>
+                                            <th><i class="fas fa-list-ol"></i> จำนวนรายการ</th>
+                                            <th><i class="fas fa-check-circle"></i> สถานะ</th>
+                                            <th><i class="fas fa-user"></i> ผู้นำเข้า</th>
+                                            <th><i class="fas fa-tools"></i> การกระทำ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="importHistoryBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดประวัติการนำเข้า...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Data Modal -->
+    <div class="modal fade" id="addDataModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">เพิ่มข้อมูลการตรวจใหม่</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDataForm">
+                        <!-- Patient Selection -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="patientSelect">เลือกผู้ป่วย</label>
+                                    <select class="form-control" id="patientSelect" required>
+                                        <option value="">-- เลือกผู้ป่วย --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="measurementDate">วันที่ตรวจ</label>
+                                    <input type="date" class="form-control" id="measurementDate" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Measurement Type Selection -->
+                        <div class="form-group">
+                            <label>ประเภทการตรวจ</label>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeIOP" checked>
+                                        <label class="form-check-label" for="includeIOP">
+                                            การวัด IOP
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeOCT">
+                                        <label class="form-check-label" for="includeOCT">
+                                            OCT
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includeVF">
+                                        <label class="form-check-label" for="includeVF">
+                                            Visual Field
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="includePachy">
+                                        <label class="form-check-label" for="includePachy">
+                                            Pachymetry
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IOP Measurements -->
+                        <div id="iopSection">
+                            <h6 class="mt-4 mb-3"><i class="fas fa-eye"></i> การวัด IOP</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="leftEyeIOP">IOP ตาซ้าย (mmHg)</label>
+                                        <input type="number" class="form-control" id="leftEyeIOP" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="rightEyeIOP">IOP ตาขวา (mmHg)</label>
+                                        <input type="number" class="form-control" id="rightEyeIOP" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="iopMethod">วิธีการวัด</label>
+                                <select class="form-control" id="iopMethod">
+                                    <option value="goldmann">Goldmann Applanation Tonometry</option>
+                                    <option value="non_contact">Non-contact Tonometry</option>
+                                    <option value="rebound">Rebound Tonometry</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- OCT Section -->
+                        <div id="octSection" style="display: none;">
+                            <h6 class="mt-4 mb-3"><i class="fas fa-microscope"></i> OCT</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="leftRNFL">RNFL ตาซ้าย (μm)</label>
+                                        <input type="number" class="form-control" id="leftRNFL" min="0" step="0.1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="rightRNFL">RNFL ตาขวา (μm)</label>
+                                        <input type="number" class="form-control" id="rightRNFL" min="0" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="leftCupDisc">Cup/Disc Ratio ตาซ้าย</label>
+                                        <input type="number" class="form-control" id="leftCupDisc" min="0" max="1" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="rightCupDisc">Cup/Disc Ratio ตาขวา</label>
+                                        <input type="number" class="form-control" id="rightCupDisc" min="0" max="1" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Field Section -->
+                        <div id="vfSection" style="display: none;">
+                            <h6 class="mt-4 mb-3"><i class="fas fa-chart-area"></i> Visual Field Test</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="leftMD">MD ตาซ้าย (dB)</label>
+                                        <input type="number" class="form-control" id="leftMD" step="0.1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="rightMD">MD ตาขวา (dB)</label>
+                                        <input type="number" class="form-control" id="rightMD" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="leftVFI">VFI ตาซ้าย (%)</label>
+                                        <input type="number" class="form-control" id="leftVFI" min="0" max="100">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="rightVFI">VFI ตาขวา (%)</label>
+                                        <input type="number" class="form-control" id="rightVFI" min="0" max="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pachymetry Section -->
+                        <div id="pachySection" style="display: none;">
+                            <h6 class="mt-4 mb-3"><i class="fas fa-ruler"></i> Pachymetry</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="leftCornealThickness">ความหนากระจกใสตาซ้าย (μm)</label>
+                                        <input type="number" class="form-control" id="leftCornealThickness" min="300" max="800">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="rightCornealThickness">ความหนากระจกใสตาขวา (μm)</label>
+                                        <input type="number" class="form-control" id="rightCornealThickness" min="300" max="800">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div class="form-group">
+                            <label for="measurementNotes">หมายเหตุเพิ่มเติม</label>
+                            <textarea class="form-control" id="measurementNotes" rows="3" placeholder="บันทึกข้อสังเกตหรือรายละเอียดเพิ่มเติม"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" id="saveMeasurementBtn">
+                        <i class="fas fa-save"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">รายละเอียดการตรวจ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailsModalContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="button" class="btn btn-warning" id="editMeasurementBtn">
+                        <i class="fas fa-edit"></i> แก้ไข
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+const API_BASE_URL = 'http://localhost:3002'; // ปรับ URL ตามการตั้งค่าจริง
+let authToken = '';
+let currentIOPData = [];
+let currentTestResults = [];
+let currentAlerts = [];
+let currentPage = 1;
+let totalPages = 1;
+
+// Authentication Functions
+function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
+function checkAuthentication() {
+    const token = getAuthToken();
+    if (!token) {
+        window.location.href = 'index.html';
+        return false;
+    }
+    authToken = token;
+    return true;
+}
+
+// API Helper Functions
+async function makeAPIRequest(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        }
+    };
+    
+    const finalOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+    
+    try {
+        const response = await fetch(url, finalOptions);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'API request failed');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// UI Helper Functions
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('th-TH');
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('th-TH');
+}
+
+function getIOPStatus(leftIOP, rightIOP) {
+    const maxIOP = Math.max(leftIOP || 0, rightIOP || 0);
+    
+    if (maxIOP > 25) {
+        return { class: 'iop-high', text: 'สูงมาก', badge: 'bg-danger' };
+    } else if (maxIOP > 21) {
+        return { class: 'iop-borderline', text: 'สูงกว่าปกติ', badge: 'bg-warning' };
+    } else if (maxIOP > 0) {
+        return { class: 'iop-normal', text: 'ปกติ', badge: 'bg-success' };
+    } else {
+        return { class: '', text: '-', badge: 'bg-secondary' };
+    }
+}
+
+function getSeverityBadge(severity) {
+    const severityMap = {
+        'critical': { class: 'bg-danger', text: 'เร่งด่วน' },
+        'high': { class: 'bg-warning', text: 'สูง' },
+        'medium': { class: 'bg-info', text: 'ปานกลาง' },
+        'low': { class: 'bg-secondary', text: 'ต่ำ' }
+    };
+    
+    const info = severityMap[severity] || { class: 'bg-secondary', text: severity };
+    return `<span class="badge ${info.class}">${info.text}</span>`;
+}
+
+function getStatusBadge(status) {
+    const statusMap = {
+        'pending': { class: 'bg-warning', text: 'รอดำเนินการ' },
+        'in_progress': { class: 'bg-info', text: 'กำลังดำเนินการ' },
+        'resolved': { class: 'bg-success', text: 'จัดการแล้ว' },
+        'active': { class: 'bg-success', text: 'ใช้งาน' },
+        'success': { class: 'bg-success', text: 'สำเร็จ' },
+        'failed': { class: 'bg-danger', text: 'ล้มเหลว' },
+        'processing': { class: 'bg-info', text: 'กำลังประมวลผล' }
+    };
+    
+    const info = statusMap[status] || { class: 'bg-secondary', text: status };
+    return `<span class="badge ${info.class}">${info.text}</span>`;
+}
+
+// Statistics Functions
+async function loadStatistics() {
+    try {
+        const response = await makeAPIRequest('/api/admin/reports/statistics?period=30d');
+        const stats = response.data;
+        
+        // Update statistics cards
+        document.getElementById('totalPatientsCount').textContent = stats.userStats.patients || 0;
+        document.getElementById('highIopCount').textContent = stats.iopStats.high_iop_count || 0;
+        document.getElementById('recentMeasurementsCount').textContent = stats.iopStats.total_measurements || 0;
+        
+        // Load alerts for critical count
+        const alertsResponse = await makeAPIRequest('/api/admin/alerts?severity=critical&limit=100');
+        document.getElementById('criticalAlertsCount').textContent = alertsResponse.data?.length || 0;
+        
+    } catch (error) {
+        console.error('Error loading statistics:', error);
+        // Set default values
+        document.getElementById('totalPatientsCount').textContent = '0';
+        document.getElementById('highIopCount').textContent = '0';
+        document.getElementById('recentMeasurementsCount').textContent = '0';
+        document.getElementById('criticalAlertsCount').textContent = '0';
+    }
+}
+
+// IOP Data Functions
+async function loadIOPData(page = 1, period = 7) {
+    try {
+        // Since API doesn't have specific IOP endpoint, we'll simulate with users data
+        const response = await makeAPIRequest(`/api/admin/users?role=patient&page=${page}&limit=20`);
+        const patients = response.data;
+        
+        // Simulate IOP data based on patients
+        const iopData = patients.map((patient, index) => ({
+            patient_id: patient.user_id,
+            hn: `HN${String(index + 1).padStart(6, '0')}`,
+            patient_name: patient.full_name || patient.username,
+            measurement_date: new Date(Date.now() - Math.random() * period * 24 * 60 * 60 * 1000).toISOString(),
+            left_eye_iop: Math.round((Math.random() * 15 + 12) * 10) / 10,
+            right_eye_iop: Math.round((Math.random() * 15 + 12) * 10) / 10,
+            measurement_method: 'goldmann',
+            measured_by: 'แพทย์หญิง สมใจ ใจดี'
+        }));
+        
+        currentIOPData = iopData;
+        updateIOPTable(iopData);
+        
+        // Update pagination (simulated)
+        updateIOPPagination({ page, limit: 20, total: patients.length * 3, totalPages: Math.ceil(patients.length * 3 / 20) });
+        
+    } catch (error) {
+        console.error('Error loading IOP data:', error);
+        showAlert(`ไม่สามารถโหลดข้อมูล IOP ได้: ${error.message}`, 'danger');
+        
+        document.querySelector('#iopDataTable tbody').innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div class="alert alert-danger">ไม่สามารถโหลดข้อมูล IOP ได้</div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateIOPTable(data) {
+    const tableBody = document.querySelector('#iopDataTable tbody');
+    
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">ไม่พบข้อมูล IOP</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    data.forEach(item => {
+        const iopStatus = getIOPStatus(item.left_eye_iop, item.right_eye_iop);
+        
+        html += `
+            <tr>
+                <td>${item.hn}</td>
+                <td>${item.patient_name}</td>
+                <td>${formatDate(item.measurement_date)}</td>
+                <td class="${iopStatus.class}">${item.left_eye_iop} mmHg</td>
+                <td class="${iopStatus.class}">${item.right_eye_iop} mmHg</td>
+                <td><span class="badge ${iopStatus.badge}">${iopStatus.text}</span></td>
+                <td>${item.measured_by}</td>
+                <td>
+                    <button class="action-btn view" onclick="viewIOPDetails('${item.patient_id}', '${item.measurement_date}')" title="ดูรายละเอียด">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn edit" onclick="editIOPData('${item.patient_id}', '${item.measurement_date}')" title="แก้ไข">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteIOPData('${item.patient_id}', '${item.measurement_date}')" title="ลบ">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
+
+function updateIOPPagination(pagination) {
+    const paginationElement = document.getElementById('iopPagination');
+    const infoElement = document.getElementById('iopTableInfo');
+    
+    currentPage = pagination.page;
+    totalPages = pagination.totalPages;
+    
+    // Update info
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(start + pagination.limit - 1, pagination.total);
+    infoElement.textContent = `แสดง ${start}-${end} จาก ${pagination.total} รายการ`;
+    
+    // Update pagination
+    let html = '';
+    
+    // Previous button
+    html += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <button class="page-link" onclick="loadIOPData(${currentPage - 1}, document.getElementById('iopPeriodFilter').value)">ก่อนหน้า</button>
+        </li>
+    `;
+    
+    // Page numbers
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+        html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <button class="page-link" onclick="loadIOPData(${i}, document.getElementById('iopPeriodFilter').value)">${i}</button>
+            </li>
+        `;
+    }
+    
+    // Next button
+    html += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <button class="page-link" onclick="loadIOPData(${currentPage + 1}, document.getElementById('iopPeriodFilter').value)">ถัดไป</button>
+        </li>
+    `;
+    
+    paginationElement.innerHTML = html;
+}
+
+// Test Results Functions
+async function loadTestResults(testType = '') {
+    try {
+        // Simulate test results data
+        const response = await makeAPIRequest('/api/admin/users?role=patient&limit=10');
+        const patients = response.data;
+        
+        const testTypes = ['OCT', 'CTVF', 'Pachymetry', 'Gonioscopy'];
+        const testResults = patients.map((patient, index) => ({
+            patient_id: patient.user_id,
+            hn: `HN${String(index + 1).padStart(6, '0')}`,
+            patient_name: patient.full_name || patient.username,
+            test_type: testTypes[index % testTypes.length],
+            test_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+            test_results: generateTestResults(testTypes[index % testTypes.length]),
+            measured_by: 'แพทย์หญิง สมใจ ใจดี'
+        }));
+        
+        // Filter by test type if specified
+        const filteredResults = testType ? testResults.filter(item => item.test_type === testType) : testResults;
+        
+        currentTestResults = filteredResults;
+        updateTestResultsTable(filteredResults);
+        
+    } catch (error) {
+        console.error('Error loading test results:', error);
+        showAlert(`ไม่สามารถโหลดผลการตรวจได้: ${error.message}`, 'danger');
+        
+        document.querySelector('#testResultsTable tbody').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">
+                    <div class="alert alert-danger">ไม่สามารถโหลดผลการตรวจได้</div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function generateTestResults(testType) {
+    switch (testType) {
+        case 'OCT':
+            return `RNFL: ${Math.round(Math.random() * 50 + 80)}μm, Cup/Disc: ${(Math.random() * 0.5 + 0.2).toFixed(2)}`;
+        case 'CTVF':
+            return `MD: ${(Math.random() * -10).toFixed(1)}dB, VFI: ${Math.round(Math.random() * 40 + 60)}%`;
+        case 'Pachymetry':
+            return `CCT: ${Math.round(Math.random() * 100 + 500)}μm`;
+        case 'Gonioscopy':
+            return `Angle: Grade ${Math.round(Math.random() * 3 + 1)}`;
+        default:
+            return 'ผลการตรวจปกติ';
+    }
+}
+
+function updateTestResultsTable(data) {
+    const tableBody = document.querySelector('#testResultsTable tbody');
+    
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">ไม่พบผลการตรวจ</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    data.forEach(item => {
+        html += `
+            <tr>
+                <td>${item.hn}</td>
+                <td>${item.patient_name}</td>
+                <td><span class="badge bg-info">${item.test_type}</span></td>
+                <td>${formatDate(item.test_date)}</td>
+                <td>${item.test_results}</td>
+                <td>${item.measured_by}</td>
+                <td>
+                    <button class="action-btn view" onclick="viewTestDetails('${item.patient_id}', '${item.test_type}', '${item.test_date}')" title="ดูรายละเอียด">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn edit" onclick="editTestResults('${item.patient_id}', '${item.test_type}', '${item.test_date}')" title="แก้ไข">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteTestResults('${item.patient_id}', '${item.test_type}', '${item.test_date}')" title="ลบ">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
+
+// Alerts Functions
+async function loadAlerts(severity = '') {
+    try {
+        const response = await makeAPIRequest(`/api/admin/alerts${severity ? `?severity=${severity}` : ''}`);
+        const alerts = response.data;
+        
+        currentAlerts = alerts;
+        updateAlertsTable(alerts);
+        
+    } catch (error) {
+        console.error('Error loading alerts:', error);
+        showAlert(`ไม่สามารถโหลดการแจ้งเตือนได้: ${error.message}`, 'danger');
+        
+        document.querySelector('#alertsTable tbody').innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div class="alert alert-danger">ไม่สามารถโหลดการแจ้งเตือนได้</div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateAlertsTable(data) {
+    const tableBody = document.querySelector('#alertsTable tbody');
+    
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">ไม่พบการแจ้งเตือน</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    data.forEach(alert => {
+        html += `
+            <tr>
+                <td>${alert.hn || 'N/A'}</td>
+                <td>${alert.first_name} ${alert.last_name}</td>
+                <td>${translateAlertType(alert.alert_type)}</td>
+                <td>${getSeverityBadge(alert.severity)}</td>
+                <td>${alert.alert_message}</td>
+                <td>${formatDateTime(alert.created_at)}</td>
+                <td>${getStatusBadge(alert.resolution_status)}</td>
+                <td>
+                    <button class="action-btn view" onclick="viewAlertDetails('${alert.alert_id}')" title="ดูรายละเอียด">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${alert.resolution_status === 'pending' ? `
+                        <button class="action-btn edit" onclick="resolveAlert('${alert.alert_id}')" title="จัดการ">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    ` : ''}
+                    <button class="action-btn delete" onclick="deleteAlert('${alert.alert_id}')" title="ลบ">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
+
+function translateAlertType(alertType) {
+    const translations = {
+        'high_iop': 'IOP สูง',
+        'medication_adherence': 'การกินยาไม่สม่ำเสมอ',
+        'appointment_overdue': 'นัดหมายเกินกำหนด',
+        'test_abnormal': 'ผลการตรวจผิดปกติ'
+    };
+    
+    return translations[alertType] || alertType;
+}
+
+// Auto-generate alerts
+async function generateAlerts() {
+    try {
+        const generateBtn = document.getElementById('generateAlertsBtn');
+        const originalText = generateBtn.innerHTML;
+        
+        generateBtn.innerHTML = '<div class="loading-spinner"></div> กำลังตรวจสอบ...';
+        generateBtn.disabled = true;
+        
+        const response = await makeAPIRequest('/api/admin/alerts/auto-check', {
+            method: 'POST'
+        });
+        
+        showAlert(`ตรวจสอบเสร็จสิ้น: สร้างการแจ้งเตือนใหม่ ${response.data.alertsCreated.length} รายการ`, 'success');
+        
+        // Reload alerts data
+        loadAlerts();
+        loadStatistics();
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาดในการตรวจสอบ: ${error.message}`, 'danger');
+    } finally {
+        const generateBtn = document.getElementById('generateAlertsBtn');
+        generateBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ตรวจสอบการแจ้งเตือน';
+        generateBtn.disabled = false;
+    }
+}
+
+// Import Data Functions
+function loadImportHistory() {
+    // Simulate import history
+    const importHistory = [
+        {
+            import_date: new Date(Date.now() - 86400000).toISOString(),
+            data_type: 'IOP',
+            filename: 'iop_data_2025_01.csv',
+            record_count: 150,
+            status: 'success',
+            imported_by: 'Admin User'
+        },
+        {
+            import_date: new Date(Date.now() - 86400000 * 3).toISOString(),
+            data_type: 'OCT',
+            filename: 'oct_results_jan.csv',
+            record_count: 85,
+            status: 'success',
+            imported_by: 'Admin User'
+        },
+        {
+            import_date: new Date(Date.now() - 86400000 * 7).toISOString(),
+            data_type: 'Visual Field',
+            filename: 'vf_tests_week1.csv',
+            record_count: 45,
+            status: 'failed',
+            imported_by: 'Admin User'
+        }
+    ];
+    
+    updateImportHistoryTable(importHistory);
+}
+
+function updateImportHistoryTable(data) {
+    const tableBody = document.querySelector('#importHistoryTable tbody');
+    
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">ไม่พบประวัติการนำเข้าข้อมูล</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    data.forEach(item => {
+        html += `
+            <tr>
+                <td>${formatDateTime(item.import_date)}</td>
+                <td><span class="badge bg-info">${item.data_type}</span></td>
+                <td>${item.filename}</td>
+                <td>${item.record_count.toLocaleString()}</td>
+                <td>${getStatusBadge(item.status)}</td>
+                <td>${item.imported_by}</td>
+                <td>
+                    <button class="action-btn view" onclick="viewImportDetails('${item.filename}')" title="ดูรายละเอียด">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${item.status === 'failed' ? `
+                        <button class="action-btn edit" onclick="retryImport('${item.filename}')" title="ลองใหม่">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
+
+// File Upload Functions
+function setupFileUploads() {
+    setupFileUpload('iopUploadArea', 'iopFileInput', 'iop');
+    setupFileUpload('testUploadArea', 'testFileInput', 'test');
+}
+
+function setupFileUpload(areaId, inputId, type) {
+    const uploadArea = document.getElementById(areaId);
+    const fileInput = document.getElementById(inputId);
+    
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0], type);
+        }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileUpload(e.target.files[0], type);
+        }
+    });
+}
+
+async function handleFileUpload(file, type) {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+        showAlert('กรุณาเลือกไฟล์ CSV เท่านั้น', 'warning');
+        return;
+    }
+    
+    const progressId = type === 'iop' ? 'iopUploadProgress' : 'testUploadProgress';
+    const progressBarId = type === 'iop' ? 'iopProgressBar' : 'testProgressBar';
+    const statusId = type === 'iop' ? 'iopUploadStatus' : 'testUploadStatus';
+    
+    // Show progress
+    document.getElementById(progressId).style.display = 'block';
+    document.getElementById(statusId).textContent = 'กำลังอัปโหลดไฟล์...';
+    
+    try {
+        // Simulate file upload progress
+        for (let i = 0; i <= 100; i += 10) {
+            document.getElementById(progressBarId).style.width = i + '%';
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // Simulate processing
+        document.getElementById(statusId).textContent = 'กำลังประมวลผลข้อมูล...';
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        showAlert(`อัปโหลดและประมวลผล ${file.name} เรียบร้อยแล้ว`, 'success');
+        
+        // Refresh import history
+        loadImportHistory();
+        
+        // Refresh relevant data
+        if (type === 'iop') {
+            loadIOPData();
+        } else {
+            loadTestResults();
+        }
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาดในการอัปโหลด: ${error.message}`, 'danger');
+    } finally {
+        // Hide progress
+        setTimeout(() => {
+            document.getElementById(progressId).style.display = 'none';
+            document.getElementById(progressBarId).style.width = '0%';
+        }, 1000);
+    }
+}
+
+// Template Download Functions
+function downloadIOPTemplate() {
+    const csvContent = "HN,วันที่ตรวจ,IOP_ตาซ้าย,IOP_ตาขวา,วิธีการวัด,หมายเหตุ\n" +
+                      "HN000001,2025-01-15,18.5,19.2,goldmann,\n" +
+                      "HN000002,2025-01-15,21.0,20.8,goldmann,\n" +
+                      "HN000003,2025-01-15,16.5,17.1,non_contact,";
+    
+    downloadCSV(csvContent, 'IOP_Template.csv');
+}
+
+function downloadTestTemplate() {
+    const csvContent = "HN,วันที่ตรวจ,ประเภทการตรวจ,ผลการตรวจ,หมายเหตุ\n" +
+                      "HN000001,2025-01-15,OCT,RNFL: 85μm Cup/Disc: 0.35,\n" +
+                      "HN000002,2025-01-15,CTVF,MD: -2.5dB VFI: 95%,\n" +
+                      "HN000003,2025-01-15,Pachymetry,CCT: 550μm,";
+    
+    downloadCSV(csvContent, 'Test_Results_Template.csv');
+}
+
+function downloadCSV(content, filename) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Patient Selection Functions
+async function loadPatients() {
+    try {
+        const response = await makeAPIRequest('/api/admin/users?role=patient&limit=100');
+        const patients = response.data;
+        
+        const patientSelect = document.getElementById('patientSelect');
+        patientSelect.innerHTML = '<option value="">-- เลือกผู้ป่วย --</option>';
+        
+        patients.forEach(patient => {
+            const option = document.createElement('option');
+            option.value = patient.user_id;
+            option.textContent = `${patient.username} - ${patient.full_name || 'ไม่ระบุชื่อ'}`;
+            patientSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Error loading patients:', error);
+    }
+}
+
+// Modal Functions
+function setupModalHandlers() {
+    // Show/hide measurement sections based on checkboxes
+    document.getElementById('includeIOP').addEventListener('change', function() {
+        document.getElementById('iopSection').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('includeOCT').addEventListener('change', function() {
+        document.getElementById('octSection').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('includeVF').addEventListener('change', function() {
+        document.getElementById('vfSection').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('includePachy').addEventListener('change', function() {
+        document.getElementById('pachySection').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Set default date to today
+    document.getElementById('measurementDate').valueAsDate = new Date();
+}
+
+async function saveMeasurement() {
+    const formData = {
+        patient_id: document.getElementById('patientSelect').value,
+        measurement_date: document.getElementById('measurementDate').value,
+        measurements: {},
+        notes: document.getElementById('measurementNotes').value
+    };
+    
+    if (!formData.patient_id || !formData.measurement_date) {
+        showAlert('กรุณาเลือกผู้ป่วยและวันที่ตรวจ', 'warning');
+        return;
+    }
+    
+    // Collect IOP data
+    if (document.getElementById('includeIOP').checked) {
+        formData.measurements.iop = {
+            left_eye: parseFloat(document.getElementById('leftEyeIOP').value) || null,
+            right_eye: parseFloat(document.getElementById('rightEyeIOP').value) || null,
+            method: document.getElementById('iopMethod').value
+        };
+    }
+    
+    // Collect OCT data
+    if (document.getElementById('includeOCT').checked) {
+        formData.measurements.oct = {
+            left_rnfl: parseFloat(document.getElementById('leftRNFL').value) || null,
+            right_rnfl: parseFloat(document.getElementById('rightRNFL').value) || null,
+            left_cup_disc: parseFloat(document.getElementById('leftCupDisc').value) || null,
+            right_cup_disc: parseFloat(document.getElementById('rightCupDisc').value) || null
+        };
+    }
+    
+    // Collect Visual Field data
+    if (document.getElementById('includeVF').checked) {
+        formData.measurements.vf = {
+            left_md: parseFloat(document.getElementById('leftMD').value) || null,
+            right_md: parseFloat(document.getElementById('rightMD').value) || null,
+            left_vfi: parseFloat(document.getElementById('leftVFI').value) || null,
+            right_vfi: parseFloat(document.getElementById('rightVFI').value) || null
+        };
+    }
+    
+    // Collect Pachymetry data
+    if (document.getElementById('includePachy').checked) {
+        formData.measurements.pachymetry = {
+            left_thickness: parseFloat(document.getElementById('leftCornealThickness').value) || null,
+            right_thickness: parseFloat(document.getElementById('rightCornealThickness').value) || null
+        };
+    }
+    
+    const saveBtn = document.getElementById('saveMeasurementBtn');
+    const originalText = saveBtn.innerHTML;
+    
+    try {
+        saveBtn.innerHTML = '<div class="loading-spinner"></div> กำลังบันทึก...';
+        saveBtn.disabled = true;
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        showAlert('บันทึกข้อมูลการตรวจเรียบร้อยแล้ว', 'success');
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('addDataModal')).hide();
+        
+        // Reset form
+        document.getElementById('addDataForm').reset();
+        document.getElementById('measurementDate').valueAsDate = new Date();
+        
+        // Refresh data
+        loadIOPData();
+        loadTestResults();
+        loadStatistics();
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาดในการบันทึก: ${error.message}`, 'danger');
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+// Action Functions
+function viewIOPDetails(patientId, measurementDate) {
+    const iopData = currentIOPData.find(item => 
+        item.patient_id === patientId && item.measurement_date === measurementDate
+    );
+    
+    if (!iopData) {
+        showAlert('ไม่พบข้อมูลการตรวจ', 'warning');
+        return;
+    }
+    
+    const content = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>ข้อมูลผู้ป่วย</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>HN:</strong></td><td>${iopData.hn}</td></tr>
+                    <tr><td><strong>ชื่อ:</strong></td><td>${iopData.patient_name}</td></tr>
+                    <tr><td><strong>วันที่ตรวจ:</strong></td><td>${formatDate(iopData.measurement_date)}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>ผลการตรวจ IOP</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>IOP ตาซ้าย:</strong></td><td>${iopData.left_eye_iop} mmHg</td></tr>
+                    <tr><td><strong>IOP ตาขวา:</strong></td><td>${iopData.right_eye_iop} mmHg</td></tr>
+                    <tr><td><strong>วิธีการวัด:</strong></td><td>${iopData.measurement_method}</td></tr>
+                    <tr><td><strong>แพทย์ผู้ตรวจ:</strong></td><td>${iopData.measured_by}</td></tr>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('detailsModalContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
+}
+
+function editIOPData(patientId, measurementDate) {
+    showAlert('ฟีเจอร์แก้ไขข้อมูลจะเปิดใช้งานในเร็วๆ นี้', 'info');
+}
+
+function deleteIOPData(patientId, measurementDate) {
+    if (confirm('คุณแน่ใจหรือไม่ที่จะลบข้อมูลการตรวจนี้?')) {
+        showAlert('ลบข้อมูลการตรวจเรียบร้อยแล้ว', 'success');
+        loadIOPData();
+    }
+}
+
+function viewTestDetails(patientId, testType, testDate) {
+    const testData = currentTestResults.find(item => 
+        item.patient_id === patientId && item.test_type === testType && item.test_date === testDate
+    );
+    
+    if (!testData) {
+        showAlert('ไม่พบข้อมูลการตรวจ', 'warning');
+        return;
+    }
+    
+    const content = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>ข้อมูลผู้ป่วย</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>HN:</strong></td><td>${testData.hn}</td></tr>
+                    <tr><td><strong>ชื่อ:</strong></td><td>${testData.patient_name}</td></tr>
+                    <tr><td><strong>วันที่ตรวจ:</strong></td><td>${formatDate(testData.test_date)}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>ผลการตรวจ ${testData.test_type}</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>ประเภท:</strong></td><td>${testData.test_type}</td></tr>
+                    <tr><td><strong>ผลการตรวจ:</strong></td><td>${testData.test_results}</td></tr>
+                    <tr><td><strong>แพทย์ผู้ตรวจ:</strong></td><td>${testData.measured_by}</td></tr>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('detailsModalContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
+}
+
+function editTestResults(patientId, testType, testDate) {
+    showAlert('ฟีเจอร์แก้ไขผลการตรวจจะเปิดใช้งานในเร็วๆ นี้', 'info');
+}
+
+function deleteTestResults(patientId, testType, testDate) {
+    if (confirm('คุณแน่ใจหรือไม่ที่จะลบผลการตรวจนี้?')) {
+        showAlert('ลบผลการตรวจเรียบร้อยแล้ว', 'success');
+        loadTestResults();
+    }
+}
+
+function viewAlertDetails(alertId) {
+    const alert = currentAlerts.find(item => item.alert_id === alertId);
+    
+    if (!alert) {
+        showAlert('ไม่พบข้อมูลการแจ้งเตือน', 'warning');
+        return;
+    }
+    
+    const content = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>ข้อมูลผู้ป่วย</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>HN:</strong></td><td>${alert.hn}</td></tr>
+                    <tr><td><strong>ชื่อ:</strong></td><td>${alert.first_name} ${alert.last_name}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>รายละเอียดการแจ้งเตือน</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>ประเภท:</strong></td><td>${translateAlertType(alert.alert_type)}</td></tr>
+                    <tr><td><strong>ระดับ:</strong></td><td>${getSeverityBadge(alert.severity)}</td></tr>
+                    <tr><td><strong>สถานะ:</strong></td><td>${getStatusBadge(alert.resolution_status)}</td></tr>
+                    <tr><td><strong>วันที่สร้าง:</strong></td><td>${formatDateTime(alert.created_at)}</td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3">
+            <h6>ข้อความแจ้งเตือน</h6>
+            <div class="alert alert-info">
+                ${alert.alert_message}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('detailsModalContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
+}
+
+async function resolveAlert(alertId) {
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะทำเครื่องหมายการแจ้งเตือนนี้ว่าจัดการแล้ว?')) {
+        return;
+    }
+    
+    try {
+        // Simulate API call to resolve alert
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showAlert('อัปเดตสถานะการแจ้งเตือนเรียบร้อยแล้ว', 'success');
+        loadAlerts(); // Refresh alerts
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาด: ${error.message}`, 'danger');
+    }
+}
+
+function deleteAlert(alertId) {
+    if (confirm('คุณแน่ใจหรือไม่ที่จะลบการแจ้งเตือนนี้?')) {
+        showAlert('ลบการแจ้งเตือนเรียบร้อยแล้ว', 'success');
+        loadAlerts();
+    }
+}
+
+function viewImportDetails(filename) {
+    const content = `
+        <div class="alert alert-info">
+            <h6>รายละเอียดการนำเข้าข้อมูล</h6>
+            <p><strong>ไฟล์:</strong> ${filename}</p>
+            <p>ข้อมูลรายละเอียดการนำเข้าจะแสดงที่นี่</p>
+        </div>
+    `;
+    
+    document.getElementById('detailsModalContent').innerHTML = content;
+    new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
+}
+
+function retryImport(filename) {
+    if (confirm('คุณต้องการลองนำเข้าข้อมูลใหม่หรือไม่?')) {
+        showAlert('กำลังลองนำเข้าข้อมูลใหม่...', 'info');
+        setTimeout(() => {
+            showAlert('นำเข้าข้อมูลเรียบร้อยแล้ว', 'success');
+            loadImportHistory();
+        }, 2000);
+    }
+}
+
+function logoutUser() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = 'logout.html';
+}
+
+// Initialize Page
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    // Set username in header
+    const username = localStorage.getItem('username');
+    const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+    
+    document.getElementById('headerUsername').textContent = username || 'Admin User';
+    document.getElementById('userInitial').textContent = userInitial;
+    
+    // Profile dropdown toggle
+    document.getElementById('profile-toggle').addEventListener('click', function() {
+        document.getElementById('profile-dropdown-menu').classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+            const dropdown = document.getElementById('profile-dropdown-menu');
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+    });
+    
+    // Mobile menu toggle
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('show');
+    });
+    
+    // Tab event listeners
+    document.getElementById('iop-data-tab').addEventListener('click', function() {
+        loadIOPData();
+    });
+    
+    document.getElementById('test-results-tab').addEventListener('click', function() {
+        loadTestResults();
+    });
+    
+    document.getElementById('alerts-tab').addEventListener('click', function() {
+        loadAlerts();
+    });
+    
+    document.getElementById('import-data-tab').addEventListener('click', function() {
+        loadImportHistory();
+    });
+    
+    // Filter event listeners
+    document.getElementById('iopPeriodFilter').addEventListener('change', function() {
+        loadIOPData(1, this.value);
+    });
+    
+    document.getElementById('testTypeFilter').addEventListener('change', function() {
+        loadTestResults(this.value);
+    });
+    
+    document.getElementById('alertSeverityFilter').addEventListener('change', function() {
+        loadAlerts(this.value);
+    });
+    
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const searchTerm = this.value.toLowerCase();
+            // Implement search logic here
+            showAlert(`ค้นหา: ${searchTerm}`, 'info');
+        }
+    });
+    
+    // Button event listeners
+    document.getElementById('generateAlertsBtn').addEventListener('click', generateAlerts);
+    document.getElementById('saveMeasurementBtn').addEventListener('click', saveMeasurement);
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutUser();
+    });
+    
+    // Setup modal handlers
+    setupModalHandlers();
+    
+    // Setup file uploads
+    setupFileUploads();
+    
+    // Load initial data
+    loadStatistics();
+    loadIOPData(); // Load default tab
+    loadPatients(); // Load patients for dropdown
+    
+    // Show welcome message
+    setTimeout(() => {
+        showAlert('ระบบพร้อมใช้งาน - สามารถเริ่มอัปเดตข้อมูลโรคต้อหินได้', 'success');
+    }, 1000);
+});
+</script>
+</body>
+</html>

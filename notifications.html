@@ -1,0 +1,1810 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบแจ้งเตือน - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select, .form-check-input {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Priority Indicators */
+        .priority-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .priority-indicator.critical {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            animation: pulse-red 2s infinite;
+        }
+
+        .priority-indicator.high {
+            background: linear-gradient(135deg, #f59e0b, #e08e0b);
+            color: white;
+        }
+
+        .priority-indicator.medium {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+        }
+
+        .priority-indicator.low {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            border-radius: 20px 20px 0 0;
+            padding: 25px 30px;
+        }
+
+        .modal-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-title i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, white, #f8fafc);
+            border-radius: 0 0 20px 20px;
+            padding: 20px 30px;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-8, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item active">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาการแจ้งเตือน...">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="page-title">
+                    <i class="fas fa-bell"></i>
+                    ระบบแจ้งเตือน
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshNotificationsBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                    <button class="btn btn-success" id="sendBroadcastBtn">
+                        <i class="fas fa-broadcast-tower"></i> ส่งประกาศ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Notification Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="totalNotificationsCount">-</h3>
+                            <p class="text-muted">การแจ้งเตือนทั้งหมด</p>
+                            <i class="fas fa-bell fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="sentNotificationsCount">-</h3>
+                            <p class="text-muted">ส่งแล้ว</p>
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="pendingNotificationsCount">-</h3>
+                            <p class="text-muted">รอการส่ง</p>
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="failedNotificationsCount">-</h3>
+                            <p class="text-muted">ส่งไม่สำเร็จ</p>
+                            <i class="fas fa-times-circle fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> ตัวกรองการแจ้งเตือน</h3>
+                    <button class="btn btn-outline-primary" id="applyFiltersBtn">
+                        <i class="fas fa-search"></i> ค้นหา
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">สถานะ</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="">ทั้งหมด</option>
+                                <option value="sent">ส่งแล้ว</option>
+                                <option value="pending">รอการส่ง</option>
+                                <option value="failed">ส่งไม่สำเร็จ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priorityFilter" class="form-label">ความสำคัญ</label>
+                            <select class="form-control" id="priorityFilter">
+                                <option value="">ทั้งหมด</option>
+                                <option value="critical">วิกฤต</option>
+                                <option value="high">สูง</option>
+                                <option value="medium">ปานกลาง</option>
+                                <option value="low">ต่ำ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="startDateFilter" class="form-label">วันที่เริ่มต้น</label>
+                            <input type="date" class="form-control" id="startDateFilter">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDateFilter" class="form-label">วันที่สิ้นสุด</label>
+                            <input type="date" class="form-control" id="endDateFilter">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> รายการการแจ้งเตือน</h3>
+                    <div>
+                        <select class="form-control me-2" id="limitSelect" style="width: auto; display: inline-block;">
+                            <option value="20">20 รายการ</option>
+                            <option value="50" selected>50 รายการ</option>
+                            <option value="100">100 รายการ</option>
+                        </select>
+                        <button class="btn btn-outline-primary" id="markAllReadBtn">
+                            <i class="fas fa-check-double"></i> อ่านทั้งหมด
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="notificationsContainer">
+                        <div class="text-center">
+                            <div class="loading-spinner" style="width: 40px; height: 40px;"></div>
+                            <p class="mt-3">กำลังโหลดการแจ้งเตือน...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-4" id="paginationContainer">
+                        <div id="paginationInfo">
+                            แสดง 0 - 0 จาก 0 รายการ
+                        </div>
+                        <div id="paginationButtons">
+                            <!-- Pagination buttons will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Broadcast Modal -->
+    <div class="modal fade" id="broadcastModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-broadcast-tower"></i>
+                        ส่งประกาศให้ผู้ใช้
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="broadcastForm">
+                        <div class="mb-3">
+                            <label for="broadcastTitle" class="form-label">หัวข้อประกาศ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="broadcastTitle" required maxlength="100">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="broadcastBody" class="form-label">เนื้อหาประกาศ <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="broadcastBody" rows="5" required maxlength="500"></textarea>
+                            <small class="text-muted">เหลือ <span id="charCount">500</span> ตัวอักษร</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="broadcastPriority" class="form-label">ความสำคัญ</label>
+                                <select class="form-control" id="broadcastPriority">
+                                    <option value="low">ต่ำ</option>
+                                    <option value="medium" selected>ปานกลาง</option>
+                                    <option value="high">สูง</option>
+                                    <option value="critical">วิกฤต</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="broadcastChannels" class="form-label">ช่องทางการส่ง</label>
+                                <select class="form-control" id="broadcastChannels">
+                                    <option value="app">แอปพลิเคชัน</option>
+                                    <option value="email">อีเมล</option>
+                                    <option value="sms">SMS</option>
+                                    <option value="app,email">แอป + อีเมล</option>
+                                    <option value="all">ทุกช่องทาง</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <label class="form-label">ส่งให้กลุ่มผู้ใช้</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="targetPatients" value="patient" checked>
+                                        <label class="form-check-label" for="targetPatients">
+                                            ผู้ป่วย
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="targetDoctors" value="doctor" checked>
+                                        <label class="form-check-label" for="targetDoctors">
+                                            แพทย์
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="targetNurses" value="nurse" checked>
+                                        <label class="form-check-label" for="targetNurses">
+                                            พยาบาล
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-success" id="sendBroadcastConfirmBtn">
+                        <i class="fas fa-paper-plane"></i> ส่งประกาศ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let authToken = '';
+        let currentPage = 1;
+        let currentLimit = 50;
+        let totalNotifications = 0;
+
+        // Authentication Functions
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+
+        function checkAuthentication() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            authToken = token;
+            return true;
+        }
+
+        // API Helper Functions
+        async function makeAPIRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'เมื่อสักครู่';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} นาทีที่แล้ว`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ชั่วโมงที่แล้ว`;
+            return `${Math.floor(diffInSeconds / 86400)} วันที่แล้ว`;
+        }
+
+        // Notifications Functions
+        async function loadNotifications() {
+            try {
+                const filters = getFilters();
+                const queryParams = new URLSearchParams({
+                    page: currentPage,
+                    limit: currentLimit,
+                    ...filters
+                });
+
+                const response = await makeAPIRequest(`/api/admin/notifications?${queryParams}`);
+                const notifications = response.data || [];
+                
+                displayNotifications(notifications);
+                updateNotificationStats(notifications);
+                updatePagination(response.pagination);
+                
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                showAlert(`ไม่สามารถโหลดการแจ้งเตือนได้: ${error.message}`, 'danger');
+                
+                // Show placeholder when API fails
+                document.getElementById('notificationsContainer').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ไม่สามารถโหลดข้อมูลการแจ้งเตือนจาก API ได้ กรุณาตรวจสอบการเชื่อมต่อ
+                    </div>
+                `;
+            }
+        }
+
+        function getFilters() {
+            const filters = {};
+            
+            const status = document.getElementById('statusFilter').value;
+            if (status) filters.status = status;
+            
+            const priority = document.getElementById('priorityFilter').value;
+            if (priority) filters.priority = priority;
+            
+            const startDate = document.getElementById('startDateFilter').value;
+            if (startDate) filters.start_date = startDate;
+            
+            const endDate = document.getElementById('endDateFilter').value;
+            if (endDate) filters.end_date = endDate;
+            
+            return filters;
+        }
+
+        function displayNotifications(notifications) {
+            const container = document.getElementById('notificationsContainer');
+            
+            if (!notifications || notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <h5>ไม่มีการแจ้งเตือน</h5>
+                        <p class="text-muted">ไม่พบการแจ้งเตือนตามเงื่อนไขที่เลือก</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="list-group">';
+            
+            notifications.forEach(notification => {
+                const statusClass = getStatusClass(notification.status);
+                const priorityClass = getPriorityClass(notification.priority);
+                const timeAgo = getTimeAgo(notification.created_at || notification.sent_at);
+                
+                html += `
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 me-3">${notification.title || 'ไม่มีหัวข้อ'}</h6>
+                                    <span class="badge ${priorityClass} me-2">${getPriorityLabel(notification.priority)}</span>
+                                    <span class="badge ${statusClass}">${getStatusLabel(notification.status)}</span>
+                                </div>
+                                <p class="mb-2 text-muted">${notification.body || notification.notification_message || 'ไม่มีเนื้อหา'}</p>
+                                <div class="d-flex align-items-center text-muted">
+                                    <small class="me-3">
+                                        <i class="fas fa-user"></i> 
+                                        ${notification.username || 'ระบบ'}
+                                    </small>
+                                    <small class="me-3">
+                                        <i class="fas fa-clock"></i> 
+                                        ${timeAgo}
+                                    </small>
+                                    <small>
+                                        <i class="fas fa-${getChannelIcon(notification.channels)}"></i> 
+                                        ${getChannelLabel(notification.channels)}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="ms-3">
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewNotificationDetails('${notification.notification_id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${notification.status === 'failed' ? `
+                                    <button class="btn btn-sm btn-warning" onclick="resendNotification('${notification.notification_id}')">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'sent': 'bg-success',
+                'pending': 'bg-warning',
+                'failed': 'bg-danger',
+                'delivered': 'bg-success',
+                'read': 'bg-info'
+            };
+            return classes[status] || 'bg-secondary';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'sent': 'ส่งแล้ว',
+                'pending': 'รอการส่ง',
+                'failed': 'ส่งไม่สำเร็จ',
+                'delivered': 'ส่งถึงแล้ว',
+                'read': 'อ่านแล้ว'
+            };
+            return labels[status] || status;
+        }
+
+        function getPriorityClass(priority) {
+            const classes = {
+                'critical': 'bg-danger',
+                'high': 'bg-warning',
+                'medium': 'bg-info',
+                'low': 'bg-secondary'
+            };
+            return classes[priority] || 'bg-secondary';
+        }
+
+        function getPriorityLabel(priority) {
+            const labels = {
+                'critical': 'วิกฤต',
+                'high': 'สูง',
+                'medium': 'ปานกลาง',
+                'low': 'ต่ำ'
+            };
+            return labels[priority] || priority;
+        }
+
+        function getChannelIcon(channels) {
+            if (channels && channels.includes('email')) return 'envelope';
+            if (channels && channels.includes('sms')) return 'sms';
+            return 'mobile-alt';
+        }
+
+        function getChannelLabel(channels) {
+            if (!channels) return 'แอป';
+            if (channels.includes('all')) return 'ทุกช่องทาง';
+            if (channels.includes('email') && channels.includes('sms')) return 'อีเมล + SMS';
+            if (channels.includes('email')) return 'อีเมล';
+            if (channels.includes('sms')) return 'SMS';
+            return 'แอป';
+        }
+
+        function updateNotificationStats(notifications) {
+            // Count notifications by status
+            const stats = {
+                total: notifications.length,
+                sent: 0,
+                pending: 0,
+                failed: 0
+            };
+
+            notifications.forEach(notification => {
+                if (notification.status === 'sent' || notification.status === 'delivered') {
+                    stats.sent++;
+                } else if (notification.status === 'pending') {
+                    stats.pending++;
+                } else if (notification.status === 'failed') {
+                    stats.failed++;
+                }
+            });
+
+            document.getElementById('totalNotificationsCount').textContent = stats.total;
+            document.getElementById('sentNotificationsCount').textContent = stats.sent;
+            document.getElementById('pendingNotificationsCount').textContent = stats.pending;
+            document.getElementById('failedNotificationsCount').textContent = stats.failed;
+        }
+
+        function updatePagination(pagination) {
+            if (!pagination) return;
+
+            const info = document.getElementById('paginationInfo');
+            const buttons = document.getElementById('paginationButtons');
+            
+            const start = ((pagination.page - 1) * pagination.limit) + 1;
+            const end = Math.min(pagination.page * pagination.limit, pagination.total);
+            
+            info.textContent = `แสดง ${start} - ${end} จาก ${pagination.total} รายการ`;
+            
+            // Create pagination buttons
+            let buttonsHTML = '';
+            
+            if (pagination.page > 1) {
+                buttonsHTML += `<button class="btn btn-outline-primary me-2" onclick="changePage(${pagination.page - 1})">ก่อนหน้า</button>`;
+            }
+            
+            if (pagination.page < pagination.totalPages) {
+                buttonsHTML += `<button class="btn btn-outline-primary" onclick="changePage(${pagination.page + 1})">ถัดไป</button>`;
+            }
+            
+            buttons.innerHTML = buttonsHTML;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadNotifications();
+        }
+async function sendBroadcast() {
+    try {
+        const title = document.getElementById('broadcastTitle').value.trim();
+        const body = document.getElementById('broadcastBody').value.trim();
+        const priority = document.getElementById('broadcastPriority').value;
+        const channels = document.getElementById('broadcastChannels').value;
+        
+        if (!title || !body) {
+            showAlert('กรุณากรอกหัวข้อและเนื้อหาประกาศ', 'warning');
+            return;
+        }
+        
+        // Get target roles
+        const targetRoles = [];
+        if (document.getElementById('targetPatients').checked) targetRoles.push('patient');
+        if (document.getElementById('targetDoctors').checked) targetRoles.push('doctor');
+        if (document.getElementById('targetNurses').checked) targetRoles.push('nurse');
+        
+        if (targetRoles.length === 0) {
+            showAlert('กรุณาเลือกกลุ่มผู้ใช้ที่ต้องการส่งประกาศ', 'warning');
+            return;
+        }
+        
+        const sendBtn = document.getElementById('sendBroadcastConfirmBtn');
+        const originalText = sendBtn.innerHTML;
+        sendBtn.innerHTML = '<div class="loading-spinner"></div> กำลังส่ง...';
+        sendBtn.disabled = true;
+        
+        const response = await makeAPIRequest('/api/admin/notifications/broadcast', {
+            method: 'POST',
+            body: JSON.stringify({
+                title,
+                body,
+                priority,
+                target_roles: targetRoles,
+                channels
+            })
+        });
+        
+        showAlert(response.message || 'ส่งประกาศเรียบร้อยแล้ว', 'success');
+        
+        // Close modal and reset form
+        const modal = bootstrap.Modal.getInstance(document.getElementById('broadcastModal'));
+        modal.hide();
+        document.getElementById('broadcastForm').reset();
+        
+        // Reload notifications
+        loadNotifications();
+        
+        sendBtn.innerHTML = originalText;
+        sendBtn.disabled = false;
+        
+    } catch (error) {
+        console.error('Error sending broadcast:', error);
+        showAlert(`ไม่สามารถส่งประกาศได้: ${error.message}`, 'danger');
+        
+        const sendBtn = document.getElementById('sendBroadcastConfirmBtn');
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> ส่งประกาศ';
+        sendBtn.disabled = false;
+    }
+}
+
+function viewNotificationDetails(notificationId) {
+    showAlert(`แสดงรายละเอียดการแจ้งเตือน ID: ${notificationId}`, 'info');
+    // In a real implementation, this would open a modal with detailed information
+}
+
+async function resendNotification(notificationId) {
+    if (!confirm('คุณต้องการส่งการแจ้งเตือนนี้อีกครั้งหรือไม่?')) {
+        return;
+    }
+    
+    try {
+        showAlert('กำลังส่งการแจ้งเตือนใหม่...', 'info');
+        
+        // In a real implementation, this would call a resend API
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        showAlert('ส่งการแจ้งเตือนใหม่เรียบร้อยแล้ว', 'success');
+        loadNotifications();
+        
+    } catch (error) {
+        console.error('Error resending notification:', error);
+        showAlert(`ไม่สามารถส่งการแจ้งเตือนใหม่ได้: ${error.message}`, 'danger');
+    }
+}
+
+function markAllAsRead() {
+    if (!confirm('คุณต้องการทำเครื่องหมายการแจ้งเตือนทั้งหมดเป็นอ่านแล้วหรือไม่?')) {
+        return;
+    }
+    
+    showAlert('ทำเครื่องหมายการแจ้งเตือนทั้งหมดเป็นอ่านแล้ว', 'success');
+    loadNotifications();
+}
+
+function applyFilters() {
+    currentPage = 1; // Reset to first page when applying filters
+    loadNotifications();
+}
+
+function refreshNotifications() {
+    const refreshBtn = document.getElementById('refreshNotificationsBtn');
+    const originalText = refreshBtn.innerHTML;
+    
+    refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> กำลังรีเฟรช...';
+    refreshBtn.disabled = true;
+    
+    loadNotifications();
+    
+    setTimeout(() => {
+        refreshBtn.innerHTML = originalText;
+        refreshBtn.disabled = false;
+        showAlert('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+    }, 1000);
+}
+
+function updateCharacterCount() {
+    const textarea = document.getElementById('broadcastBody');
+    const charCount = document.getElementById('charCount');
+    const remaining = 500 - textarea.value.length;
+    charCount.textContent = remaining;
+    charCount.style.color = remaining < 50 ? '#ef4444' : '#6b7280';
+}
+
+function logoutUser() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = 'logout.html';
+}
+
+// Initialize Page
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    // Set username in header
+    const username = localStorage.getItem('username');
+    const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+    
+    document.getElementById('headerUsername').textContent = username || 'Admin User';
+    document.getElementById('userInitial').textContent = userInitial;
+    
+    // Profile dropdown toggle
+    document.getElementById('profile-toggle').addEventListener('click', function() {
+        document.getElementById('profile-dropdown-menu').classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+            const dropdown = document.getElementById('profile-dropdown-menu');
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+    });
+    
+    // Mobile menu toggle
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('show');
+    });
+    
+    // Button event listeners
+    document.getElementById('refreshNotificationsBtn').addEventListener('click', refreshNotifications);
+    document.getElementById('sendBroadcastBtn').addEventListener('click', function() {
+        const modal = new bootstrap.Modal(document.getElementById('broadcastModal'));
+        modal.show();
+    });
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+    document.getElementById('markAllReadBtn').addEventListener('click', markAllAsRead);
+    document.getElementById('sendBroadcastConfirmBtn').addEventListener('click', sendBroadcast);
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutUser();
+    });
+    
+    // Limit select change
+    document.getElementById('limitSelect').addEventListener('change', function() {
+        currentLimit = parseInt(this.value);
+        currentPage = 1;
+        loadNotifications();
+    });
+    
+    // Character count for broadcast textarea
+    document.getElementById('broadcastBody').addEventListener('input', updateCharacterCount);
+    
+    // Set default date filters (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    document.getElementById('endDateFilter').valueAsDate = today;
+    document.getElementById('startDateFilter').valueAsDate = thirtyDaysAgo;
+    
+    // Load initial data
+    loadNotifications();
+    
+    // Auto refresh every 2 minutes
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            loadNotifications();
+        }
+    }, 120000);
+    
+    // Show welcome message
+    setTimeout(() => {
+        showAlert('ระบบแจ้งเตือนพร้อมใช้งาน', 'success');
+    }, 1000);
+});
+
+// Handle page visibility change
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        // Page became visible, refresh data
+        loadNotifications();
+    }
+});
+    </script>
+</body>
+</html>

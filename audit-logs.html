@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ช่วยเหลือผู้ใช้ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 50px 40px;
+            border-radius: 25px;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0, 206, 206, 0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, -20px) rotate(10deg); }
+        }
+
+        .search-section h2 {
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .help-search {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .help-search input {
+            width: 100%;
+            padding: 18px 60px 18px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            outline: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .help-search input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .help-search button {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            bottom: 8px;
+            border: none;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 50px;
+            padding: 0 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.4);
+        }
+
+        .help-search button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 206, 206, 0.6);
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Help Categories */
+        .help-category {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .help-category::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+            transition: all 0.3s ease;
+        }
+
+        .help-category:hover {
+            transform: translateY(-5px);
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(0, 206, 206, 0.3);
+        }
+
+        .help-category:hover::before {
+            transform: translate(20px, -20px) scale(1.2);
+        }
+
+        .help-category.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .help-category.success:hover {
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.3);
+        }
+
+        .help-category.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+        }
+
+        .help-category.warning:hover {
+            box-shadow: 0 15px 40px rgba(245, 158, 11, 0.3);
+        }
+
+        .help-category.info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        .help-category.info:hover {
+            box-shadow: 0 15px 40px rgba(14, 165, 233, 0.3);
+        }
+
+        .help-category.danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+        }
+
+        .help-category.danger:hover {
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.3);
+        }
+
+        .help-category h4 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .help-category p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1rem;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .help-category .icon {
+            font-size: 3rem;
+            position: absolute;
+            right: 25px;
+            top: 25px;
+            opacity: 0.2;
+            transition: all 0.3s ease;
+        }
+
+        .help-category:hover .icon {
+            opacity: 0.3;
+            transform: scale(1.1);
+        }
+
+        /* Quick Links */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .quick-link {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: var(--text-color);
+            border: 1px solid rgba(0, 206, 206, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 206, 206, 0.05), transparent);
+            transition: left 0.5s;
+        }
+
+        .quick-link:hover::before {
+            left: 100%;
+        }
+
+        .quick-link:hover {
+            transform: translateY(-5px);
+            color: var(--text-color);
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(0, 206, 206, 0.15);
+            border-color: var(--secondary-color);
+        }
+
+        .quick-link i {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .quick-link:hover i {
+            transform: scale(1.1);
+            color: var(--secondary-dark);
+        }
+
+        .quick-link h6 {
+            margin-bottom: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .quick-link small {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* FAQ Styles */
+        .faq-item {
+            border: 1px solid rgba(0, 206, 206, 0.1);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .faq-item:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.1);
+        }
+
+        .faq-question {
+            background: white;
+            padding: 25px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .faq-question:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            color: var(--secondary-color);
+        }
+
+        .faq-answer {
+            padding: 0 30px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            background: linear-gradient(135deg, #f8fafc, white);
+        }
+
+        .faq-answer.show {
+            padding: 25px 30px;
+            max-height: 500px;
+        }
+
+        .faq-answer p {
+            color: var(--text-light);
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .faq-icon {
+            transition: transform 0.3s ease;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+        }
+
+        .faq-icon.rotate {
+            transform: rotate(180deg);
+        }
+
+        /* Content Sections */
+        .content-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Video Container */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            transition: width 0.6s ease;
+        }
+
+        .progress-bar.bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .progress-bar.bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        .progress-bar.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+        }
+
+       /* Badge Styles */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+            color: white;
+        }
+
+        /* List Group */
+        .list-group-item {
+            border: 1px solid rgba(0, 206, 206, 0.1);
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .list-group-item:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .list-group-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        /* Contact Form */
+        .contact-form {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .contact-form h4 {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+
+        .mb-2 {
+            margin-bottom: 10px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .mb-4 {
+            margin-bottom: 25px;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .h-100 {
+            height: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .quick-links {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .search-section {
+                padding: 40px 25px;
+            }
+
+            .search-section h2 {
+                font-size: 2rem;
+            }
+
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+
+            .help-category {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .search-section {
+                padding: 30px 20px;
+            }
+
+            .search-section h2 {
+                font-size: 1.8rem;
+            }
+
+            .contact-form {
+                padding: 25px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .help-category .icon {
+                font-size: 2.5rem;
+                right: 20px;
+                top: 20px;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+            <a href="help.html" class="sidebar-menu-item active">
+                <i class="fas fa-headset"></i>
+                <span>ช่วยเหลือผู้ใช้</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาวิธีใช้งาน..." id="headerSearchInput">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Search Section -->
+            <div class="search-section fade-in">
+                <h2><i class="fas fa-question-circle"></i> ศูนย์ช่วยเหลือและสนับสนุน</h2>
+                <p>ค้นหาคำตอบสำหรับคำถามของคุณ หรือติดต่อทีมสนับสนุนของเรา</p>
+                <div class="help-search">
+                    <input type="text" placeholder="พิมพ์คำถามหรือหัวข้อที่ต้องการความช่วยเหลือ..." id="helpSearchInput">
+                    <button type="button" id="helpSearchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Help Categories -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <a href="#getting-started" class="help-category fade-in" onclick="showSection('getting-started')">
+                        <i class="fas fa-rocket icon"></i>
+                        <h4>เริ่มต้นใช้งาน</h4>
+                        <p>วิธีการเริ่มต้นใช้งานระบบสำหรับผู้ใช้ใหม่</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#user-management" class="help-category success fade-in" onclick="showSection('user-management')">
+                        <i class="fas fa-users icon"></i>
+                        <h4>จัดการผู้ใช้</h4>
+                        <p>การลงทะเบียนและจัดการบัญชีผู้ใช้งาน</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#data-management" class="help-category warning fade-in" onclick="showSection('data-management')">
+                        <i class="fas fa-database icon"></i>
+                        <h4>จัดการข้อมูล</h4>
+                        <p>การบันทึกและจัดการข้อมูลผู้ป่วย</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#troubleshooting" class="help-category danger fade-in" onclick="showSection('troubleshooting')">
+                        <i class="fas fa-tools icon"></i>
+                        <h4>แก้ไขปัญหา</h4>
+                        <p>วิธีแก้ไขปัญหาที่พบบ่อยและการติดต่อสนับสนุน</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <a href="#" class="quick-link fade-in" onclick="showSection('video-tutorials')">
+                    <i class="fas fa-play-circle"></i>
+                    <h6>วิดีโอสอนใช้งาน</h6>
+                    <small>ดูวิดีโอแนะนำการใช้งานระบบ</small>
+                </a>
+                <a href="#" class="quick-link fade-in" onclick="showSection('downloads')">
+                    <i class="fas fa-download"></i>
+                    <h6>ดาวน์โหลด</h6>
+                    <small>คู่มือการใช้งานและแบบฟอร์ม</small>
+                </a>
+                <a href="#" class="quick-link fade-in" onclick="showSection('contact')">
+                    <i class="fas fa-envelope"></i>
+                    <h6>ติดต่อเรา</h6>
+                    <small>ส่งคำถามหรือข้อเสนอแนะ</small>
+                </a>
+                <a href="#" class="quick-link fade-in" onclick="showSection('system-status')">
+                    <i class="fas fa-server"></i>
+                    <h6>สถานะระบบ</h6>
+                    <small>ตรวจสอบสถานะการทำงานของระบบ</small>
+                </a>
+            </div>
+
+            <!-- Content Sections -->
+            <div id="content-sections">
+                <!-- Getting Started Section -->
+                <div id="getting-started-section" class="content-section">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-rocket"></i> เริ่มต้นใช้งานระบบ</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>ขั้นตอนการเริ่มต้นใช้งาน</h5>
+                                    <ol class="mb-4">
+                                        <li>เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบ</li>
+                                        <li>ตั้งค่าข้อมูลพื้นฐานของระบบ</li>
+                                        <li>ลงทะเบียนแพทย์และพยาบาลในระบบ</li>
+                                        <li>เพิ่มข้อมูลยาที่ใช้ในการรักษา</li>
+                                        <li>ลงทะเบียนผู้ป่วยและเริ่มบันทึกข้อมูล</li>
+                                    </ol>
+                                    
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <div>
+                                            <strong>เคล็ดลับ:</strong> ควรอ่านคู่มือการใช้งานอย่างละเอียดก่อนเริ่มใช้งานจริง และทดสอบระบบด้วยข้อมูลตัวอย่างก่อน
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-lightbulb"></i> ข้อแนะนำสำหรับผู้เริ่มต้น</h6>
+                                        <ul class="mb-0">
+                                            <li>สำรองข้อมูลเก่าก่อนเริ่มใช้งาน</li>
+                                            <li>เตรียมรายชื่อผู้ใช้ที่จะลงทะเบียน</li>
+                                            <li>ศึกษาการใช้งานเบื้องต้น</li>
+                                            <li>ทดสอบระบบก่อนใช้งานจริง</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Section -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h3><i class="fas fa-question-circle"></i> คำถามที่พบบ่อย (FAQ)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="faq-container">
+                            <div class="faq-item">
+                                <button class="faq-question" onclick="toggleFAQ(this)">
+                                    <span>ฉันลืมรหัสผ่าน ต้องทำอย่างไร?</span>
+                                    <i class="fas fa-chevron-down faq-icon"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>หากลืมรหัสผ่าน สามารถติดต่อผู้ดูแลระบบเพื่อขอรีเซ็ตรหัสผ่านใหม่ หรือใช้ฟีเจอร์ "ลืมรหัสผ่าน" ที่หน้าเข้าสู่ระบบ</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item">
+                                <button class="faq-question" onclick="toggleFAQ(this)">
+                                    <span>ทำไมระบบทำงานช้า?</span>
+                                    <i class="fas fa-chevron-down faq-icon"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>ความเร็วของระบบอาจขึ้นอยู่กับปัจจัยหลายอย่าง เช่น การเชื่อมต่ออินเทอร์เน็ต จำนวนผู้ใช้งานพร้อมกัน หรือการบำรุงรักษาระบบ หากปัญหายังคงอยู่ กรุณาติดต่อทีมสนับสนุน</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item">
+                                <button class="faq-question" onclick="toggleFAQ(this)">
+                                    <span>สามารถใช้งานบนมือถือได้หรือไม่?</span>
+                                    <i class="fas fa-chevron-down faq-icon"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>ระบบสามารถใช้งานบนอุปกรณ์มือถือและแท็บเล็ตได้ผ่านเว็บเบราว์เซอร์ แต่แนะนำให้ใช้งานบนคอมพิวเตอร์เพื่อประสบการณ์การใช้งานที่ดีที่สุด</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item">
+                                <button class="faq-question" onclick="toggleFAQ(this)">
+                                    <span>ข้อมูลของฉันปลอดภัยหรือไม่?</span>
+                                    <i class="fas fa-chevron-down faq-icon"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>ระบบของเรามีการป้องกันความปลอดภัยในระดับสูง รวมถึงการเข้ารหัสข้อมูล การสำรองข้อมูลสม่ำเสมอ และการตรวจสอบการเข้าถึงอย่างเข้มงวด ข้อมูลทางการแพทย์ของคุณจะได้รับการปกป้องตามมาตรฐานสากล</p>
+                                </div>
+                            </div>
+                            
+                            <div class="faq-item">
+                                <button class="faq-question" onclick="toggleFAQ(this)">
+                                    <span>จะส่งออกข้อมูลเป็นไฟล์ Excel ได้อย่างไร?</span>
+                                    <i class="fas fa-chevron-down faq-icon"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>ในหน้ารายงานสถิติ คุณสามารถเลือกรูปแบบการส่งออกเป็น Excel, PDF หรือ CSV ได้ โดยคลิกที่ปุ่ม "ส่งออกรายงาน" และเลือกรูปแบบที่ต้องการ</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        let currentSection = 'getting-started';
+
+        // Authentication Functions
+        function checkAuthentication() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Section Management
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                currentSection = sectionName;
+                
+                // Update URL hash
+                window.location.hash = sectionName;
+                
+                // Scroll to top of content
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // FAQ Functions
+        function toggleFAQ(button) {
+            const faqItem = button.closest('.faq-item');
+            const answer = faqItem.querySelector('.faq-answer');
+            const icon = button.querySelector('.faq-icon');
+            
+            // Close all other FAQ items
+            const allFaqItems = document.querySelectorAll('.faq-item');
+            allFaqItems.forEach(item => {
+                if (item !== faqItem) {
+                    const otherAnswer = item.querySelector('.faq-answer');
+                    const otherIcon = item.querySelector('.faq-icon');
+                    otherAnswer.classList.remove('show');
+                    otherIcon.classList.remove('rotate');
+                }
+            });
+            
+            // Toggle current FAQ item
+            answer.classList.toggle('show');
+            icon.classList.toggle('rotate');
+        }
+
+        // Search Functions
+        function performHelpSearch(query) {
+            if (!query.trim()) {
+                showAlert('กรุณาใส่คำค้นหา', 'warning');
+                return;
+            }
+
+            showAlert('กำลังค้นหา...', 'info');
+            
+            // Simulate search delay
+            setTimeout(() => {
+                const searchResults = searchHelpContent(query);
+                displaySearchResults(searchResults, query);
+            }, 1000);
+        }
+
+        function searchHelpContent(query) {
+            const searchTerms = query.toLowerCase();
+            const results = [];
+            
+            // Search in FAQ
+            const faqQuestions = document.querySelectorAll('.faq-question span');
+            faqQuestions.forEach((question, index) => {
+                if (question.textContent.toLowerCase().includes(searchTerms)) {
+                    results.push({
+                        type: 'FAQ',
+                        title: question.textContent,
+                        content: question.closest('.faq-item').querySelector('.faq-answer p').textContent,
+                        action: () => {
+                            question.closest('.faq-question').click();
+                            question.closest('.faq-item').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                }
+            });
+            
+            // Search in help categories
+            const helpCategories = [
+                { name: 'getting-started', title: 'เริ่มต้นใช้งาน', keywords: ['เริ่มต้น', 'ติดตั้ง', 'setup', 'install'] },
+                { name: 'user-management', title: 'จัดการผู้ใช้', keywords: ['ผู้ใช้', 'user', 'ลงทะเบียน', 'register'] },
+                { name: 'data-management', title: 'จัดการข้อมูล', keywords: ['ข้อมูล', 'data', 'ผู้ป่วย', 'patient'] },
+                { name: 'troubleshooting', title: 'แก้ไขปัญหา', keywords: ['ปัญหา', 'แก้ไข', 'error', 'bug'] }
+            ];
+            
+            helpCategories.forEach(category => {
+                const matchKeywords = category.keywords.some(keyword => 
+                    keyword.includes(searchTerms) || searchTerms.includes(keyword)
+                );
+                const matchTitle = category.title.toLowerCase().includes(searchTerms);
+                
+                if (matchKeywords || matchTitle) {
+                    results.push({
+                        type: 'หมวดหมู่',
+                        title: category.title,
+                        content: `ดูข้อมูลเพิ่มเติมในหมวด ${category.title}`,
+                        action: () => showSection(category.name)
+                    });
+                }
+            });
+            
+            return results;
+        }
+
+        function displaySearchResults(results, query) {
+            if (results.length === 0) {
+                showAlert(`ไม่พบผลลัพธ์สำหรับ "${query}"`, 'warning');
+                return;
+            }
+            
+            // Remove previous search results
+            const existingResults = document.querySelector('.search-results-card');
+            if (existingResults) {
+                existingResults.remove();
+            }
+            
+            // Create search results section
+            let searchResultsHTML = `
+                <div class="card mb-4 search-results-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-search"></i> ผลการค้นหา: "${query}" (${results.length} รายการ)</h3>
+                    </div>
+                    <div class="card-body">
+            `;
+            
+            results.forEach((result, index) => {
+                searchResultsHTML += `
+                    <div class="search-result-item mb-3 p-3 border rounded">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6><span class="badge bg-secondary me-2">${result.type}</span>${result.title}</h6>
+                                <p class="mb-2">${result.content}</p>
+                                <button class="btn btn-sm btn-outline-primary" onclick="window.searchResults[${index}].action()">
+                                    ดูรายละเอียด
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            searchResultsHTML += `
+                    </div>
+                </div>
+            `;
+            
+            // Store results globally for button actions
+            window.searchResults = results;
+            
+            // Insert search results
+            const contentSections = document.getElementById('content-sections');
+            contentSections.insertAdjacentHTML('afterbegin', searchResultsHTML);
+            
+            // Scroll to results
+            contentSections.scrollIntoView({ behavior: 'smooth' });
+            
+            showAlert(`พบ ${results.length} ผลลัพธ์`, 'success');
+        }
+
+        // Contact Form Functions
+        function submitContactForm(event) {
+            event.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
+                subject: document.getElementById('contactSubject').value,
+                message: document.getElementById('contactMessage').value,
+                priority: document.getElementById('contactPriority').value
+            };
+            
+            // Validate form
+            if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+                showAlert('กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
+                return;
+            }
+            
+            // Simulate form submission
+            showAlert('กำลังส่งข้อความ...', 'info');
+            
+            setTimeout(() => {
+                showAlert('ส่งข้อความเรียบร้อยแล้ว ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง', 'success');
+                
+                // Reset form
+                document.getElementById('contactForm').reset();
+                clearSavedFormData();
+                
+                // Generate ticket number
+                const ticketNumber = 'TK' + Date.now().toString().slice(-6);
+                showAlert(`หมายเลขตั๋วของคุณ: ${ticketNumber}`, 'info');
+                
+            }, 2000);
+        }
+
+        // Download Functions
+        function downloadFile(filename) {
+            showAlert(`กำลังเตรียมดาวน์โหลด ${filename}...`, 'info');
+            
+            // Simulate file preparation
+            setTimeout(() => {
+                // Create a mock download
+                const link = document.createElement('a');
+                link.href = '#';
+                link.download = filename;
+                
+                // For demo purposes, show success message
+                showAlert(`ดาวน์โหลด ${filename} เรียบร้อยแล้ว`, 'success');
+            }, 1500);
+        }
+
+        // System Status Functions
+        function updateSystemStatus() {
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
+            if (lastUpdateTime) {
+                lastUpdateTime.textContent = new Date().toLocaleString('th-TH');
+            }
+        }
+
+        // URL Hash Handling
+        function handleHashChange() {
+            const hash = window.location.hash.slice(1);
+            if (hash && document.getElementById(hash + '-section')) {
+                showSection(hash);
+            }
+        }
+
+        // Auto-save contact form data
+        function autoSaveContactForm() {
+            const formElements = ['contactName', 'contactEmail', 'contactSubject', 'contactMessage', 'contactPriority'];
+            
+            formElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // Load saved data
+                    const savedValue = sessionStorage.getItem(elementId);
+                    if (savedValue) {
+                        element.value = savedValue;
+                    }
+                    
+                    // Save data on change
+                    element.addEventListener('input', function() {
+                        sessionStorage.setItem(elementId, this.value);
+                    });
+                }
+            });
+        }
+
+        // Clear saved form data
+        function clearSavedFormData() {
+            const formElements = ['contactName', 'contactEmail', 'contactSubject', 'contactMessage', 'contactPriority'];
+            formElements.forEach(elementId => {
+                sessionStorage.removeItem(elementId);
+            });
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Search functionality
+            document.getElementById('helpSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('helpSearchInput').value;
+                performHelpSearch(query);
+            });
+            
+            document.getElementById('helpSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value;
+                    performHelpSearch(query);
+                }
+            });
+            
+            // Header search
+            document.getElementById('headerSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value;
+                    performHelpSearch(query);
+                    // Also update main search input
+                    document.getElementById('helpSearchInput').value = query;
+                }
+            });
+            
+            // Contact form
+            document.getElementById('contactForm').addEventListener('submit', submitContactForm);
+            
+            // Logout function
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Handle URL hash on page load
+            handleHashChange();
+            
+            // Listen for hash changes
+            window.addEventListener('hashchange', handleHashChange);
+            
+            // Update system status
+            updateSystemStatus();
+            
+            // Update system status every 5 minutes
+            setInterval(updateSystemStatus, 300000);
+            
+            // Auto-save contact form
+            autoSaveContactForm();
+            
+            // Show default section if no hash
+            if (!window.location.hash) {
+                showSection('getting-started');
+            }
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('ยินดีต้อนรับสู่ศูนย์ช่วยเหลือ หากมีคำถามสามารถค้นหาหรือติดต่อเราได้', 'success');
+            }, 1000);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('helpSearchInput').focus();
+            }
+            
+            // Escape to close any open FAQs
+            if (e.key === 'Escape') {
+                const openAnswers = document.querySelectorAll('.faq-answer.show');
+                const openIcons = document.querySelectorAll('.faq-icon.rotate');
+                
+                openAnswers.forEach(answer => answer.classList.remove('show'));
+                openIcons.forEach(icon => icon.classList.remove('rotate'));
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('a[href^="#"]')) {
+                e.preventDefault();
+                const targetId = e.target.getAttribute('href').slice(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

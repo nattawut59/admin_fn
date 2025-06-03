@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(135deg, #324047 0%, #00CECE 100%);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .login-card {
+            width: 450px;
+            max-width: 90%;
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            padding: 0;
+            position: relative;
+        }
+
+        .login-header {
+            background-color: var(--secondary-color);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .login-form {
+            padding: 35px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .form-control {
+            width: 100%;
+            border: none;
+            background-color: var(--bg-light);
+            padding: 18px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: var(--primary-color);
+        }
+
+        .form-control:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--secondary-color);
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .form-check input {
+            margin-right: 10px;
+            accent-color: var(--secondary-color);
+            width: 18px;
+            height: 18px;
+        }
+
+        .forgot-link {
+            text-align: right;
+            margin: 15px 0;
+        }
+
+        .forgot-link a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .forgot-link a:hover {
+            color: var(--secondary-dark);
+            text-decoration: underline;
+        }
+
+        .login-btn {
+            width: 100%;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 168, 168, 0.3);
+        }
+
+        .register-btn {
+            display: inline-block;
+            background-color: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .register-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 168, 168, 0.2);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: var(--text-light);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+
+        .divider::before {
+            margin-right: 15px;
+        }
+
+        .divider::after {
+            margin-left: 15px;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            font-size: 1rem;
+        }
+
+        /* Password toggle */
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                width: 100%;
+                max-width: 350px;
+                margin: 0 15px;
+            }
+            
+            .login-form {
+                padding: 25px;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .login-btn.loading .btn-text {
+            display: none;
+        }
+
+        .login-btn.loading .spinner {
+            display: inline-block;
+        }
+
+        .demo-info {
+            background-color: rgba(0, 206, 206, 0.1);
+            border: 1px solid var(--secondary-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .demo-info h4 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .demo-info p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <h1>เข้าสู่ระบบ</h1>
+            <p>กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบติดตามการรักษาโรคต้อหิน</p>
+        </div>
+        <div class="login-form">
+            <div class="demo-info">
+                <h4><i class="fas fa-info-circle"></i> ข้อมูลสำหรับทดสอบ</h4>
+                <p><strong>Admin:</strong> admin / admin123</p>
+                <p><strong>Doctor:</strong> doctor1 / doctor123 (ยังไม่สามารถใช้ได้กับ Backend ปัจจุบัน)</p>
+                <p><strong>Patient:</strong> patient1 / patient123 (ยังไม่สามารถใช้ได้กับ Backend ปัจจุบัน)</p>
+            </div>
+
+            <div id="alertBox" class="alert alert-danger" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="alertMessage">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</span>
+                <button type="button" class="alert-close" onclick="document.getElementById('alertBox').style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">ชื่อผู้ใช้</label>
+                    <input type="text" id="username" class="form-control" placeholder="กรอกชื่อผู้ใช้">
+                </div>
+                <div class="form-group">
+                    <label for="password">รหัสผ่าน</label>
+                    <div class="password-toggle">
+                        <input type="password" id="password" class="form-control" placeholder="กรอกรหัสผ่าน">
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">จดจำฉันไว้ในระบบ</label>
+                </div>
+                <div class="forgot-link">
+                    <a href="forgot-password.html">ลืมรหัสผ่าน?</a>
+                </div>
+                <button type="submit" id="loginButton" class="login-btn">
+                    <span class="btn-text">เข้าสู่ระบบ</span>
+                    <div class="spinner"></div>
+                </button>
+                
+                <div class="divider">หรือ</div>
+                
+                <div style="text-align: center;">
+                    <a href="register.html" class="register-btn">
+                        <i class="fas fa-user-plus" style="margin-right: 8px;"></i>สมัครสมาชิกใหม่
+                    </a>
+                </div>
+            </form>
+            
+            <div class="login-footer">
+                &copy; 2025 Glaucoma Treatment Monitoring System - All Rights Reserved
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // กำหนด API URL
+        const API_BASE_URL = 'http://localhost:3002/api'; // Adjusted Port
+
+        // สลับการแสดงรหัสผ่าน
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.querySelector('.password-toggle-btn i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // แสดงข้อความแจ้งเตือน
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-' + type; // Ensure flex is not removed
+            document.getElementById('alertMessage').textContent = message;
+            alertBox.style.display = 'flex';
+            
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        // ฟังก์ชันเติม username/password อัตโนมัติสำหรับทดสอบ
+        function fillTestData(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+
+        // เพิ่ม event listeners สำหรับข้อมูลทดสอบ
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoInfo = document.querySelector('.demo-info');
+            if (demoInfo) { // Check if demoInfo exists
+                const adminP = demoInfo.querySelector('p:nth-of-type(1)'); // More robust selector
+                // const doctorP = demoInfo.querySelector('p:nth-of-type(2)');
+                // const patientP = demoInfo.querySelector('p:nth-of-type(3)');
+
+                if(adminP) {
+                    adminP.style.cursor = 'pointer';
+                    adminP.onclick = () => fillTestData('admin', 'admin123');
+                }
+                // Add similar for doctorP and patientP if/when their logins are supported
+            }
+        });
+
+        // การส่งแบบฟอร์มล็อกอิน
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                showAlert('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน', 'danger');
+                return;
+            }
+            
+            const loginButton = document.getElementById('loginButton');
+            loginButton.classList.add('loading');
+            
+            // *** ปรับ Endpoint และการจัดการ Response ให้ตรงกับ Backend Admin ***
+            // โดยทั่วไปควรมีการตรวจสอบ role ก่อนส่ง หรือมี UI ให้เลือก role
+            // แต่ในที่นี้จะทดสอบกับ Admin endpoint ก่อน
+            let loginEndpoint = `${API_BASE_URL}/admin/auth/login`; // Default to admin
+            
+            // ตัวอย่าง: หากมี input หรือ dropdown ให้เลือก role
+            // const selectedRole = document.getElementById('roleSelector')?.value;
+            // if (selectedRole === 'doctor') loginEndpoint = `${API_BASE_URL}/doctor/auth/login`;
+            // else if (selectedRole === 'patient') loginEndpoint = `${API_BASE_URL}/patient/auth/login`;
+
+
+            fetch(loginEndpoint, { // Using admin login endpoint for now
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(responseData => { // Changed variable name from 'data' to 'responseData' to avoid conflict
+                console.log('Response data:', responseData);
+                
+                loginButton.classList.remove('loading');
+                
+                if (responseData.success) {
+                    // Adjusted to match backend response structure
+                    localStorage.setItem('token', responseData.data.token);
+                    localStorage.setItem('username', responseData.data.username);
+                    localStorage.setItem('userId', responseData.data.userId); // Changed from 'id' to 'userId'
+                    localStorage.setItem('role', responseData.data.role);
+                    
+                    showAlert('เข้าสู่ระบบสำเร็จ กำลังนำท่านไปยังหน้าแดชบอร์ด...', 'success');
+                    
+                    setTimeout(() => {
+                        if (responseData.data.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (responseData.data.role === 'doctor') {
+                            window.location.href = 'doctor-dashboard.html';
+                        } else if (responseData.data.role === 'patient') {
+                            window.location.href = 'patient-dashboard.html';
+                        } else {
+                            // Fallback, though admin backend should always return a known role on success
+                            showAlert('ไม่รู้จักบทบาทผู้ใช้ กำลังไปหน้าหลัก', 'warning');
+                            window.location.href = 'admin-dashboard.html'; 
+                        }
+                    }, 1500);
+                } else {
+                    let errorMsg = responseData.message || responseData.error || 'เข้าสู่ระบบล้มเหลว';
+                    
+                    // Thai error message translations (can be expanded)
+                    if (errorMsg.includes('Invalid admin credentials')) {
+                        errorMsg = 'ชื่อผู้ใช้หรือรหัสผ่านสำหรับผู้ดูแลระบบไม่ถูกต้อง';
+                    } else if (errorMsg.includes('Invalid credentials')) { // More generic
+                        errorMsg = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                    } else if (errorMsg.includes('Admin account is not active')) {
+                        errorMsg = 'บัญชีผู้ดูแลระบบยังไม่เปิดใช้งาน';
+                    } else if (errorMsg.includes('No token provided')) {
+                        errorMsg = 'ไม่พบ Token สำหรับการยืนยันตัวตน';
+                    } else if (errorMsg.includes('Unauthorized')) {
+                         errorMsg = 'ไม่ได้รับอนุญาตให้เข้าถึง';
+                    }
+                    
+                    showAlert(errorMsg, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                loginButton.classList.remove('loading');
+                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาตรวจสอบว่าเซิร์ฟเวอร์ทำงานอยู่และลองอีกครั้ง', 'danger');
+            });
+        });
+
+        // ตรวจสอบการเชื่อมต่อกับ API เมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', function() {
+            // Using admin health check endpoint
+            fetch(`${API_BASE_URL}/admin/health`,{
+                headers: {
+                    // If your health endpoint is protected, you might need a token for other roles
+                    // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+                .then(response => response.json())
+                .then(healthData => { // Changed variable name
+                    // Adjusted to match backend health check response
+                    if (healthData.success && healthData.data.database === 'connected') {
+                        console.log('✅ API และฐานข้อมูลเชื่อมต่อสำเร็จ');
+                    } else {
+                         console.warn('⚠️ API เชื่อมต่อได้ แต่ฐานข้อมูลอาจมีปัญหา หรือ API status ไม่เป็นไปตามคาด:', healthData);
+                         // showAlert('API เชื่อมต่อได้ แต่การตรวจสอบสถานะระบบไม่สมบูรณ์', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ ไม่สามารถเชื่อมต่อ API:', error);
+                    showAlert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบว่าเซิร์ฟเวอร์ทำงานอยู่ (Backend Port 3002)', 'danger');
+                });
+        });
+    </script>
+</body>
+</html>

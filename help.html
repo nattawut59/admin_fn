@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ช่วยเหลือผู้ใช้ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background-color: var(--primary-color);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+        }
+
+        .sidebar-brand img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+        }
+
+        .sidebar-menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .sidebar-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-menu-item.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-left: 4px solid var(--secondary-dark);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background-color: white;
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-light);
+            border-radius: 50px;
+            padding: 8px 15px;
+            width: 300px;
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .user-info p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--bg-light);
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 5px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 30px;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--bg-light);
+            background-color: white;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Help Categories */
+        .help-category {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .help-category:hover {
+            transform: translateY(-5px);
+            color: white;
+            text-decoration: none;
+        }
+
+        .help-category.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .help-category.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+        }
+
+        .help-category.info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        .help-category.danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+        }
+
+        .help-category h4 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .help-category p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .help-category .icon {
+            font-size: 2.5rem;
+            float: right;
+            opacity: 0.3;
+        }
+
+        /* FAQ Styles */
+        .faq-item {
+            border: 1px solid var(--bg-light);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            background-color: white;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .faq-question:hover {
+            background-color: var(--bg-light);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+
+        .faq-answer.show {
+            padding: 20px;
+            max-height: 500px;
+        }
+
+        .faq-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .faq-icon.rotate {
+            transform: rotate(180deg);
+        }
+
+        /* Search Styles */
+        .search-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-section h2 {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .help-search {
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .help-search input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .help-search button {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            bottom: 5px;
+            border: none;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50px;
+            padding: 0 20px;
+            cursor: pointer;
+        }
+
+        /* Contact Form */
+        .contact-form {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1);
+        }
+
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px 12px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-outline-primary {
+            background-color: white;
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        /* Video Player */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            background-color: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Quick Links */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .quick-link {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .quick-link:hover {
+            transform: translateY(-5px);
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .quick-link i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        .quick-link h6 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .bg-success {
+            background-color: var(--success-color) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background-color: var(--danger-color) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background-color: var(--warning-color) !important;
+            color: white;
+        }
+
+        .bg-info {
+            background-color: #0ea5e9 !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background-color: #6b7280 !important;
+            color: white;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title, 
+            .sidebar-footer {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 15px 0;
+                display: flex;
+                justify-content: center;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content-wrapper {
+                padding: 20px 15px;
+            }
+
+            .header {
+                padding: 0 15px;
+            }
+
+            .search-section {
+                padding: 30px 20px;
+            }
+
+            .contact-form {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye" style="font-size: 2rem; color: var(--secondary-color);"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <div class="sidebar-menu-item active" onclick="navigateTo('admin-dashboard.html')">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </div>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('users-management.html')">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('doctors.html')">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('nurses.html')">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('patients.html')">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </div>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('medications.html')">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('database.html')">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('access-rights.html')">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('test-types.html')">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </div>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('glaucoma-data.html')">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('statistics.html')">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('audit-logs.html')">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </div>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('system-maintenance.html')">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('notifications.html')">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('documents.html')">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('alerts.html')">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('special-exams.html')">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาวิธีใช้งาน..." id="headerSearchInput">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2><i class="fas fa-question-circle"></i> ศูนย์ช่วยเหลือและสนับสนุน</h2>
+                <p>ค้นหาคำตอบสำหรับคำถามของคุณ หรือติดต่อทีมสนับสนุนของเรา</p>
+                <div class="help-search">
+                    <input type="text" placeholder="พิมพ์คำถามหรือหัวข้อที่ต้องการความช่วยเหลือ..." id="helpSearchInput">
+                    <button type="button" id="helpSearchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Help Categories -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <a href="#getting-started" class="help-category" onclick="showSection('getting-started')">
+                        <i class="fas fa-rocket icon"></i>
+                        <h4>เริ่มต้นใช้งาน</h4>
+                        <p>วิธีการเริ่มต้นใช้งานระบบสำหรับผู้ใช้ใหม่</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#user-management" class="help-category success" onclick="showSection('user-management')">
+                        <i class="fas fa-users icon"></i>
+                        <h4>จัดการผู้ใช้</h4>
+                        <p>การลงทะเบียนและจัดการบัญชีผู้ใช้งาน</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#data-management" class="help-category warning" onclick="showSection('data-management')">
+                        <i class="fas fa-database icon"></i>
+                        <h4>จัดการข้อมูล</h4>
+                        <p>การบันทึกและจัดการข้อมูลผู้ป่วย</p>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="#troubleshooting" class="help-category danger" onclick="showSection('troubleshooting')">
+                        <i class="fas fa-tools icon"></i>
+                        <h4>แก้ไขปัญหา</h4>
+                        <p>วิธีแก้ไขปัญหาที่พบบ่อยและการติดต่อสนับสนุน</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <a href="#" class="quick-link" onclick="showSection('video-tutorials')">
+                    <i class="fas fa-play-circle"></i>
+                    <h6>วิดีโอสอนใช้งาน</h6>
+                    <small>ดูวิดีโอแนะนำการใช้งานระบบ</small>
+                </a>
+                <a href="#" class="quick-link" onclick="showSection('downloads')">
+                    <i class="fas fa-download"></i>
+                    <h6>ดาวน์โหลด</h6>
+                    <small>คู่มือการใช้งานและแบบฟอร์ม</small>
+                </a>
+                <a href="#" class="quick-link" onclick="showSection('contact')">
+                    <i class="fas fa-envelope"></i>
+                    <h6>ติดต่อเรา</h6>
+                    <small>ส่งคำถามหรือข้อเสนอแนะ</small>
+                </a>
+               <a href="#" class="quick-link" onclick="showSection('system-status')">
+                    <i class="fas fa-server"></i>
+                    <h6>สถานะระบบ</h6>
+                    <small>ตรวจสอบสถานะการทำงานของระบบ</small>
+                </a>
+            </div>
+
+            <!-- Content Sections -->
+            <div id="content-sections">
+                <!-- Getting Started Section -->
+                <div id="getting-started-section" class="content-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-rocket"></i> เริ่มต้นใช้งานระบบ</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>ขั้นตอนการเริ่มต้นใช้งาน</h5>
+                                    <ol class="mb-4">
+                                        <li>เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบ</li>
+                                        <li>ตั้งค่าข้อมูลพื้นฐานของระบบ</li>
+                                        <li>ลงทะเบียนแพทย์และพยาบาลในระบบ</li>
+                                        <li>เพิ่มข้อมูลยาที่ใช้ในการรักษา</li>
+                                        <li>ลงทะเบียนผู้ป่วยและเริ่มบันทึกข้อมูล</li>
+                                    </ol>
+                                    
+                                    <div class="alert alert-info">
+                                        <strong>เคล็ดลับ:</strong> ควรอ่านคู่มือการใช้งานอย่างละเอียดก่อนเริ่มใช้งานจริง และทดสอบระบบด้วยข้อมูลตัวอย่างก่อน
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-lightbulb"></i> ข้อแนะนำสำหรับผู้เริ่มต้น</h6>
+                                        <ul class="mb-0">
+                                            <li>สำรองข้อมูลเก่าก่อนเริ่มใช้งาน</li>
+                                            <li>เตรียมรายชื่อผู้ใช้ที่จะลงทะเบียน</li>
+                                            <li>ศึกษาการใช้งานเบื้องต้น</li>
+                                            <li>ทดสอบระบบก่อนใช้งานจริง</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management Section -->
+                <div id="user-management-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> การจัดการผู้ใช้งาน</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>การลงทะเบียนผู้ใช้ใหม่</h5>
+                                    <p>ระบบสนับสนุนผู้ใช้ 4 ประเภท:</p>
+                                    <ul>
+                                        <li><strong>ผู้ดูแลระบบ:</strong> มีสิทธิ์เต็มในการจัดการระบบ</li>
+                                        <li><strong>แพทย์:</strong> สามารถดูและแก้ไขข้อมูลผู้ป่วย</li>
+                                        <li><strong>พยาบาล:</strong> สามารถบันทึกข้อมูลการตรวจ</li>
+                                        <li><strong>ผู้ป่วย:</strong> สามารถดูข้อมูลของตนเอง</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>การจัดการสิทธิ์การเข้าถึง</h5>
+                                    <p>สิทธิ์การเข้าถึงสามารถกำหนดได้ตามหน้าที่:</p>
+                                    <ul>
+                                        <li>การดูข้อมูลผู้ป่วย</li>
+                                        <li>การแก้ไขข้อมูลการรักษา</li>
+                                        <li>การบันทึกผลการตรวจ</li>
+                                        <li>การจัดการข้อมูลยา</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Management Section -->
+                <div id="data-management-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-database"></i> การจัดการข้อมูล</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h6><i class="fas fa-hospital-user"></i> ข้อมูลผู้ป่วย</h6>
+                                    <ul>
+                                        <li>การลงทะเบียนผู้ป่วยใหม่</li>
+                                        <li>การอัปเดตข้อมูลส่วนตัว</li>
+                                        <li>การจัดการประวัติการรักษา</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6><i class="fas fa-eye"></i> ข้อมูล IOP</h6>
+                                    <ul>
+                                        <li>การบันทึกค่า IOP</li>
+                                        <li>การติดตามแนวโน้ม</li>
+                                        <li>การตั้งค่าแจ้งเตือน</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6><i class="fas fa-pills"></i> ข้อมูลยา</h6>
+                                    <ul>
+                                        <li>การเพิ่มยาใหม่</li>
+                                        <li>การจัดการสูตรยา</li>
+                                        <li>การติดตามการกินยา</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting Section -->
+                <div id="troubleshooting-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tools"></i> แก้ไขปัญหาและการแก้ไข</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <strong>ปัญหาที่พบบ่อย:</strong> หากพบปัญหาการใช้งาน กรุณาตรวจสอบขั้นตอนด้านล่างก่อน
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>ปัญหาการเข้าสู่ระบบ</h6>
+                                    <ul>
+                                        <li>ตรวจสอบชื่อผู้ใช้และรหัสผ่าน</li>
+                                        <li>ล้างแคชและคุกกี้ของเบราว์เซอร์</li>
+                                        <li>ลองใช้เบราว์เซอร์อื่น</li>
+                                        <li>ติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>ปัญหาการแสดงผล</h6>
+                                    <ul>
+                                        <li>ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</li>
+                                        <li>รีเฟรชหน้าเว็บ (F5)</li>
+                                        <li>ตรวจสอบขนาดหน้าจอและความละเอียด</li>
+                                        <li>อัปเดตเบราว์เซอร์เป็นเวอร์ชันล่าสุด</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Tutorials Section -->
+                <div id="video-tutorials-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-play-circle"></i> วิดีโอสอนใช้งาน</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <h6>การเริ่มต้นใช้งานระบบ</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">วิดีโอแนะนำการใช้งานเบื้องต้น</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <h6>การลงทะเบียนผู้ใช้ใหม่</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">วิธีการเพิ่มผู้ใช้และกำหนดสิทธิ์</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <h6>การบันทึกข้อมูลผู้ป่วย</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">การใช้งานระบบบันทึกข้อมูลการรักษา</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <h6>การสร้างรายงาน</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">วิธีการสร้างและส่งออกรายงาน</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Downloads Section -->
+                <div id="downloads-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-download"></i> ดาวน์โหลดเอกสาร</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>คู่มือการใช้งาน</h6>
+                                    <div class="list-group">
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('manual-admin.pdf')">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            คู่มือผู้ดูแลระบบ (PDF, 2.5 MB)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('manual-doctor.pdf')">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            คู่มือแพทย์ (PDF, 1.8 MB)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('manual-nurse.pdf')">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            คู่มือพยาบาล (PDF, 1.2 MB)
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>แบบฟอร์มและเทมเพลต</h6>
+                                    <div class="list-group">
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('template-patient.xlsx')">
+                                            <i class="fas fa-file-excel text-success"></i>
+                                            แบบฟอร์มข้อมูลผู้ป่วย (Excel)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('template-iop.csv')">
+                                            <i class="fas fa-file-csv text-info"></i>
+                                            เทมเพลตข้อมูล IOP (CSV)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('template-medication.xlsx')">
+                                            <i class="fas fa-file-excel text-success"></i>
+                                            รายการยา (Excel)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Section -->
+                <div id="contact-section" class="content-section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="contact-form">
+                                <h4><i class="fas fa-envelope"></i> ส่งคำถามหรือข้อเสนอแนะ</h4>
+                                <form id="contactForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="contactName">ชื่อ-นามสกุล</label>
+                                                <input type="text" class="form-control" id="contactName" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="contactEmail">อีเมล</label>
+                                                <input type="email" class="form-control" id="contactEmail" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactSubject">หัวข้อ</label>
+                                        <select class="form-select" id="contactSubject" required>
+                                            <option value="">-- เลือกหัวข้อ --</option>
+                                            <option value="technical">ปัญหาทางเทคนิค</option>
+                                            <option value="feature">ขอเพิ่มฟีเจอร์ใหม่</option>
+                                            <option value="bug">รายงานบั๊ก</option>
+                                            <option value="training">ขอการฝึกอบรม</option>
+                                            <option value="other">อื่นๆ</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactMessage">รายละเอียด</label>
+                                        <textarea class="form-control" id="contactMessage" rows="5" required 
+                                                placeholder="กรุณาอธิบายปัญหาหรือข้อเสนอแนะอย่างละเอียด..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactPriority">ระดับความเร่งด่วน</label>
+                                        <select class="form-select" id="contactPriority">
+                                            <option value="low">ต่ำ</option>
+                                            <option value="medium" selected>ปานกลาง</option>
+                                            <option value="high">สูง</option>
+                                            <option value="urgent">เร่งด่วน</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> ส่งข้อความ
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-phone"></i> ติดต่อโดยตรง</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <strong>โทรศัพท์:</strong><br>
+                                        <i class="fas fa-phone text-success"></i> 02-123-4567<br>
+                                        <small class="text-muted">วันจันทร์-ศุกร์ 8:00-17:00</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>อีเมล:</strong><br>
+                                        <i class="fas fa-envelope text-primary"></i> support@glaucoma-system.com
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Line Official:</strong><br>
+                                        <i class="fab fa-line text-success"></i> @glaucoma-support
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>เวลาตอบกลับ:</strong><br>
+                                        <i class="fas fa-clock text-info"></i> ภายใน 24 ชั่วโมง
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status Section -->
+                <div id="system-status-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-server"></i> สถานะระบบ</h3>
+                            <small class="text-muted">อัปเดตล่าสุด: <span id="lastUpdateTime">-</span></small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>สถานะเซอร์วิส</h6>
+                                    <div class="list-group">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            เว็บแอปพลิเคชัน
+                                            <span class="badge bg-success">ปกติ</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            ฐานข้อมูล
+                                            <span class="badge bg-success">ปกติ</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            API เซอร์วิส
+                                            <span class="badge bg-success">ปกติ</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            ระบบสำรองข้อมูล
+                                            <span class="badge bg-warning">บำรุงรักษา</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>ประสิทธิภาพระบบ</h6>
+                                    <div class="mb-3">
+                                        <small>เวลาตอบสนอง API</small>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width: 85%"></div>
+                                        </div>
+                                        <small class="text-muted">เฉลี่ย 120ms</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small>การใช้งาน CPU</small>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" style="width: 45%"></div>
+                                        </div>
+                                        <small class="text-muted">45%</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small>การใช้งานหน่วยความจำ</small>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-warning" style="width: 68%"></div>
+                                        </div>
+                                        <small class="text-muted">68%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-question-circle"></i> คำถามที่พบบ่อย (FAQ)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="faq-container">
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>ฉันลืมรหัสผ่าน ต้องทำอย่างไร?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>หากลืมรหัสผ่าน สามารถติดต่อผู้ดูแลระบบเพื่อขอรีเซ็ตรหัสผ่านใหม่ หรือใช้ฟีเจอร์ "ลืมรหัสผ่าน" ที่หน้าเข้าสู่ระบบ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>ทำไมระบบทำงานช้า?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ความเร็วของระบบอาจขึ้นอยู่กับปัจจัยหลายอย่าง เช่น การเชื่อมต่ออินเทอร์เน็ต จำนวนผู้ใช้งานพร้อมกัน หรือการบำรุงรักษาระบบ หากปัญหายังคงอยู่ กรุณาติดต่อทีมสนับสนุน</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>สามารถใช้งานบนมือถือได้หรือไม่?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ระบบสามารถใช้งานบนอุปกรณ์มือถือและแท็บเล็ตได้ผ่านเว็บเบราว์เซอร์ แต่แนะนำให้ใช้งานบนคอมพิวเตอร์เพื่อประสบการณ์การใช้งานที่ดีที่สุด</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>ข้อมูลของฉันปลอดภัยหรือไม่?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ระบบของเรามีการป้องกันความปลอดภัยในระดับสูง รวมถึงการเข้ารหัสข้อมูล การสำรองข้อมูลสม่ำเสมอ และการตรวจสอบการเข้าถึงอย่างเข้มงวด ข้อมูลทางการแพทย์ของคุณจะได้รับการปกป้องตามมาตรฐานสากล</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>จะส่งออกข้อมูลเป็นไฟล์ Excel ได้อย่างไร?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ในหน้ารายงานสถิติ คุณสามารถเลือกรูปแบบการส่งออกเป็น Excel, PDF หรือ CSV ได="fas fa-server"></i>
+                    <h6>สถานะระบบ</h6>
+                    <small>ตรวจสอบสถานะการทำงานของระบบ</small>
+                </a>
+            </div>
+
+            <!-- Content Sections -->
+            <div id="content-sections">
+                <!-- Getting Started Section -->
+                <div id="getting-started-section" class="content-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-rocket"></i> เริ่มต้นใช้งานระบบ</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>ขั้นตอนการเริ่มต้นใช้งาน</h5>
+                                    <ol class="mb-4">
+                                        <li>เข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบ</li>
+                                        <li>ตั้งค่าข้อมูลพื้นฐานของระบบ</li>
+                                        <li>ลงทะเบียนแพทย์และพยาบาลในระบบ</li>
+                                        <li>เพิ่มข้อมูลยาที่ใช้ในการรักษา</li>
+                                        <li>ลงทะเบียนผู้ป่วยและเริ่มบันทึกข้อมูล</li>
+                                    </ol>
+                                    
+                                    <div class="alert alert-info">
+                                        <strong>เคล็ดลับ:</strong> ควรอ่านคู่มือการใช้งานอย่างละเอียดก่อนเริ่มใช้งานจริง และทดสอบระบบด้วยข้อมูลตัวอย่างก่อน
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-lightbulb"></i> ข้อแนะนำสำหรับผู้เริ่มต้น</h6>
+                                        <ul class="mb-0">
+                                            <li>สำรองข้อมูลเก่าก่อนเริ่มใช้งาน</li>
+                                            <li>เตรียมรายชื่อผู้ใช้ที่จะลงทะเบียน</li>
+                                            <li>ศึกษาการใช้งานเบื้องต้น</li>
+                                            <li>ทดสอบระบบก่อนใช้งานจริง</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management Section -->
+                <div id="user-management-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> การจัดการผู้ใช้งาน</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>การลงทะเบียนผู้ใช้ใหม่</h5>
+                                    <p>ระบบสนับสนุนผู้ใช้ 4 ประเภท:</p>
+                                    <ul>
+                                        <li><strong>ผู้ดูแลระบบ:</strong> มีสิทธิ์เต็มในการจัดการระบบ</li>
+                                        <li><strong>แพทย์:</strong> สามารถดูและแก้ไขข้อมูลผู้ป่วย</li>
+                                        <li><strong>พยาบาล:</strong> สามารถบันทึกข้อมูลการตรวจ</li>
+                                        <li><strong>ผู้ป่วย:</strong> สามารถดูข้อมูลของตนเอง</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>การจัดการสิทธิ์การเข้าถึง</h5>
+                                    <p>สิทธิ์การเข้าถึงสามารถกำหนดได้ตามหน้าที่:</p>
+                                    <ul>
+                                        <li>การดูข้อมูลผู้ป่วย</li>
+                                        <li>การแก้ไขข้อมูลการรักษา</li>
+                                        <li>การบันทึกผลการตรวจ</li>
+                                        <li>การจัดการข้อมูลยา</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Management Section -->
+                <div id="data-management-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-database"></i> การจัดการข้อมูล</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h6><i class="fas fa-hospital-user"></i> ข้อมูลผู้ป่วย</h6>
+                                    <ul>
+                                        <li>การลงทะเบียนผู้ป่วยใหม่</li>
+                                        <li>การอัปเดตข้อมูลส่วนตัว</li>
+                                        <li>การจัดการประวัติการรักษา</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6><i class="fas fa-eye"></i> ข้อมูล IOP</h6>
+                                    <ul>
+                                        <li>การบันทึกค่า IOP</li>
+                                        <li>การติดตามแนวโน้ม</li>
+                                        <li>การตั้งค่าแจ้งเตือน</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6><i class="fas fa-pills"></i> ข้อมูลยา</h6>
+                                    <ul>
+                                        <li>การเพิ่มยาใหม่</li>
+                                        <li>การจัดการสูตรยา</li>
+                                        <li>การติดตามการกินยา</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting Section -->
+                <div id="troubleshooting-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tools"></i> แก้ไขปัญหาและการแก้ไข</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <strong>ปัญหาที่พบบ่อย:</strong> หากพบปัญหาการใช้งาน กรุณาตรวจสอบขั้นตอนด้านล่างก่อน
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>ปัญหาการเข้าสู่ระบบ</h6>
+                                    <ul>
+                                        <li>ตรวจสอบชื่อผู้ใช้และรหัสผ่าน</li>
+                                        <li>ล้างแคชและคุกกี้ของเบราว์เซอร์</li>
+                                        <li>ลองใช้เบราว์เซอร์อื่น</li>
+                                        <li>ติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>ปัญหาการแสดงผล</h6>
+                                    <ul>
+                                        <li>ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</li>
+                                        <li>รีเฟรชหน้าเว็บ (F5)</li>
+                                        <li>ตรวจสอบขนาดหน้าจอและความละเอียด</li>
+                                        <li>อัปเดตเบราว์เซอร์เป็นเวอร์ชันล่าสุด</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Tutorials Section -->
+                <div id="video-tutorials-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-play-circle"></i> วิดีโอสอนใช้งาน</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <h6>การเริ่มต้นใช้งานระบบ</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">วิดีโอแนะนำการใช้งานเบื้องต้น</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <h6>การลงทะเบียนผู้ใช้ใหม่</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">วิธีการเพิ่มผู้ใช้และกำหนดสิทธิ์</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <h6>การบันทึกข้อมูลผู้ป่วย</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">การใช้งานระบบบันทึกข้อมูลการรักษา</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <h6>การสร้างรายงาน</h6>
+                                    <div class="video-container">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <i class="fas fa-play-circle fa-4x text-secondary"></i>
+                                                <p class="mt-3">วิธีการสร้างและส่งออกรายงาน</p>
+                                                <button class="btn btn-primary btn-sm">เล่นวิดีโอ</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Downloads Section -->
+                <div id="downloads-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-download"></i> ดาวน์โหลดเอกสาร</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>คู่มือการใช้งาน</h6>
+                                    <div class="list-group">
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('manual-admin.pdf')">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            คู่มือผู้ดูแลระบบ (PDF, 2.5 MB)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('manual-doctor.pdf')">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            คู่มือแพทย์ (PDF, 1.8 MB)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('manual-nurse.pdf')">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            คู่มือพยาบาล (PDF, 1.2 MB)
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>แบบฟอร์มและเทมเพลต</h6>
+                                    <div class="list-group">
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('template-patient.xlsx')">
+                                            <i class="fas fa-file-excel text-success"></i>
+                                            แบบฟอร์มข้อมูลผู้ป่วย (Excel)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('template-iop.csv')">
+                                            <i class="fas fa-file-csv text-info"></i>
+                                            เทมเพลตข้อมูล IOP (CSV)
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="downloadFile('template-medication.xlsx')">
+                                            <i class="fas fa-file-excel text-success"></i>
+                                            รายการยา (Excel)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Section -->
+                <div id="contact-section" class="content-section" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="contact-form">
+                                <h4><i class="fas fa-envelope"></i> ส่งคำถามหรือข้อเสนอแนะ</h4>
+                                <form id="contactForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="contactName">ชื่อ-นามสกุล</label>
+                                                <input type="text" class="form-control" id="contactName" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="contactEmail">อีเมล</label>
+                                                <input type="email" class="form-control" id="contactEmail" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactSubject">หัวข้อ</label>
+                                        <select class="form-select" id="contactSubject" required>
+                                            <option value="">-- เลือกหัวข้อ --</option>
+                                            <option value="technical">ปัญหาทางเทคนิค</option>
+                                            <option value="feature">ขอเพิ่มฟีเจอร์ใหม่</option>
+                                            <option value="bug">รายงานบั๊ก</option>
+                                            <option value="training">ขอการฝึกอบรม</option>
+                                            <option value="other">อื่นๆ</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactMessage">รายละเอียด</label>
+                                        <textarea class="form-control" id="contactMessage" rows="5" required 
+                                                placeholder="กรุณาอธิบายปัญหาหรือข้อเสนอแนะอย่างละเอียด..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contactPriority">ระดับความเร่งด่วน</label>
+                                        <select class="form-select" id="contactPriority">
+                                            <option value="low">ต่ำ</option>
+                                            <option value="medium" selected>ปานกลาง</option>
+                                            <option value="high">สูง</option>
+                                            <option value="urgent">เร่งด่วน</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> ส่งข้อความ
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-phone"></i> ติดต่อโดยตรง</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <strong>โทรศัพท์:</strong><br>
+                                        <i class="fas fa-phone text-success"></i> 02-123-4567<br>
+                                        <small class="text-muted">วันจันทร์-ศุกร์ 8:00-17:00</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>อีเมล:</strong><br>
+                                        <i class="fas fa-envelope text-primary"></i> support@glaucoma-system.com
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Line Official:</strong><br>
+                                        <i class="fab fa-line text-success"></i> @glaucoma-support
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>เวลาตอบกลับ:</strong><br>
+                                        <i class="fas fa-clock text-info"></i> ภายใน 24 ชั่วโมง
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status Section -->
+                <div id="system-status-section" class="content-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-server"></i> สถานะระบบ</h3>
+                            <small class="text-muted">อัปเดตล่าสุด: <span id="lastUpdateTime">-</span></small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>สถานะเซอร์วิส</h6>
+                                    <div class="list-group">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            เว็บแอปพลิเคชัน
+                                            <span class="badge bg-success">ปกติ</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            ฐานข้อมูล
+                                            <span class="badge bg-success">ปกติ</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            API เซอร์วิส
+                                            <span class="badge bg-success">ปกติ</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            ระบบสำรองข้อมูล
+                                            <span class="badge bg-warning">บำรุงรักษา</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>ประสิทธิภาพระบบ</h6>
+                                    <div class="mb-3">
+                                        <small>เวลาตอบสนอง API</small>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width: 85%"></div>
+                                        </div>
+                                        <small class="text-muted">เฉลี่ย 120ms</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small>การใช้งาน CPU</small>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" style="width: 45%"></div>
+                                        </div>
+                                        <small class="text-muted">45%</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <small>การใช้งานหน่วยความจำ</small>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-warning" style="width: 68%"></div>
+                                        </div>
+                                        <small class="text-muted">68%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-question-circle"></i> คำถามที่พบบ่อย (FAQ)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="faq-container">
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>ฉันลืมรหัสผ่าน ต้องทำอย่างไร?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>หากลืมรหัสผ่าน สามารถติดต่อผู้ดูแลระบบเพื่อขอรีเซ็ตรหัสผ่านใหม่ หรือใช้ฟีเจอร์ "ลืมรหัสผ่าน" ที่หน้าเข้าสู่ระบบ</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>ทำไมระบบทำงานช้า?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ความเร็วของระบบอาจขึ้นอยู่กับปัจจัยหลายอย่าง เช่น การเชื่อมต่ออินเทอร์เน็ต จำนวนผู้ใช้งานพร้อมกัน หรือการบำรุงรักษาระบบ หากปัญหายังคงอยู่ กรุณาติดต่อทีมสนับสนุน</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>สามารถใช้งานบนมือถือได้หรือไม่?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ระบบสามารถใช้งานบนอุปกรณ์มือถือและแท็บเล็ตได้ผ่านเว็บเบราว์เซอร์ แต่แนะนำให้ใช้งานบนคอมพิวเตอร์เพื่อประสบการณ์การใช้งานที่ดีที่สุด</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>ข้อมูลของฉันปลอดภัยหรือไม่?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ระบบของเรามีการป้องกันความปลอดภัยในระดับสูง รวมถึงการเข้ารหัสข้อมูล การสำรองข้อมูลสม่ำเสมอ และการตรวจสอบการเข้าถึงอย่างเข้มงวด ข้อมูลทางการแพทย์ของคุณจะได้รับการปกป้องตามมาตรฐานสากล</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFAQ(this)">
+                                <span>จะส่งออกข้อมูลเป็นไฟล์ Excel ได้อย่างไร?</span>
+                                <i class="fas fa-chevron-down faq-icon"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>ในหน้ารายงานสถิติ คุณสามารถเลือกรูปแบบการส่งออกเป็น Excel, PDF หรือ CSV ได้ โดยคลิกที่ปุ่ม "ส่งออกรายงาน" และเลือกรูปแบบที่ต้องการ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        let currentSection = 'getting-started';
+
+        // Authentication Functions
+        function checkAuthentication() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Section Management
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                currentSection = sectionName;
+                
+                // Update URL hash
+                window.location.hash = sectionName;
+                
+                // Scroll to top of content
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // FAQ Functions
+        function toggleFAQ(button) {
+            const faqItem = button.closest('.faq-item');
+            const answer = faqItem.querySelector('.faq-answer');
+            const icon = button.querySelector('.faq-icon');
+            
+            // Close all other FAQ items
+            const allFaqItems = document.querySelectorAll('.faq-item');
+            allFaqItems.forEach(item => {
+                if (item !== faqItem) {
+                    const otherAnswer = item.querySelector('.faq-answer');
+                    const otherIcon = item.querySelector('.faq-icon');
+                    otherAnswer.classList.remove('show');
+                    otherIcon.classList.remove('rotate');
+                }
+            });
+            
+            // Toggle current FAQ item
+            answer.classList.toggle('show');
+            icon.classList.toggle('rotate');
+        }
+
+        // Search Functions
+        function performHelpSearch(query) {
+            if (!query.trim()) {
+                showAlert('กรุณาใส่คำค้นหา', 'warning');
+                return;
+            }
+
+            showAlert('กำลังค้นหา...', 'info');
+            
+            // Simulate search delay
+            setTimeout(() => {
+                const searchResults = searchHelpContent(query);
+                displaySearchResults(searchResults, query);
+            }, 1000);
+        }
+
+        function searchHelpContent(query) {
+            const searchTerms = query.toLowerCase();
+            const results = [];
+            
+            // Search in FAQ
+            const faqQuestions = document.querySelectorAll('.faq-question span');
+            faqQuestions.forEach((question, index) => {
+                if (question.textContent.toLowerCase().includes(searchTerms)) {
+                    results.push({
+                        type: 'FAQ',
+                        title: question.textContent,
+                        content: question.closest('.faq-item').querySelector('.faq-answer p').textContent,
+                        action: () => {
+                            question.closest('.faq-question').click();
+                            question.closest('.faq-item').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                }
+            });
+            
+            // Search in help categories
+            const helpCategories = [
+                { name: 'getting-started', title: 'เริ่มต้นใช้งาน', keywords: ['เริ่มต้น', 'ติดตั้ง', 'setup', 'install'] },
+                { name: 'user-management', title: 'จัดการผู้ใช้', keywords: ['ผู้ใช้', 'user', 'ลงทะเบียน', 'register'] },
+                { name: 'data-management', title: 'จัดการข้อมูล', keywords: ['ข้อมูล', 'data', 'ผู้ป่วย', 'patient'] },
+                { name: 'troubleshooting', title: 'แก้ไขปัญหา', keywords: ['ปัญหา', 'แก้ไข', 'error', 'bug'] }
+            ];
+            
+            helpCategories.forEach(category => {
+                const matchKeywords = category.keywords.some(keyword => 
+                    keyword.includes(searchTerms) || searchTerms.includes(keyword)
+                );
+                const matchTitle = category.title.toLowerCase().includes(searchTerms);
+                
+                if (matchKeywords || matchTitle) {
+                    results.push({
+                        type: 'หมวดหมู่',
+                        title: category.title,
+                        content: `ดูข้อมูลเพิ่มเติมในหมวด ${category.title}`,
+                        action: () => showSection(category.name)
+                    });
+                }
+            });
+            
+            return results;
+        }
+
+        function displaySearchResults(results, query) {
+            if (results.length === 0) {
+                showAlert(`ไม่พบผลลัพธ์สำหรับ "${query}"`, 'warning');
+                return;
+            }
+            
+            // Remove previous search results
+            const existingResults = document.querySelector('.search-results-card');
+            if (existingResults) {
+                existingResults.remove();
+            }
+            
+            // Create search results section
+            let searchResultsHTML = `
+                <div class="card mb-4 search-results-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-search"></i> ผลการค้นหา: "${query}" (${results.length} รายการ)</h3>
+                    </div>
+                    <div class="card-body">
+            `;
+            
+            results.forEach((result, index) => {
+                searchResultsHTML += `
+                    <div class="search-result-item mb-3 p-3 border rounded">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6><span class="badge bg-secondary me-2">${result.type}</span>${result.title}</h6>
+                                <p class="mb-2">${result.content}</p>
+                                <button class="btn btn-sm btn-outline-primary" onclick="window.searchResults[${index}].action()">
+                                    ดูรายละเอียด
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            searchResultsHTML += `
+                    </div>
+                </div>
+            `;
+            
+            // Store results globally for button actions
+            window.searchResults = results;
+            
+            // Insert search results
+            const contentSections = document.getElementById('content-sections');
+            contentSections.insertAdjacentHTML('afterbegin', searchResultsHTML);
+            
+            // Scroll to results
+            contentSections.scrollIntoView({ behavior: 'smooth' });
+            
+            showAlert(`พบ ${results.length} ผลลัพธ์`, 'success');
+        }
+
+        // Contact Form Functions
+        function submitContactForm(event) {
+            event.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
+                subject: document.getElementById('contactSubject').value,
+                message: document.getElementById('contactMessage').value,
+                priority: document.getElementById('contactPriority').value
+            };
+            
+            // Validate form
+            if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+                showAlert('กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
+                return;
+            }
+            
+            // Simulate form submission
+            showAlert('กำลังส่งข้อความ...', 'info');
+            
+            setTimeout(() => {
+                showAlert('ส่งข้อความเรียบร้อยแล้ว ทีมงานจะติดต่อกลับภายใน 24 ชั่วโมง', 'success');
+                
+                // Reset form
+                document.getElementById('contactForm').reset();
+                clearSavedFormData();
+                
+                // Generate ticket number
+                const ticketNumber = 'TK' + Date.now().toString().slice(-6);
+                showAlert(`หมายเลขตั๋วของคุณ: ${ticketNumber}`, 'info');
+                
+            }, 2000);
+        }
+
+        // Download Functions
+        function downloadFile(filename) {
+            showAlert(`กำลังเตรียมดาวน์โหลด ${filename}...`, 'info');
+            
+            // Simulate file preparation
+            setTimeout(() => {
+                // Create a mock download
+                const link = document.createElement('a');
+                link.href = '#';
+                link.download = filename;
+                
+                // For demo purposes, show success message
+                showAlert(`ดาวน์โหลด ${filename} เรียบร้อยแล้ว`, 'success');
+            }, 1500);
+        }
+
+        // System Status Functions
+        function updateSystemStatus() {
+            const lastUpdateTime = document.getElementById('lastUpdateTime');
+            if (lastUpdateTime) {
+                lastUpdateTime.textContent = new Date().toLocaleString('th-TH');
+            }
+        }
+
+        // URL Hash Handling
+        function handleHashChange() {
+            const hash = window.location.hash.slice(1);
+            if (hash && document.getElementById(hash + '-section')) {
+                showSection(hash);
+            }
+        }
+
+        // Auto-save contact form data
+        function autoSaveContactForm() {
+            const formElements = ['contactName', 'contactEmail', 'contactSubject', 'contactMessage', 'contactPriority'];
+            
+            formElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // Load saved data
+                    const savedValue = sessionStorage.getItem(elementId);
+                    if (savedValue) {
+                        element.value = savedValue;
+                    }
+                    
+                    // Save data on change
+                    element.addEventListener('input', function() {
+                        sessionStorage.setItem(elementId, this.value);
+                    });
+                }
+            });
+        }
+
+        // Clear saved form data
+        function clearSavedFormData() {
+            const formElements = ['contactName', 'contactEmail', 'contactSubject', 'contactMessage', 'contactPriority'];
+            formElements.forEach(elementId => {
+                sessionStorage.removeItem(elementId);
+            });
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Search functionality
+            document.getElementById('helpSearchBtn').addEventListener('click', function() {
+                const query = document.getElementById('helpSearchInput').value;
+                performHelpSearch(query);
+            });
+            
+            document.getElementById('helpSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value;
+                    performHelpSearch(query);
+                }
+            });
+            
+            // Header search
+            document.getElementById('headerSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = this.value;
+                    performHelpSearch(query);
+                    // Also update main search input
+                    document.getElementById('helpSearchInput').value = query;
+                }
+            });
+            
+            // Contact form
+            document.getElementById('contactForm').addEventListener('submit', submitContactForm);
+            
+            // Logout function
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Handle URL hash on page load
+            handleHashChange();
+            
+            // Listen for hash changes
+            window.addEventListener('hashchange', handleHashChange);
+            
+            // Update system status
+            updateSystemStatus();
+            
+            // Update system status every 5 minutes
+            setInterval(updateSystemStatus, 300000);
+            
+            // Auto-save contact form
+            autoSaveContactForm();
+            
+            // Show default section if no hash
+            if (!window.location.hash) {
+                showSection('getting-started');
+            }
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('ยินดีต้อนรับสู่ศูนย์ช่วยเหลือ หากมีคำถามสามารถค้นหาหรือติดต่อเราได้', 'success');
+            }, 1000);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('helpSearchInput').focus();
+            }
+            
+            // Escape to close any open FAQs
+            if (e.key === 'Escape') {
+                const openAnswers = document.querySelectorAll('.faq-answer.show');
+                const openIcons = document.querySelectorAll('.faq-icon.rotate');
+                
+                openAnswers.forEach(answer => answer.classList.remove('show'));
+                openIcons.forEach(icon => icon.classList.remove('rotate'));
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('a[href^="#"]')) {
+                e.preventDefault();
+                const targetId = e.target.getAttribute('href').slice(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

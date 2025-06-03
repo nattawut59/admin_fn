@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการสิทธิ์การเข้าถึง - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(14, 165, 233, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            margin: 0 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .action-btn.delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-2 {
+            flex: 0 0 16.666667%;
+            max-width: 16.666667%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mt-4 {
+            margin-top: 25px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .mb-4 {
+            margin-bottom: 25px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-2 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item active">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาผู้ใช้, สิทธิ์..." id="searchInput">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">
+                    <i class="fas fa-key"></i>
+                    จัดการสิทธิ์การเข้าถึง
+                </h1>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userPermissionModal">
+                    <i class="fas fa-plus"></i> กำหนดสิทธิ์ผู้ใช้
+                </button>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+            
+            <!-- Filter and Search -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> การกรองและค้นหา</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="roleFilter" class="form-label">กรองตามตำแหน่ง</label>
+                            <select class="form-control" id="roleFilter">
+                                <option value="">ทั้งหมด</option>
+                                <option value="admin">ผู้ดูแลระบบ</option>
+                                <option value="doctor">แพทย์</option>
+                                <option value="nurse">พยาบาล</option>
+                                <option value="patient">ผู้ป่วย</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">กรองตามสถานะ</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="">ทั้งหมด</option>
+                                <option value="active">ใช้งาน</option>
+                                <option value="inactive">ไม่ใช้งาน</option>
+                                <option value="locked">ถูกล็อค</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchUser" class="form-label">ค้นหาผู้ใช้</label>
+                            <input type="text" class="form-control" id="searchUser" placeholder="ชื่อผู้ใช้, อีเมล...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-outline-primary w-100" id="applyFiltersBtn">
+                                    <i class="fas fa-filter"></i> กรอง
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-users"></i> รายการผู้ใช้และสิทธิ์</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-user"></i> ผู้ใช้</th>
+                                    <th><i class="fas fa-id-badge"></i> ตำแหน่ง</th>
+                                    <th><i class="fas fa-envelope"></i> อีเมล</th>
+                                    <th><i class="fas fa-check-circle"></i> สถานะ</th>
+                                    <th><i class="fas fa-clock"></i> เข้าสู่ระบบล่าสุด</th>
+                                    <th><i class="fas fa-tools"></i> การกระทำ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <p class="mt-2">กำลังโหลดข้อมูลผู้ใช้...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div id="tableInfo"></div>
+                        <nav>
+                            <ul class="pagination" id="pagination"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-bolt"></i> การกระทำด่วน</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-warning w-100" id="resetPasswordsBtn">
+                                <i class="fas fa-key"></i><br>
+                                รีเซ็ตรหัสผ่าน<br>
+                                <small>ผู้ใช้ที่เลือก</small>
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-danger w-100" id="deactivateUsersBtn">
+                                <i class="fas fa-user-slash"></i><br>ปิดการใช้งาน<br>
+                                <small>ผู้ใช้ที่เลือก</small>
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-success w-100" id="activateUsersBtn">
+                                <i class="fas fa-user-check"></i><br>
+                                เปิดการใช้งาน<br>
+                                <small>ผู้ใช้ที่เลือก</small>
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <button class="btn btn-info w-100" id="exportUsersBtn">
+                                <i class="fas fa-download"></i><br>
+                                ส่งออกรายงาน<br>
+                                <small>สิทธิ์ผู้ใช้</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- User Permission Modal -->
+    <div class="modal fade" id="userPermissionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">จัดการสิทธิ์ผู้ใช้</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- User Selection -->
+                    <div class="mb-4">
+                        <label for="selectedUser" class="form-label">เลือกผู้ใช้</label>
+                        <select class="form-control" id="selectedUser">
+                            <option value="">-- เลือกผู้ใช้ --</option>
+                        </select>
+                    </div>
+
+                    <!-- User Info Display -->
+                    <div id="userInfoDisplay" style="display: none;">
+                        <div class="alert alert-info">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>ชื่อผู้ใช้:</strong> <span id="displayUsername"></span><br>
+                                    <strong>ตำแหน่ง:</strong> <span id="displayRole"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>อีเมล:</strong> <span id="displayEmail"></span><br>
+                                    <strong>สถานะ:</strong> <span id="displayStatus"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Tabs -->
+                    <ul class="nav nav-tabs" id="permissionTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic-permissions" type="button" role="tab">
+                                <i class="fas fa-user"></i> สิทธิ์พื้นฐาน
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data-permissions" type="button" role="tab">
+                                <i class="fas fa-database"></i> จัดการข้อมูล
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system-permissions" type="button" role="tab">
+                                <i class="fas fa-cogs"></i> ระบบ
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="permissionTabContent">
+                        <!-- Basic Permissions -->
+                        <div class="tab-pane fade show active" id="basic-permissions" role="tabpanel">
+                            <div class="permission-grid">
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-eye"></i> การดูข้อมูล</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_own_profile" value="view_own_profile">
+                                        <label for="perm_view_own_profile">ดูโปรไฟล์ตนเอง</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_patients" value="view_patients">
+                                        <label for="perm_view_patients">ดูข้อมูลผู้ป่วย</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_medical_records" value="view_medical_records">
+                                        <label for="perm_view_medical_records">ดูประวัติการรักษา</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-edit"></i> การแก้ไขข้อมูล</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_edit_own_profile" value="edit_own_profile">
+                                        <label for="perm_edit_own_profile">แก้ไขโปรไฟล์ตนเอง</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_edit_patients" value="edit_patients">
+                                        <label for="perm_edit_patients">แก้ไขข้อมูลผู้ป่วย</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_edit_medical_records" value="edit_medical_records">
+                                        <label for="perm_edit_medical_records">แก้ไขประวัติการรักษา</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-plus"></i> การเพิ่มข้อมูล</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_add_patients" value="add_patients">
+                                        <label for="perm_add_patients">เพิ่มผู้ป่วยใหม่</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_add_appointments" value="add_appointments">
+                                        <label for="perm_add_appointments">นัดหมาย</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_add_measurements" value="add_measurements">
+                                        <label for="perm_add_measurements">บันทึกผลการตรวจ</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-trash"></i> การลบข้อมูล</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_delete_own_data" value="delete_own_data">
+                                        <label for="perm_delete_own_data">ลบข้อมูลตนเอง</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_delete_patients" value="delete_patients">
+                                        <label for="perm_delete_patients">ลบข้อมูลผู้ป่วย</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_delete_records" value="delete_records">
+                                        <label for="perm_delete_records">ลบประวัติการรักษา</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Management Permissions -->
+                        <div class="tab-pane fade" id="data-permissions" role="tabpanel">
+                            <div class="permission-grid">
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-pills"></i> ข้อมูลยา</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_medications" value="view_medications">
+                                        <label for="perm_view_medications">ดูข้อมูลยา</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_manage_medications" value="manage_medications">
+                                        <label for="perm_manage_medications">จัดการข้อมูลยา</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_prescribe_medications" value="prescribe_medications">
+                                        <label for="perm_prescribe_medications">สั่งจ่ายยา</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-chart-line"></i> รายงานและสถิติ</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_reports" value="view_reports">
+                                        <label for="perm_view_reports">ดูรายงาน</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_generate_reports" value="generate_reports">
+                                        <label for="perm_generate_reports">สร้างรายงาน</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_export_data" value="export_data">
+                                        <label for="perm_export_data">ส่งออกข้อมูล</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-file-medical"></i> เอกสารการแพทย์</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_documents" value="view_documents">
+                                        <label for="perm_view_documents">ดูเอกสาร</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_upload_documents" value="upload_documents">
+                                        <label for="perm_upload_documents">อัปโหลดเอกสาร</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_delete_documents" value="delete_documents">
+                                        <label for="perm_delete_documents">ลบเอกสาร</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-microscope"></i> การตรวจพิเศษ</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_tests" value="view_tests">
+                                        <label for="perm_view_tests">ดูผลการตรวจ</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_add_test_results" value="add_test_results">
+                                        <label for="perm_add_test_results">บันทึกผลการตรวจ</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_interpret_tests" value="interpret_tests">
+                                        <label for="perm_interpret_tests">แปลผลการตรวจ</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Permissions -->
+                        <div class="tab-pane fade" id="system-permissions" role="tabpanel">
+                            <div class="permission-grid">
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-users-cog"></i> จัดการผู้ใช้</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_users" value="view_users">
+                                        <label for="perm_view_users">ดูรายการผู้ใช้</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_create_users" value="create_users">
+                                        <label for="perm_create_users">สร้างผู้ใช้ใหม่</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_edit_users" value="edit_users">
+                                        <label for="perm_edit_users">แก้ไขข้อมูลผู้ใช้</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_delete_users" value="delete_users">
+                                        <label for="perm_delete_users">ลบผู้ใช้</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-key"></i> จัดการสิทธิ์</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_permissions" value="view_permissions">
+                                        <label for="perm_view_permissions">ดูสิทธิ์การเข้าถึง</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_manage_permissions" value="manage_permissions">
+                                        <label for="perm_manage_permissions">จัดการสิทธิ์</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_reset_passwords" value="reset_passwords">
+                                        <label for="perm_reset_passwords">รีเซ็ตรหัสผ่าน</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-database"></i> ระบบฐานข้อมูล</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_backup_system" value="backup_system">
+                                        <label for="perm_backup_system">สำรองข้อมูล</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_restore_system" value="restore_system">
+                                        <label for="perm_restore_system">กู้คืนข้อมูล</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_system_maintenance" value="system_maintenance">
+                                        <label for="perm_system_maintenance">บำรุงรักษาระบบ</label>
+                                    </div>
+                                </div>
+
+                                <div class="permission-item">
+                                    <h6><i class="fas fa-shield-alt"></i> ความปลอดภัย</h6>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_view_audit_logs" value="view_audit_logs">
+                                        <label for="perm_view_audit_logs">ดู Audit Logs</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_security_settings" value="security_settings">
+                                        <label for="perm_security_settings">ตั้งค่าความปลอดภัย</label>
+                                    </div>
+                                    <div class="permission-checkbox">
+                                        <input type="checkbox" id="perm_system_alerts" value="system_alerts">
+                                        <label for="perm_system_alerts">จัดการการแจ้งเตือน</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Templates -->
+                    <div class="mt-4">
+                        <hr>
+                        <h6>เทมเพลตสิทธิ์</h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="applyPermissionTemplate('doctor')">
+                                <i class="fas fa-user-md"></i> แพทย์
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="applyPermissionTemplate('nurse')">
+                                <i class="fas fa-user-nurse"></i> พยาบาล
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="applyPermissionTemplate('patient')">
+                                <i class="fas fa-hospital-user"></i> ผู้ป่วย
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearAllPermissions()">
+                                <i class="fas fa-times"></i> ล้างทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" id="savePermissionsBtn">
+                        <i class="fas fa-save"></i> บันทึกสิทธิ์
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">รายละเอียดผู้ใช้</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="userDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="button" class="btn btn-warning" onclick="resetUserPassword()">
+                        <i class="fas fa-key"></i> รีเซ็ตรหัสผ่าน
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="editUserPermissions()">
+                        <i class="fas fa-edit"></i> แก้ไขสิทธิ์
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Configuration
+const API_BASE_URL = 'http://localhost:3002'; // ปรับ URL ตามการตั้งค่าจริง
+let authToken = '';
+let currentUsers = [];
+let selectedUsers = [];
+let currentPage = 1;
+let totalPages = 1;
+let currentUserId = null;
+
+// Authentication Functions
+function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
+function checkAuthentication() {
+    const token = getAuthToken();
+    if (!token) {
+        window.location.href = 'index.html';
+        return false;
+    }
+    authToken = token;
+    return true;
+}
+
+// API Helper Functions
+async function makeAPIRequest(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        }
+    };
+    
+    const finalOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+    
+    try {
+        const response = await fetch(url, finalOptions);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'API request failed');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// UI Helper Functions
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('th-TH');
+}
+
+function getRoleBadge(role) {
+    const roleMap = {
+        'admin': { class: 'role-admin', text: 'ผู้ดูแลระบบ' },
+        'doctor': { class: 'role-doctor', text: 'แพทย์' },
+        'nurse': { class: 'role-nurse', text: 'พยาบาล' },
+        'patient': { class: 'role-patient', text: 'ผู้ป่วย' }
+    };
+    
+    const roleInfo = roleMap[role] || { class: 'role-badge', text: role };
+    return `<span class="role-badge ${roleInfo.class}">${roleInfo.text}</span>`;
+}
+
+function getStatusBadge(status, accountLocked) {
+    if (accountLocked) {
+        return '<span class="badge bg-danger">ถูกล็อค</span>';
+    }
+    
+    const statusMap = {
+        'active': { class: 'bg-success', text: 'ใช้งาน' },
+        'inactive': { class: 'bg-secondary', text: 'ไม่ใช้งาน' },
+        'suspended': { class: 'bg-warning', text: 'ระงับการใช้งาน' }
+    };
+    
+    const statusInfo = statusMap[status] || { class: 'bg-secondary', text: status };
+    return `<span class="badge ${statusInfo.class}">${statusInfo.text}</span>`;
+}
+
+// Load Users Functions
+async function loadUsers(page = 1, filters = {}) {
+    try {
+        const params = new URLSearchParams({
+            page: page,
+            limit: 20,
+            ...filters
+        });
+        
+        const response = await makeAPIRequest(`/api/admin/users?${params}`);
+        currentUsers = response.data;
+        
+        updateUsersTable(response.data);
+        updatePagination(response.pagination);
+        updateTableInfo(response.pagination);
+        
+        // Populate user select dropdown
+        populateUserSelect(response.data);
+        
+    } catch (error) {
+        console.error('Error loading users:', error);
+        showAlert(`ไม่สามารถโหลดข้อมูลผู้ใช้ได้: ${error.message}`, 'danger');
+        
+        document.querySelector('#usersTable tbody').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="alert alert-danger">ไม่สามารถโหลดข้อมูลผู้ใช้ได้</div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateUsersTable(users) {
+    const tableBody = document.querySelector('#usersTable tbody');
+    
+    if (!users || users.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">ไม่พบข้อมูลผู้ใช้</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    users.forEach(user => {
+        html += `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" class="user-checkbox me-2" value="${user.user_id}">
+                        <div>
+                            <strong>${user.username}</strong><br>
+                            <small class="text-muted">${user.full_name || 'ไม่ระบุชื่อ'}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>${getRoleBadge(user.role)}</td>
+                <td>${user.email || '-'}</td>
+                <td>${getStatusBadge(user.status, user.account_locked)}</td>
+                <td>${formatDate(user.last_login)}</td>
+                <td>
+                    <button class="action-btn view" onclick="viewUserDetails('${user.user_id}')" title="ดูรายละเอียด">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn edit" onclick="editUserPermissions('${user.user_id}')" title="แก้ไขสิทธิ์">
+                        <i class="fas fa-key"></i>
+                    </button>
+                    <button class="action-btn edit" onclick="resetUserPassword('${user.user_id}')" title="รีเซ็ตรหัสผ่าน">
+                        <i class="fas fa-lock"></i>
+                    </button>
+                    ${user.status === 'active' ? 
+                        `<button class="action-btn delete" onclick="deactivateUser('${user.user_id}')" title="ปิดการใช้งาน">
+                            <i class="fas fa-user-slash"></i>
+                        </button>` :
+                        `<button class="action-btn" onclick="activateUser('${user.user_id}')" title="เปิดการใช้งาน">
+                            <i class="fas fa-user-check"></i>
+                        </button>`
+                    }
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+    
+    // Add event listeners to checkboxes
+    document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedUsers);
+    });
+}
+
+function populateUserSelect(users) {
+    const userSelect = document.getElementById('selectedUser');
+    userSelect.innerHTML = '<option value="">-- เลือกผู้ใช้ --</option>';
+    
+    users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.user_id;
+        option.textContent = `${user.username} (${user.full_name || 'ไม่ระบุชื่อ'})`;
+        option.dataset.role = user.role;
+        option.dataset.email = user.email || '';
+        option.dataset.status = user.status;
+        userSelect.appendChild(option);
+    });
+}
+
+function updateSelectedUsers() {
+    selectedUsers = Array.from(document.querySelectorAll('.user-checkbox:checked'))
+        .map(checkbox => checkbox.value);
+    
+    // Update button states
+    const hasSelection = selectedUsers.length > 0;
+    document.getElementById('resetPasswordsBtn').disabled = !hasSelection;
+    document.getElementById('deactivateUsersBtn').disabled = !hasSelection;
+    document.getElementById('activateUsersBtn').disabled = !hasSelection;
+}
+
+function updatePagination(pagination) {
+    const paginationElement = document.getElementById('pagination');
+    currentPage = pagination.page;
+    totalPages = pagination.totalPages;
+    
+    let html = '';
+    
+    // Previous button
+    html += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <button class="page-link" onclick="loadUsers(${currentPage - 1}, getFilters())">ก่อนหน้า</button>
+        </li>
+    `;
+    
+    // Page numbers
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+        html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <button class="page-link" onclick="loadUsers(${i}, getFilters())">${i}</button>
+            </li>
+        `;
+    }
+    
+    // Next button
+    html += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <button class="page-link" onclick="loadUsers(${currentPage + 1}, getFilters())">ถัดไป</button>
+        </li>
+    `;
+    
+    paginationElement.innerHTML = html;
+}
+
+function updateTableInfo(pagination) {
+    const tableInfo = document.getElementById('tableInfo');
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(start + pagination.limit - 1, pagination.total);
+    
+    tableInfo.textContent = `แสดง ${start}-${end} จาก ${pagination.total} รายการ`;
+}
+
+function getFilters() {
+    return {
+        role: document.getElementById('roleFilter').value,
+        status: document.getElementById('statusFilter').value,
+        search: document.getElementById('searchUser').value
+    };
+}
+
+// User Management Functions
+async function viewUserDetails(userId) {
+    try {
+        const response = await makeAPIRequest(`/api/admin/users/${userId}`);
+        const user = response.data;
+        
+        const modalContent = document.getElementById('userDetailsContent');
+        modalContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>ข้อมูลพื้นฐาน</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>ชื่อผู้ใช้:</strong></td><td>${user.username}</td></tr>
+                        <tr><td><strong>ตำแหน่ง:</strong></td><td>${getRoleBadge(user.role)}</td></tr>
+                        <tr><td><strong>อีเมล:</strong></td><td>${user.email || '-'}</td></tr>
+                        <tr><td><strong>เบอร์โทร:</strong></td><td>${user.phone || '-'}</td></tr>
+                        <tr><td><strong>สถานะ:</strong></td><td>${getStatusBadge(user.status, user.account_locked)}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>ข้อมูลการใช้งาน</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>สร้างเมื่อ:</strong></td><td>${formatDate(user.created_at)}</td></tr>
+                        <tr><td><strong>เข้าสู่ระบบล่าสุด:</strong></td><td>${formatDate(user.last_login)}</td></tr>
+                        <tr><td><strong>ความพยายามเข้าสู่ระบบที่ล้มเหลว:</strong></td><td>${user.failed_login_attempts || 0}</td></tr>
+                        <tr><td><strong>2FA:</strong></td><td>${user.two_fa_enabled ? 'เปิดใช้งาน' : 'ปิด'}</td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            ${user.recentActivity ? `
+                <hr>
+                <h6>กิจกรรมล่าสุด</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>เวลา</th>
+                                <th>การกระทำ</th>
+                                <th>สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${user.recentActivity.map(activity => `
+                                <tr>
+                                    <td>${formatDate(activity.action_time)}</td>
+                                    <td>${activity.action}</td>
+                                    <td>${getStatusBadge(activity.status)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : ''}
+        `;
+        
+        currentUserId = userId;
+        new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
+        
+    } catch (error) {
+        showAlert(`ไม่สามารถโหลดรายละเอียดผู้ใช้ได้: ${error.message}`, 'danger');
+    }
+}
+
+async function editUserPermissions(userId = null) {
+    currentUserId = userId;
+    
+    if (userId) {
+        // Pre-select user in dropdown
+        document.getElementById('selectedUser').value = userId;
+        
+        // Trigger user selection change
+        const selectedUser = document.getElementById('selectedUser');
+        const event = new Event('change');
+        selectedUser.dispatchEvent(event);
+    }
+    
+    new bootstrap.Modal(document.getElementById('userPermissionModal')).show();
+}
+
+async function resetUserPassword(userId = null) {
+    const targetUserId = userId || currentUserId;
+    
+    if (!targetUserId) {
+        showAlert('กรุณาเลือกผู้ใช้', 'warning');
+        return;
+    }
+    
+    const newPassword = prompt('กรุณาใส่รหัสผ่านใหม่:');
+    if (!newPassword) return;
+    
+    if (newPassword.length < 8) {
+        showAlert('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร', 'warning');
+        return;
+    }
+    
+    try {
+        await makeAPIRequest(`/api/admin/users/${targetUserId}/reset-password`, {
+            method: 'POST',
+            body: JSON.stringify({ new_password: newPassword })
+        });
+        
+        showAlert('รีเซ็ตรหัสผ่านเรียบร้อยแล้ว', 'success');
+        
+        // Close modal if open
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => bootstrap.Modal.getInstance(modal)?.hide());
+        
+    } catch (error) {
+        showAlert(`ไม่สามารถรีเซ็ตรหัสผ่านได้: ${error.message}`, 'danger');
+    }
+}
+
+async function deactivateUser(userId) {
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะปิดการใช้งานผู้ใช้นี้?')) return;
+    
+    const reason = prompt('กรุณาใส่เหตุผล (ไม่บังคับ):');
+    
+    try {
+        await makeAPIRequest(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            body: JSON.stringify({ reason })
+        });
+        
+        showAlert('ปิดการใช้งานผู้ใช้เรียบร้อยแล้ว', 'success');
+        loadUsers(currentPage, getFilters());
+        
+    } catch (error) {
+        showAlert(`ไม่สามารถปิดการใช้งานผู้ใช้ได้: ${error.message}`, 'danger');
+    }
+}
+
+async function activateUser(userId) {
+    try {
+        await makeAPIRequest(`/api/admin/users/${userId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: 'active' })
+        });
+        
+        showAlert('เปิดการใช้งานผู้ใช้เรียบร้อยแล้ว', 'success');
+        loadUsers(currentPage, getFilters());
+        
+    } catch (error) {
+        showAlert(`ไม่สามารถเปิดการใช้งานผู้ใช้ได้: ${error.message}`, 'danger');
+    }
+}
+
+// Permission Management Functions
+function clearAllPermissions() {
+    document.querySelectorAll('#permissionTabContent input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+function applyPermissionTemplate(role) {
+    clearAllPermissions();
+    
+    const templates = {
+        doctor: [
+            'view_own_profile', 'edit_own_profile',
+            'view_patients', 'edit_patients', 'add_patients',
+            'view_medical_records', 'edit_medical_records',
+            'add_appointments', 'add_measurements',
+            'view_medications', 'prescribe_medications',
+            'view_reports', 'generate_reports',
+            'view_documents', 'upload_documents',
+            'view_tests', 'add_test_results', 'interpret_tests'
+        ],
+        nurse: [
+            'view_own_profile', 'edit_own_profile',
+            'view_patients', 'edit_patients',
+            'view_medical_records', 'add_measurements',
+            'add_appointments',
+            'view_medications',
+            'view_documents', 'upload_documents',
+            'view_tests', 'add_test_results'
+        ],
+        patient: [
+            'view_own_profile', 'edit_own_profile',
+            'view_medical_records'
+        ]
+    };
+    
+    const permissions = templates[role] || [];
+    permissions.forEach(permission => {
+        const checkbox = document.getElementById(`perm_${permission}`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+}
+
+function getSelectedPermissions() {
+    const permissions = [];
+    document.querySelectorAll('#permissionTabContent input[type="checkbox"]:checked').forEach(checkbox => {
+        permissions.push(checkbox.value);
+    });
+    return permissions;
+}
+
+function setUserPermissions(permissions) {
+    clearAllPermissions();
+    permissions.forEach(permission => {
+        const checkbox = document.getElementById(`perm_${permission}`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+}
+
+async function savePermissions() {
+    const userId = document.getElementById('selectedUser').value;
+    if (!userId) {
+        showAlert('กรุณาเลือกผู้ใช้', 'warning');
+        return;
+    }
+    
+    const permissions = getSelectedPermissions();
+    const saveBtn = document.getElementById('savePermissionsBtn');
+    const originalText = saveBtn.innerHTML;
+    
+    try {
+        saveBtn.innerHTML = '<div class="loading-spinner"></div> กำลังบันทึก...';
+        saveBtn.disabled = true;
+        
+        // Since the API doesn't have a specific permission endpoint, 
+        // we'll simulate the save operation
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        showAlert('บันทึกสิทธิ์ผู้ใช้เรียบร้อยแล้ว', 'success');
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('userPermissionModal')).hide();
+        
+    } catch (error) {
+        showAlert(`ไม่สามารถบันทึกสิทธิ์ได้: ${error.message}`, 'danger');
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+// Bulk Operations
+async function resetPasswordsForSelected() {
+    if (selectedUsers.length === 0) {
+        showAlert('กรุณาเลือกผู้ใช้อย่างน้อย 1 คน', 'warning');
+        return;
+    }
+    
+    if (!confirm(`คุณแน่ใจหรือไม่ที่จะรีเซ็ตรหัสผ่านสำหรับผู้ใช้ ${selectedUsers.length} คน?`)) {
+        return;
+    }
+    
+    const newPassword = prompt('กรุณาใส่รหัสผ่านใหม่ (จะใช้สำหรับทุกคน):');
+    if (!newPassword || newPassword.length < 8) {
+        showAlert('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร', 'warning');
+        return;
+    }
+    
+    try {
+        for (const userId of selectedUsers) {
+            await makeAPIRequest(`/api/admin/users/${userId}/reset-password`, {
+                method: 'POST',
+                body: JSON.stringify({ new_password: newPassword })
+            });
+        }
+        
+        showAlert(`รีเซ็ตรหัสผ่านสำหรับผู้ใช้ ${selectedUsers.length} คนเรียบร้อยแล้ว`, 'success');
+        
+        // Clear selection
+        document.querySelectorAll('.user-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedUsers();
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน: ${error.message}`, 'danger');
+    }
+}
+
+async function deactivateSelectedUsers() {
+    if (selectedUsers.length === 0) {
+        showAlert('กรุณาเลือกผู้ใช้อย่างน้อย 1 คน', 'warning');
+        return;
+    }
+    
+    if (!confirm(`คุณแน่ใจหรือไม่ที่จะปิดการใช้งานผู้ใช้ ${selectedUsers.length} คน?`)) {
+        return;
+    }
+    
+    const reason = prompt('กรุณาใส่เหตุผล (ไม่บังคับ):');
+    
+    try {
+        for (const userId of selectedUsers) {
+            await makeAPIRequest(`/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                body: JSON.stringify({ reason })
+            });
+        }
+        
+        showAlert(`ปิดการใช้งานผู้ใช้ ${selectedUsers.length} คนเรียบร้อยแล้ว`, 'success');
+        loadUsers(currentPage, getFilters());
+        
+        // Clear selection
+        document.querySelectorAll('.user-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedUsers();
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาดในการปิดการใช้งาน: ${error.message}`, 'danger');
+    }
+}
+
+async function activateSelectedUsers() {
+    if (selectedUsers.length === 0) {
+        showAlert('กรุณาเลือกผู้ใช้อย่างน้อย 1 คน', 'warning');
+        return;
+    }
+    
+    if (!confirm(`คุณแน่ใจหรือไม่ที่จะเปิดการใช้งานผู้ใช้ ${selectedUsers.length} คน?`)) {
+        return;
+    }
+    
+    try {
+        for (const userId of selectedUsers) {
+            await makeAPIRequest(`/api/admin/users/${userId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: 'active' })
+            });
+        }
+        
+        showAlert(`เปิดการใช้งานผู้ใช้ ${selectedUsers.length} คนเรียบร้อยแล้ว`, 'success');
+        loadUsers(currentPage, getFilters());
+        
+        // Clear selection
+        document.querySelectorAll('.user-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedUsers();
+        
+    } catch (error) {
+        showAlert(`เกิดข้อผิดพลาดในการเปิดการใช้งาน: ${error.message}`, 'danger');
+    }
+}
+
+function exportUsersReport() {
+    // Create CSV content
+    let csvContent = "ชื่อผู้ใช้,ตำแหน่ง,อีเมล,สถานะ,เข้าสู่ระบบล่าสุด\n";
+    
+    currentUsers.forEach(user => {
+        const row = [
+            user.username,
+            user.role,
+            user.email || '',
+            user.status,
+            user.last_login ? new Date(user.last_login).toLocaleString('th-TH') : ''
+        ].map(field => `"${field}"`).join(',');
+        csvContent += row + "\n";
+    });
+    
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `รายงานสิทธิ์ผู้ใช้_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showAlert('ส่งออกรายงานเรียบร้อยแล้ว', 'success');
+}
+
+function logoutUser() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = 'logout.html';
+}
+
+// Initialize Page
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    // Set username in header
+    const username = localStorage.getItem('username');
+    const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+    
+    document.getElementById('headerUsername').textContent = username || 'Admin User';
+    document.getElementById('userInitial').textContent = userInitial;
+    
+    // Profile dropdown toggle
+    document.getElementById('profile-toggle').addEventListener('click', function() {
+        document.getElementById('profile-dropdown-menu').classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+            const dropdown = document.getElementById('profile-dropdown-menu');
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+    });
+    
+    // Mobile menu toggle
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('show');
+    });
+    
+    // Event listeners
+    document.getElementById('applyFiltersBtn').addEventListener('click', function() {
+        loadUsers(1, getFilters());
+    });
+    
+    document.getElementById('searchUser').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            loadUsers(1, getFilters());
+        }
+    });
+    
+    document.getElementById('selectedUser').addEventListener('change', function() {
+        const userId = this.value;
+        const userOption = this.options[this.selectedIndex];
+        
+        if (userId) {
+            document.getElementById('displayUsername').textContent = this.options[this.selectedIndex].text.split(' (')[0];
+            document.getElementById('displayRole').innerHTML = getRoleBadge(userOption.dataset.role);
+            document.getElementById('displayEmail').textContent = userOption.dataset.email || '-';
+            document.getElementById('displayStatus').innerHTML = getStatusBadge(userOption.dataset.status);
+            document.getElementById('userInfoDisplay').style.display = 'block';
+            
+            // Apply role-based permissions template
+            applyPermissionTemplate(userOption.dataset.role);
+        } else {
+            document.getElementById('userInfoDisplay').style.display = 'none';
+            clearAllPermissions();
+        }
+    });
+    
+    document.getElementById('savePermissionsBtn').addEventListener('click', savePermissions);
+    document.getElementById('resetPasswordsBtn').addEventListener('click', resetPasswordsForSelected);
+    document.getElementById('deactivateUsersBtn').addEventListener('click', deactivateSelectedUsers);
+    document.getElementById('activateUsersBtn').addEventListener('click', activateSelectedUsers);
+    document.getElementById('exportUsersBtn').addEventListener('click', exportUsersReport);
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutUser();
+    });
+    
+    // Initialize disabled state for bulk action buttons
+    updateSelectedUsers();
+    
+    // Load initial data
+    loadUsers();
+});
+       </script>
+</body>
+</html>

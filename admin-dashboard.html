@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การจัดการฐานข้อมูล - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-info {
+            background: white;
+            color: #0ea5e9;
+            border: 2px solid #0ea5e9;
+        }
+
+        .btn-outline-info:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-outline-danger {
+            background: white;
+            color: var(--danger-color);
+            border: 2px solid var(--danger-color);
+        }
+
+        .btn-outline-danger:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            margin: 0 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .action-btn.delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 25%, 
+                rgba(255, 255, 255, 0.2) 25%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 50%, 
+                transparent 75%, 
+                rgba(255, 255, 255, 0.2) 75%);
+            background-size: 20px 20px;
+            animation: progress-animation 1s linear infinite;
+        }
+
+        @keyframes progress-animation {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Status Cards */
+        .status-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--secondary-color);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-card h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status-card .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+
+        .status-card .status-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .d-grid {
+            display: grid;
+        }
+
+        .gap-2 {
+            gap: 10px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-4 {
+            margin-top: 25px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye" style="font-size: 2rem; color: var(--secondary-color);"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <div class="sidebar-menu-item active" onclick="navigateTo('admin-dashboard.html')">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </div>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('users-management.html')">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('doctors.html')">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('nurses.html')">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('patients.html')">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </div>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('medications.html')">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('database.html')">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('access-rights.html')">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('test-types.html')">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </div>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('glaucoma-data.html')">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('statistics.html')">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('audit-logs.html')">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </div>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('system-maintenance.html')">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('notifications.html')">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('documents.html')">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('alerts.html')">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('special-exams.html')">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาผู้ใช้, ยา, เอกสาร...">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <div class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </div>
+                    <div class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <h1 class="page-title">แดชบอร์ด</h1>
+            
+            <!-- Alert - จะแสดงเมื่อมีการเข้าสู่ระบบสำเร็จ -->
+            <div class="alert alert-success" id="loginSuccessAlert" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                <span>เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับกลับ</span>
+                <button type="button" class="alert-close" onclick="document.getElementById('loginSuccessAlert').style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Error Alert -->
+            <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorMessage">เกิดข้อผิดพลาด</span>
+                <button type="button" class="alert-close" onclick="document.getElementById('errorAlert').style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent">
+                <!-- Stats Row -->
+                <div class="row">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-card-icon doctors">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="stat-card-value" id="doctorsCount">
+                                <div class="loading-spinner"></div>
+                            </div>
+                            <div class="stat-card-label">แพทย์ทั้งหมด</div>
+                            <div class="stat-card-info" id="doctorsChange">
+                                <i class="fas fa-info-circle"></i> <span>กำลังโหลดข้อมูล...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-card-icon nurses">
+                                <i class="fas fa-user-nurse"></i>
+                            </div>
+                            <div class="stat-card-value" id="nursesCount">
+                                <div class="loading-spinner"></div>
+                            </div>
+                            <div class="stat-card-label">พยาบาลทั้งหมด</div>
+                            <div class="stat-card-info" id="nursesChange">
+                                <i class="fas fa-info-circle"></i> <span>กำลังโหลดข้อมูล...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-card-icon patients">
+                                <i class="fas fa-hospital-user"></i>
+                            </div>
+                            <div class="stat-card-value" id="patientsCount">
+                                <div class="loading-spinner"></div>
+                            </div>
+                            <div class="stat-card-label">ผู้ป่วยทั้งหมด</div>
+                            <div class="stat-card-info" id="patientsChange">
+                                <i class="fas fa-info-circle"></i> <span>กำลังโหลดข้อมูล...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-card-icon active">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div class="stat-card-value" id="adherenceRate">
+                                <div class="loading-spinner"></div>
+                            </div>
+                            <div class="stat-card-label">อัตราการกินยาตามกำหนด</div>
+                            <div class="stat-card-info" id="adherenceChange">
+                                <i class="fas fa-info-circle"></i> <span>กำลังโหลดข้อมูล...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>การดำเนินการด่วน</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-2 col-sm-4 mb-3">
+                                        <button class="btn btn-primary w-100" onclick="addUser()">
+                                            <i class="fas fa-user-plus"></i><br>เพิ่มผู้ใช้
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 mb-3">
+                                        <button class="btn btn-success w-100" onclick="manageMedications()">
+                                            <i class="fas fa-pills"></i><br>จัดการยา
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 mb-3">
+                                        <button class="btn btn-warning w-100" onclick="createSystemBackup()">
+                                            <i class="fas fa-database"></i><br>สำรองข้อมูล
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 mb-3">
+                                        <button class="btn btn-info w-100" onclick="sendNotification()">
+                                            <i class="fas fa-bell"></i><br>ส่งแจ้งเตือน
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 mb-3">
+                                        <button class="btn btn-secondary w-100" onclick="runAutoAlertCheck()">
+                                            <i class="fas fa-exclamation-triangle"></i><br>ตรวจสอบการแจ้งเตือน
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2 col-sm-4 mb-3">
+                                        <button class="btn btn-dark w-100" onclick="uploadDocument()">
+                                            <i class="fas fa-file-upload"></i><br>อัปโหลดเอกสาร
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Two Column Layout -->
+    <div class="row mt-4">
+        <!-- Recent Users -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>ผู้ใช้งานล่าสุด</h3>
+                    <button class="btn btn-sm btn-primary" onclick="refreshUsers()">
+                        <i class="fas fa-refresh"></i> รีเฟรช
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="recentUsersTable">
+                            <thead>
+                                <tr>
+                                    <th>ชื่อ</th>
+                                    <th>บทบาท</th>
+                                    <th>วันที่ลงทะเบียน</th>
+                                    <th>สถานะ</th>
+                                    <th>การกระทำ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <p class="mt-2">กำลังโหลดข้อมูล...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>กิจกรรมล่าสุด</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="activityList">
+                        <li class="list-group-item text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="mt-2">กำลังโหลดข้อมูล...</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>สถานะระบบ</h3>
+                    <span class="status-badge active" id="systemStatus">เชื่อมต่อสำเร็จ</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="mb-3">การใช้งานระบบ</h4>
+                            <div class="chart-container">
+                                <canvas id="systemUsageChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="mb-3">สถิติการเข้าใช้งาน</h4>
+                            <div class="chart-container">
+                                <canvas id="usageStatsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</main>
+
+<!-- JavaScript Libraries and Script -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // API Configuration
+    const API_BASE_URL = 'http://localhost:3002';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check for authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Set username in header
+        const username = localStorage.getItem('username');
+        const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+        
+        document.getElementById('headerUsername').textContent = username || 'Admin User';
+        document.getElementById('userInitial').textContent = userInitial;
+        
+        // Show login success alert if just logged in
+        const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+        if (justLoggedIn) {
+            document.getElementById('loginSuccessAlert').style.display = 'flex';
+            sessionStorage.removeItem('justLoggedIn');
+            
+            setTimeout(() => {
+                document.getElementById('loginSuccessAlert').style.display = 'none';
+            }, 5000);
+        }
+        
+        // Profile dropdown toggle
+        document.getElementById('profile-toggle').addEventListener('click', function() {
+            document.getElementById('profile-dropdown-menu').classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                const dropdown = document.getElementById('profile-dropdown-menu');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+        
+        // Mobile menu toggle
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('show');
+        });
+        
+        // Logout function
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            logoutUser();
+        });
+        
+        // Load dashboard data
+        loadDashboardData();
+        
+        // Initialize charts
+        initCharts();
+        
+        // Check system health
+        checkSystemHealth();
+    });
+    
+    // Navigation Functions
+    function navigateTo(page) {
+        window.location.href = page;
+    }
+
+    function showDashboard() {
+        document.querySelector('.page-title').textContent = 'แดชบอร์ด';
+        loadDashboardData();
+        setActiveMenuItem(event.target.closest('.sidebar-menu-item'));
+    }
+
+    function setActiveMenuItem(clickedItem) {
+        // Remove active class from all menu items
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        // Add active class to clicked item
+        if (clickedItem) {
+            clickedItem.classList.add('active');
+        }
+    }
+
+    // Quick Action Functions - Updated to actually navigate
+    function addUser() {
+        navigateTo('users-management.html');
+    }
+
+    function manageMedications() {
+        navigateTo('medications.html');
+    }
+
+    function sendNotification() {
+        navigateTo('notifications.html');
+    }
+
+    function runAutoAlertCheck() {
+        navigateTo('alerts.html');
+    }
+
+    function uploadDocument() {
+        navigateTo('documents.html');
+    }
+
+    function refreshUsers() {
+        loadRecentUsers();
+    }
+
+    function viewUser(userId) {
+        alert(`ดูรายละเอียดผู้ใช้ ID: ${userId}`);
+        console.log('View user:', userId);
+    }
+
+    function editUser(userId) {
+        alert(`แก้ไขผู้ใช้ ID: ${userId}`);
+        console.log('Edit user:', userId);
+    }
+
+    function deactivateUser(userId, userName) {
+        if (confirm(`คุณต้องการปิดการใช้งานผู้ใช้ "${userName}" หรือไม่?`)) {
+            alert(`ปิดการใช้งานผู้ใช้ "${userName}" แล้ว`);
+            console.log('Deactivate user:', userId);
+        }
+    }
+
+    // API Helper Functions
+    async function apiRequest(endpoint, options = {}) {
+        const token = localStorage.getItem('token');
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...options.headers
+        };
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers
+            });
+            
+            if (response.status === 401) {
+                // Token expired or invalid
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                window.location.href = 'index.html';
+                return null;
+            }
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'เกิดข้อผิดพลาด');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            showError(error.message);
+            return null;
+        }
+    }
+    
+    function showError(message) {
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.textContent = message;
+        errorAlert.style.display = 'flex';
+        
+        setTimeout(() => {
+            errorAlert.style.display = 'none';
+        }, 5000);
+    }
+
+    // Dashboard Data Loading Functions
+    async function loadDashboardData() {
+        await loadStatistics();
+        await loadRecentUsers();
+        await loadRecentActivity();
+    }
+
+    // Load Statistics from API
+    async function loadStatistics() {
+        try {
+            const response = await apiRequest('/api/admin/reports/statistics');
+            if (response && response.success) {
+                const stats = response.data.userStats;
+                
+                document.getElementById('doctorsCount').innerHTML = stats.doctors || 0;
+                document.getElementById('doctorsChange').innerHTML = 
+                    '<i class="fas fa-info-circle"></i> <span>แพทย์ที่ลงทะเบียนในระบบ</span>';
+                
+                document.getElementById('nursesCount').innerHTML = stats.nurses || 0;
+                document.getElementById('nursesChange').innerHTML = 
+                    '<i class="fas fa-info-circle"></i> <span>พยาบาลที่ลงทะเบียนในระบบ</span>';
+                
+                document.getElementById('patientsCount').innerHTML = stats.patients || 0;
+                document.getElementById('patientsChange').innerHTML = 
+                    '<i class="fas fa-info-circle"></i> <span>ผู้ป่วยที่ลงทะเบียนในระบบ</span>';
+                
+                const adherence = response.data.adherenceStats;
+                const adherenceRate = adherence && adherence.avg_adherence 
+                    ? Math.round(adherence.avg_adherence) + '%' 
+                    : 'ไม่มีข้อมูล';
+                document.getElementById('adherenceRate').innerHTML = adherenceRate;
+                document.getElementById('adherenceChange').innerHTML = 
+                    '<i class="fas fa-info-circle"></i> <span>อัตราการใช้ยาเฉลี่ย</span>';
+            }
+        } catch (error) {
+            console.error('Error loading statistics:', error);
+            document.getElementById('doctorsCount').innerHTML = 'ข้อผิดพลาด';
+            document.getElementById('nursesCount').innerHTML = 'ข้อผิดพลาด';
+            document.getElementById('patientsCount').innerHTML = 'ข้อผิดพลาด';
+            document.getElementById('adherenceRate').innerHTML = 'ข้อผิดพลาด';
+        }
+    }
+
+    // Load Recent Users from API
+    async function loadRecentUsers() {
+        try {
+            const response = await apiRequest('/api/admin/users?page=1&limit=10');
+            if (response && response.success) {
+                const users = response.data;
+                const tableBody = document.querySelector('#recentUsersTable tbody');
+                let html = '';
+                
+                if (users.length === 0) {
+                    html = `
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                <p>ไม่มีข้อมูลผู้ใช้งาน</p>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    users.forEach(user => {
+                        let statusClass = 'active';
+                        let statusText = 'ใช้งาน';
+                        let roleText = 'ไม่ระบุ';
+                        
+                        if (user.status === 'inactive') {
+                            statusClass = 'inactive';
+                            statusText = 'ไม่ใช้งาน';
+                        } else if (user.status === 'pending') {
+                            statusClass = 'pending';
+                            statusText = 'รอการอนุมัติ';
+                        }
+                        
+                        switch (user.role) {
+                            case 'doctor':
+                                roleText = 'แพทย์';
+                                break;
+                            case 'nurse':
+                                roleText = 'พยาบาล';
+                                break;
+                            case 'patient':
+                                roleText = 'ผู้ป่วย';
+                                break;
+                            case 'admin':
+                                roleText = 'ผู้ดูแลระบบ';
+                                break;
+                        }
+                        
+                        const displayName = user.full_name || user.username;
+                        const createdDate = new Date(user.created_at).toLocaleDateString('th-TH');
+                        
+                        html += `
+                            <tr>
+                                <td>${displayName}</td>
+                                <td>${roleText}</td>
+                                <td>${createdDate}</td>
+                                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button class="action-btn" onclick="viewUser('${user.user_id}')" title="ดู">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn" onclick="editUser('${user.user_id}')" title="แก้ไข">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    ${user.role !== 'admin' ? `
+                                        <button class="action-btn delete" onclick="deactivateUser('${user.user_id}', '${displayName}')" title="ปิดใช้งาน">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    ` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                tableBody.innerHTML = html;
+            }
+        } catch (error) {
+            console.error('Error loading recent users:', error);
+            const tableBody = document.querySelector('#recentUsersTable tbody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">
+                        <p>เกิดข้อผิดพลาดในการโหลดข้อมูลผู้ใช้งาน</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    // Load Recent Activity from API
+    async function loadRecentActivity() {
+        try {
+            const response = await apiRequest('/api/admin/audit-logs?page=1&limit=10');
+            if (response && response.success) {
+                const logs = response.data;
+                const activityList = document.getElementById('activityList');
+                let html = '';
+                
+                if (logs.length === 0) {
+                    html = `
+                        <li class="list-group-item text-center">
+                            <p>ไม่มีกิจกรรมล่าสุด</p>
+                        </li>
+                    `;
+                } else {
+                    logs.forEach(log => {
+                        const timeAgo = getTimeAgo(new Date(log.action_time));
+                        const actionText = getActionText(log.action);
+                        const username = log.username || 'ระบบ';
+                        
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-circle-dot me-2 text-secondary"></i>
+                                    <strong>${username}:</strong> ${actionText}
+                                </div>
+                                <small class="text-muted">${timeAgo}</small>
+                            </li>
+                        `;
+                    });
+                }
+                
+                activityList.innerHTML = html;
+            }
+        } catch (error) {
+            console.error('Error loading recent activity:', error);
+            const activityList = document.getElementById('activityList');
+            activityList.innerHTML = `
+                <li class="list-group-item text-center text-danger">
+                    <p>เกิดข้อผิดพลาดในการโหลดกิจกรรม</p>
+                </li>
+            `;
+        }
+    }
+
+    // System Health Check
+    async function checkSystemHealth() {
+        try {
+            const response = await apiRequest('/api/admin/health');
+            if (response && response.success) {
+                const statusElement = document.getElementById('systemStatus');
+                statusElement.textContent = 'ระบบทำงานปกติ';
+                statusElement.className = 'status-badge active';
+            } else {
+                throw new Error('System health check failed');
+            }
+        } catch (error) {
+            console.error('System health check failed:', error);
+            const statusElement = document.getElementById('systemStatus');
+            statusElement.textContent = 'ระบบมีปัญหา';
+            statusElement.className = 'status-badge inactive';
+        }
+    }
+
+    // System Backup Function
+    function createSystemBackup() {
+        if (confirm('คุณต้องการสำรองข้อมูลระบบหรือไม่?')) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><br>กำลังสำรอง...';
+            btn.disabled = true;
+            
+            apiRequest('/api/admin/system/backup', {
+                method: 'POST'
+            }).then(response => {
+                if (response && response.success) {
+                    alert('สำรองข้อมูลเรียบร้อยแล้ว');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการสำรองข้อมูล');
+                }
+            }).catch(error => {
+                console.error('Backup failed:', error);
+                alert('เกิดข้อผิดพลาดในการสำรองข้อมูล');
+            }).finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+    }
+
+    // Helper Functions
+    function getTimeAgo(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'เมื่อสักครู่';
+        if (diffMins < 60) return `${diffMins} นาทีที่แล้ว`;
+        if (diffHours < 24) return `${diffHours} ชั่วโมงที่แล้ว`;
+        return `${diffDays} วันที่แล้ว`;
+    }
+
+    function getActionText(action) {
+        const actionMap = {
+            'ADMIN_LOGIN': 'เข้าสู่ระบบ',
+            'ADMIN_REGISTRATION': 'ลงทะเบียนผู้ดูแลระบบ',
+            'DOCTOR_REGISTRATION': 'ลงทะเบียนแพทย์',
+            'NURSE_REGISTRATION': 'ลงทะเบียนพยาบาล',
+            'PATIENT_REGISTRATION': 'ลงทะเบียนผู้ป่วย',
+            'USER_UPDATE': 'อัปเดตข้อมูลผู้ใช้',
+            'USER_DEACTIVATE': 'ปิดการใช้งานผู้ใช้',
+            'PASSWORD_RESET_ADMIN': 'รีเซ็ตรหัสผ่าน',
+            'MEDICATION_CREATE': 'เพิ่มข้อมูลยา',
+            'MEDICATION_UPDATE': 'อัปเดตข้อมูลยา',
+            'MEDICATION_DELETE': 'ลบข้อมูลยา',
+            'SYSTEM_BACKUP': 'สำรองข้อมูลระบบ',
+            'SYSTEM_SETTINGS_UPDATE': 'อัปเดตการตั้งค่าระบบ',
+            'DOCUMENT_UPLOAD': 'อัปโหลดเอกสาร',
+            'BROADCAST_NOTIFICATION': 'ส่งการแจ้งเตือน',
+            'TEST_TYPE_CREATE': 'เพิ่มประเภทการตรวจ',
+            'AUTO_ALERT_CHECK': 'ตรวจสอบการแจ้งเตือนอัตโนมัติ'
+        };
+        
+        return actionMap[action] || action;
+    }
+
+    // Initialize charts function
+    function initCharts() {
+        // Mock chart initialization
+        console.log('Charts initialized');
+    }
+
+    // Logout function
+    function logoutUser() {
+        if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'index.html';
+        }
+    }
+</script>
+</body>
+</html>

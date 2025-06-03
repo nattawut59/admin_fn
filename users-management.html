@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการผู้ใช้ทั้งหมด - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 30px rgba(0, 206, 206, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 206, 206, 0.4);
+        }
+
+        .stats-card h4 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .stats-card .icon {
+            font-size: 3.5rem;
+            opacity: 0.3;
+            position: absolute;
+            right: 25px;
+            top: 25px;
+        }
+
+        .stats-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .stats-card.warning:hover {
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
+        }
+
+        .stats-card.danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .stats-card.danger:hover {
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .stats-card.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .stats-card.success:hover {
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            margin: 0 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .action-btn.edit:hover {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .action-btn.delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .action-btn.view:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-dialog {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close:hover {
+            background: var(--bg-light);
+            color: var(--danger-color);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, white, #f8fafc);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: end;
+            gap: 15px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .position-relative {
+            position: relative;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .mb-4 {
+            margin-bottom: 25px;
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .stats-card {
+                padding: 20px;
+            }
+
+            .stats-card h4 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item active">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาผู้ใช้..." id="globalSearch">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">
+                    <i class="fas fa-users"></i>
+                    จัดการผู้ใช้ทั้งหมด
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshUsersBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                    <button class="btn btn-primary" id="addUserBtn">
+                        <i class="fas fa-plus"></i> เพิ่มผู้ใช้ใหม่
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Users Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card fade-in">
+                        <div class="position-relative">
+                            <h4 id="totalUsers">-</h4>
+                            <p>ผู้ใช้ทั้งหมด</p>
+                            <i class="fas fa-users icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card success fade-in">
+                        <div class="position-relative">
+                            <h4 id="activeDoctors">-</h4>
+                            <p>แพทย์ที่ใช้งาน</p>
+                            <i class="fas fa-user-md icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card warning fade-in">
+                        <div class="position-relative">
+                            <h4 id="activeNurses">-</h4>
+                            <p>พยาบาลที่ใช้งาน</p>
+                            <i class="fas fa-user-nurse icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card danger fade-in">
+                        <div class="position-relative">
+                            <h4 id="totalPatients">-</h4>
+                            <p>ผู้ป่วยทั้งหมด</p>
+                            <i class="fas fa-hospital-user icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Management Card -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> รายการผู้ใช้งาน</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="roleFilter" onchange="filterUsers()">
+                                <option value="">ทุกบทบาท</option>
+                                <option value="doctor">แพทย์</option>
+                                <option value="nurse">พยาบาล</option>
+                                <option value="patient">ผู้ป่วย</option>
+                                <option value="admin">ผู้ดูแลระบบ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter" onchange="filterUsers()">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="active">ใช้งาน</option>
+                                <option value="inactive">ไม่ใช้งาน</option>
+                                <option value="pending">รออนุมัติ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchUser" placeholder="ค้นหาผู้ใช้..." onkeyup="searchUsers()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> ล้าง
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="table-responsive">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ชื่อ-สกุล</th>
+                                    <th>ชื่อผู้ใช้</th>
+                                    <th>บทบาท</th>
+                                    <th>อีเมล</th>
+                                    <th>เบอร์โทร</th>
+                                    <th>สถานะ</th>
+                                    <th>วันที่สร้าง</th>
+                                    <th>การกระทำ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <p class="mt-3">กำลังโหลดข้อมูลผู้ใช้...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add User Modal -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">เพิ่มผู้ใช้ใหม่</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('addUserModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label class="form-label">ประเภทผู้ใช้ *</label>
+                            <select class="form-select" id="userRole" required onchange="updateFormFields()">
+                                <option value="">เลือกประเภทผู้ใช้</option>
+                                <option value="doctor">แพทย์</option>
+                                <option value="nurse">พยาบาล</option>
+                                <option value="patient">ผู้ป่วย</option>
+                                <option value="admin">ผู้ดูแลระบบ</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ชื่อ *</label>
+                                    <input type="text" class="form-control" id="firstName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">นามสกุล *</label>
+                                    <input type="text" class="form-control" id="lastName" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ชื่อผู้ใช้ *</label>
+                                    <input type="text" class="form-control" id="username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">รหัสผ่าน *</label>
+                                    <input type="password" class="form-control" id="password" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">เลขบัตรประชาชน</label>
+                                    <input type="text" class="form-control" id="idCard" maxlength="13">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">อีเมล</label>
+                                    <input type="email" class="form-control" id="email">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">เบอร์โทรศัพท์</label>
+                                    <input type="tel" class="form-control" id="phone">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="additionalFields"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideModal('addUserModal')">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddUser()">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal" id="editUserModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">แก้ไขข้อมูลผู้ใช้</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('editUserModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">อีเมล</label>
+                                    <input type="email" class="form-control" id="editEmail">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">เบอร์โทรศัพท์</label>
+                                    <input type="tel" class="form-control" id="editPhone">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">สถานะ</label>
+                            <select class="form-select" id="editStatus">
+                                <option value="active">ใช้งาน</option>
+                                <option value="inactive">ไม่ใช้งาน</option>
+                                <option value="pending">รออนุมัติ</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideModal('editUserModal')">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditUser()">
+                        <i class="fas fa-save"></i> บันทึกการแก้ไข
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal" id="viewUserModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">รายละเอียดผู้ใช้</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('viewUserModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewUserModalBody">
+                    <!-- User details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="hideModal('viewUserModal')">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let currentPage = 1;
+        let currentFilters = {
+            role: '',
+            status: '',
+            search: ''
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for authentication
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Load users data
+            loadUsers();
+        });
+        
+        // Navigation Functions
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function logoutUser() {
+            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // API Helper Functions
+        async function apiRequest(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    window.location.href = 'index.html';
+                    return null;
+                }
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'เกิดข้อผิดพลาด');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                showError(error.message);
+                return null;
+            }
+        }
+
+        // Alert Functions
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            const messageElement = document.getElementById('successMessage');
+            messageElement.textContent = message;
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            const messageElement = document.getElementById('errorMessage');
+            messageElement.textContent = message;
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideAlert(alertId) {
+            document.getElementById(alertId).style.display = 'none';
+        }
+
+        // Modal Functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Load Users Data
+        async function loadUsers(page = 1) {
+            try {
+                const queryParams = new URLSearchParams({
+                    page: page,
+                    limit: 20,
+                    ...currentFilters
+                });
+
+                const response = await apiRequest(`/api/admin/users?${queryParams}`);
+                if (response && response.success) {
+                    displayUsers(response.data);
+                    displayPagination(response.pagination);
+                    currentPage = page;
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function displayUsers(users) {
+            const tableBody = document.querySelector('#usersTable tbody');
+            let html = '';
+            
+            if (users.length === 0) {
+                html = '<tr><td colspan="8" class="text-center">ไม่พบข้อมูลผู้ใช้งาน</td></tr>';
+            } else {
+                users.forEach(user => {
+                    const statusInfo = getStatusInfo(user.status);
+                    const roleText = getRoleText(user.role);
+                    const displayName = user.full_name || user.username;
+                    const createdDate = new Date(user.created_at).toLocaleDateString('th-TH');
+                    
+                    html += `
+                        <tr>
+                            <td>${displayName}</td>
+                            <td>${user.username}</td>
+                            <td>${roleText}</td>
+                            <td>${user.email || '-'}</td>
+                            <td>${user.phone || '-'}</td>
+                            <td><span class="status-badge ${statusInfo.class}">${statusInfo.text}</span></td>
+                            <td>${createdDate}</td>
+                            <td>
+                                <button class="action-btn" onclick="viewUser('${user.user_id}')" title="ดูรายละเอียด">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn" onclick="editUser('${user.user_id}')" title="แก้ไข">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn" onclick="resetPassword('${user.user_id}', '${displayName}')" title="รีเซ็ตรหัสผ่าน">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                                ${user.role !== 'admin' ? `
+                                    <button class="action-btn delete" onclick="deactivateUser('${user.user_id}', '${displayName}')" title="ปิดใช้งาน">
+                                        <i class="fas fa-user-slash"></i>
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            tableBody.innerHTML = html;
+        }
+
+        function displayPagination(pagination) {
+            const paginationElement = document.getElementById('usersPagination');
+            let html = '';
+            
+            if (pagination.totalPages <= 1) {
+                paginationElement.innerHTML = '';
+                return;
+            }
+            
+            // Previous button
+            if (pagination.page > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${pagination.page - 1})">ก่อนหน้า</a></li>`;
+            }
+            
+            // Page numbers
+            for (let i = 1; i <= pagination.totalPages; i++) {
+                if (i === pagination.page) {
+                    html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+                } else {
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${i})">${i}</a></li>`;
+                }
+            }
+            
+            // Next button
+            if (pagination.page < pagination.totalPages) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${pagination.page + 1})">ถัดไป</a></li>`;
+            }
+            
+            paginationElement.innerHTML = html;
+        }
+
+        // Filter and Search Functions
+        function filterUsers() {
+            currentFilters.role = document.getElementById('roleFilter').value;
+            currentFilters.status = document.getElementById('statusFilter').value;
+            loadUsers(1);
+        }
+
+        function searchUsers() {
+            currentFilters.search = document.getElementById('searchUser').value;
+            loadUsers(1);
+        }
+
+        function refreshUsers() {
+            // Reset filters
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('searchUser').value = '';
+            currentFilters = { role: '', status: '', search: '' };
+            loadUsers(1);
+        }
+
+        // User Management Functions
+        function showAddUserModal() {
+            document.getElementById('addUserForm').reset();
+            document.getElementById('additionalFields').innerHTML = '';
+            showModal('addUserModal');
+        }
+
+        function updateFormFields() {
+            const role = document.getElementById('userRole').value;
+            const additionalFields = document.getElementById('additionalFields');
+            let html = '';
+            
+            if (role === 'doctor') {
+                html = `
+                    <div class="mb-3">
+                        <label class="form-label">เลขใบประกอบวิชาชีพ *</label>
+                        <input type="text" class="form-control" id="licenseNumber" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">แผนก</label>
+                                <input type="text" class="form-control" id="department">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">ความเชี่ยวชาญ</label>
+                                <input type="text" class="form-control" id="specialty">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">สถานพยาบาล</label>
+                        <input type="text" class="form-control" id="hospitalAffiliation">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">วุฒิการศึกษา</label>
+                        <input type="text" class="form-control" id="education">
+                    </div>
+                `;
+            } else if (role === 'nurse') {
+                html = `
+                    <div class="mb-3">
+                        <label class="form-label">เลขใบประกอบวิชาชีพ *</label>
+                        <input type="text" class="form-control" id="licenseNumber" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">แผนก</label>
+                                <input type="text" class="form-control" id="department">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">ตำแหน่ง</label>
+                                <input type="text" class="form-control" id="position">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">สถานพยาบาล</label>
+                        <input type="text" class="form-control" id="hospitalAffiliation">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ชั่วโมงการทำงาน</label>
+                        <input type="text" class="form-control" id="workingHours" placeholder="เช่น 08:00-16:00">
+                    </div>
+                `;
+            } else if (role === 'patient') {
+                html = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">หมายเลข HN</label>
+                                <input type="text" class="form-control" id="hn" placeholder="จะสร้างอัตโนมัติหากไม่ระบุ">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">วันเกิด *</label>
+                                <input type="date" class="form-control" id="dateOfBirth" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">เพศ *</label>
+                                <select class="form-select" id="gender" required>
+                                    <option value="">เลือกเพศ</option>
+                                    <option value="male">ชาย</option>
+                                    <option value="female">หญิง</option>
+                                    <option value="other">อื่นๆ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">กรุ๊ปเลือด</label>
+                                <select class="form-select" id="bloodType">
+                                    <option value="">เลือกกรุ๊ปเลือด</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="AB">AB</option>
+                                    <option value="O">O</option>
+                                    <option value="unknown">ไม่ทราบ</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ที่อยู่</label>
+                        <textarea class="form-control" id="address" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">ผู้ติดต่อฉุกเฉิน</label>
+                                <input type="text" class="form-control" id="emergencyContactName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">เบอร์ผู้ติดต่อฉุกเฉิน</label>
+                                <input type="tel" class="form-control" id="emergencyContactPhone">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            additionalFields.innerHTML = html;
+        }
+
+        async function submitAddUser() {
+            const role = document.getElementById('userRole').value;
+            if (!role) {
+                showError('กรุณาเลือกประเภทผู้ใช้');
+                return;
+            }
+
+            const baseData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                id_card: document.getElementById('idCard').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value
+            };
+
+            // Add role-specific data
+            let endpoint = '';
+            let additionalData = {};
+
+            if (role === 'doctor') {
+                endpoint = '/api/admin/register-doctor';
+                additionalData = {
+                    license_number: document.getElementById('licenseNumber').value,
+                    department: document.getElementById('department').value,
+                    specialty: document.getElementById('specialty').value,
+                    hospital_affiliation: document.getElementById('hospitalAffiliation').value,
+                    education: document.getElementById('education').value
+                };
+            } else if (role === 'nurse') {
+                endpoint = '/api/admin/register-nurse';
+                additionalData = {
+                    license_number: document.getElementById('licenseNumber').value,
+                    department: document.getElementById('department').value,
+                    position: document.getElementById('position').value,
+                    hospital_affiliation: document.getElementById('hospitalAffiliation').value,
+                    working_hours: document.getElementById('workingHours').value
+                };
+            } else if (role === 'patient') {
+                endpoint = '/api/admin/register-patient';
+                additionalData = {
+                    hn: document.getElementById('hn').value,
+                    date_of_birth: document.getElementById('dateOfBirth').value,
+                    gender: document.getElementById('gender').value,
+                    blood_type: document.getElementById('bloodType').value,
+                    address: document.getElementById('address').value,
+                    emergency_contact_name: document.getElementById('emergencyContactName').value,
+                    emergency_contact_phone: document.getElementById('emergencyContactPhone').value
+                };
+            }
+
+            const requestData = { ...baseData, ...additionalData };
+
+            try {
+                const response = await apiRequest(endpoint, {
+                    method: 'POST',
+                    body: JSON.stringify(requestData)
+                });
+
+                if (response && response.success) {
+                    hideModal('addUserModal');
+                    showSuccess(`เพิ่ม${getRoleText(role)}สำเร็จ`);
+                    loadUsers(currentPage);
+                }
+            } catch (error) {
+                console.error('Error adding user:', error);
+            }
+        }
+
+        // View User Details
+        async function viewUser(userId) {
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}`);
+                if (response && response.success) {
+                    displayUserDetails(response.data);
+                    showModal('viewUserModal');
+                }
+            } catch (error) {
+                console.error('Error viewing user:', error);
+            }
+        }
+
+        function displayUserDetails(userData) {
+            const modalBody = document.getElementById('viewUserModalBody');
+            const role = getRoleText(userData.role);
+            const status = getStatusInfo(userData.status);
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ชื่อผู้ใช้:</strong> ${userData.username}</p>
+                        <p><strong>บทบาท:</strong> ${role}</p>
+                        <p><strong>อีเมล:</strong> ${userData.email || '-'}</p>
+                        <p><strong>เบอร์โทร:</strong> ${userData.phone || '-'}</p>
+                        <p><strong>สถานะ:</strong> <span class="status-badge ${status.class}">${status.text}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>วันที่สร้าง:</strong> ${new Date(userData.created_at).toLocaleString('th-TH')}</p>
+                        <p><strong>เข้าสู่ระบบล่าสุด:</strong> ${userData.last_login ? new Date(userData.last_login).toLocaleString('th-TH') : 'ยังไม่เคยเข้าสู่ระบบ'}</p>
+                        <p><strong>เลขบัตรประชาชน:</strong> ${userData.id_card || '-'}</p>
+                    </div>
+                </div>
+            `;
+
+            // Add role-specific information
+            if (userData.role === 'patient' && userData.hn) {
+                html += `
+                    <hr>
+                    <h6>ข้อมูลผู้ป่วย</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>HN:</strong> ${userData.hn}</p>
+                            <p><strong>วันเกิด:</strong> ${userData.date_of_birth ? new Date(userData.date_of_birth).toLocaleDateString('th-TH') : '-'}</p>
+                            <p><strong>เพศ:</strong> ${userData.gender === 'male' ? 'ชาย' : userData.gender === 'female' ? 'หญิง' : userData.gender || '-'}</p>
+                            <p><strong>กรุ๊ปเลือด:</strong> ${userData.blood_type || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>ที่อยู่:</strong> ${userData.address || '-'}</p>
+                            <p><strong>ผู้ติดต่อฉุกเฉิน:</strong> ${userData.emergency_contact_name || '-'}</p>
+                            <p><strong>เบอร์ฉุกเฉิน:</strong> ${userData.emergency_contact_phone || '-'}</p>
+                        </div>
+                    </div>
+                `;
+            } else if (userData.role === 'doctor' && userData.license_number) {
+                html += `
+                    <hr>
+                    <h6>ข้อมูลแพทย์</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>เลขใบประกอบวิชาชีพ:</strong> ${userData.license_number}</p>
+                            <p><strong>แผนก:</strong> ${userData.department || '-'}</p>
+                            <p><strong>ความเชี่ยวชาญ:</strong> ${userData.specialty || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>สถานพยาบาล:</strong> ${userData.hospital_affiliation || '-'}</p>
+                            <p><strong>วุฒิการศึกษา:</strong> ${userData.education || '-'}</p>
+                        </div>
+                    </div>
+                `;
+            } else if (userData.role === 'nurse' && userData.license_number) {
+                html += `
+                    <hr>
+                    <h6>ข้อมูลพยาบาล</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>เลขใบประกอบวิชาชีพ:</strong> ${userData.license_number}</p>
+                            <p><strong>แผนก:</strong> ${userData.department || '-'}</p>
+                            <p><strong>ตำแหน่ง:</strong> ${userData.position || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>สถานพยาบาล:</strong> ${userData.hospital_affiliation || '-'}</p>
+                            <p><strong>ชั่วโมงการทำงาน:</strong> ${userData.working_hours || '-'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Recent activity
+            if (userData.recentActivity && userData.recentActivity.length > 0) {
+                html += `
+                    <hr>
+                    <h6>กิจกรรมล่าสุด</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>การกระทำ</th>
+                                    <th>วันที่</th>
+                                    <th>สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                userData.recentActivity.slice(0, 5).forEach(activity => {
+                    html += `
+                        <tr>
+                            <td>${activity.action}</td>
+                            <td>${new Date(activity.action_time).toLocaleString('th-TH')}</td>
+                            <td><span class="badge ${activity.status === 'success' ? 'bg-success' : 'bg-danger'}">${activity.status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = html;
+        }
+
+// Edit User (continued)
+        async function editUser(userId) {
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}`);
+                if (response && response.success) {
+                    const userData = response.data;
+                    
+                    document.getElementById('editUserId').value = userId;
+                    document.getElementById('editEmail').value = userData.email || '';
+                    document.getElementById('editPhone').value = userData.phone || '';
+                    document.getElementById('editStatus').value = userData.status;
+                    
+                    showModal('editUserModal');
+                }
+            } catch (error) {
+                console.error('Error loading user for edit:', error);
+            }
+        }
+
+        async function submitEditUser() {
+            const userId = document.getElementById('editUserId').value;
+            const updateData = {
+                email: document.getElementById('editEmail').value,
+                phone: document.getElementById('editPhone').value,
+                status: document.getElementById('editStatus').value
+            };
+
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response && response.success) {
+                    hideModal('editUserModal');
+                    showSuccess('แก้ไขข้อมูลผู้ใช้สำเร็จ');
+                    loadUsers(currentPage);
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+            }
+        }
+
+        // Reset Password
+        function resetPassword(userId, userName) {
+            document.getElementById('resetUserId').value = userId;
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.querySelector('#resetPasswordModal .modal-title').textContent = `รีเซ็ตรหัสผ่าน - ${userName}`;
+            showModal('resetPasswordModal');
+        }
+
+        async function submitResetPassword() {
+            const userId = document.getElementById('resetUserId').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showError('รหัสผ่านไม่ตรงกัน');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}/reset-password`, {
+                    method: 'POST',
+                    body: JSON.stringify({ new_password: newPassword })
+                });
+
+                if (response && response.success) {
+                    hideModal('resetPasswordModal');
+                    showSuccess('รีเซ็ตรหัสผ่านสำเร็จ');
+                }
+            } catch (error) {
+                console.error('Error resetting password:', error);
+            }
+        }
+
+        // Deactivate User
+        async function deactivateUser(userId, userName) {
+            if (!confirm(`คุณต้องการปิดการใช้งานผู้ใช้ "${userName}" หรือไม่?`)) {
+                return;
+            }
+
+            const reason = prompt('กรุณาระบุเหตุผล (ไม่บังคับ):');
+
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    body: JSON.stringify({ reason: reason || 'ไม่ระบุเหตุผล' })
+                });
+
+                if (response && response.success) {
+                    showSuccess(`ปิดการใช้งานผู้ใช้ "${userName}" สำเร็จ`);
+                    loadUsers(currentPage);
+                }
+            } catch (error) {
+                console.error('Error deactivating user:', error);
+            }
+        }
+
+        // Helper Functions
+        function getStatusInfo(status) {
+            const statusMap = {
+                'active': { class: 'active', text: 'ใช้งาน' },
+                'inactive': { class: 'inactive', text: 'ไม่ใช้งาน' },
+                'pending': { class: 'pending', text: 'รอการอนุมัติ' }
+            };
+            return statusMap[status] || { class: 'inactive', text: 'ไม่ระบุ' };
+        }
+
+        function getRoleText(role) {
+            const roleMap = {
+                'doctor': 'แพทย์',
+                'nurse': 'พยาบาล',
+                'patient': 'ผู้ป่วย',
+                'admin': 'ผู้ดูแลระบบ'
+            };
+            return roleMap[role] || 'ไม่ระบุ';
+        }
+
+        // Validation Functions
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.style.borderColor = 'var(--danger-color)';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+
+            return isValid;
+        }
+
+        // Initialize tooltips and other UI enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add real-time validation
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.style.borderColor = 'var(--danger-color)';
+                    } else {
+                        this.style.borderColor = '';
+                    }
+                });
+            });
+
+            // Add password confirmation validation
+            const confirmPasswordField = document.getElementById('confirmPassword');
+            if (confirmPasswordField) {
+                confirmPasswordField.addEventListener('input', function() {
+                    const newPassword = document.getElementById('newPassword').value;
+                    if (this.value && this.value !== newPassword) {
+                        this.style.borderColor = 'var(--danger-color)';
+                    } else {
+                        this.style.borderColor = '';
+                    }
+                });
+            }
+        });
+
+        // Export function for external use
+        window.usersManagement = {
+            loadUsers,
+            viewUser,
+            editUser,
+            resetPassword,
+            deactivateUser,
+            showAddUserModal
+        };
+    </script>
+</body>
+</html>

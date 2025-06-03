@@ -1,0 +1,2100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการเอกสาร PDF - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        /* File Upload Styles */
+        .file-upload-area {
+            border: 3px dashed #e2e8f0;
+            border-radius: 20px;
+            padding: 60px 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8fafc, white);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.dragover {
+            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, rgba(0, 206, 206, 0.05), white);
+            transform: translateY(-2px);
+        }
+
+        .file-upload-area.dragover {
+            border-style: solid;
+            box-shadow: 0 10px 30px rgba(0, 206, 206, 0.2);
+        }
+
+        .file-upload-area i {
+            font-size: 4rem;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .file-upload-area h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .file-upload-area p {
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .file-upload-area .btn {
+            margin-top: 10px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Progress Bar */
+        .upload-progress {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress {
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+        }
+
+        /* Document Card Styles */
+        .document-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+        }
+
+        .document-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--secondary-color);
+        }
+
+        .document-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .document-icon.pdf {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .document-icon.doc {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .document-icon.img {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .document-icon.other {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .document-info h6 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .document-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .document-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .document-description {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .document-tags {
+            margin: 10px 0;
+        }
+
+        .document-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            color: var(--text-color);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            border-radius: 20px 20px 0 0;
+            padding: 25px 30px;
+        }
+
+        .modal-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-title i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, white, #f8fafc);
+            border-radius: 0 0 20px 20px;
+            padding: 20px 30px;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-8, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .document-card {
+                padding: 15px;
+            }
+
+            .document-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+                margin-right: 15px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .file-upload-area {
+                padding: 40px 20px;
+            }
+
+            .file-upload-area i {
+                font-size: 3rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item active">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาเอกสาร..." id="searchInput">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="page-title">
+                    <i class="fas fa-file-pdf"></i>
+                    จัดการเอกสาร PDF
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshDocumentsBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                    <button class="btn btn-success" id="uploadDocumentBtn">
+                        <i class="fas fa-cloud-upload-alt"></i> อัปโหลดเอกสาร
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Document Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="totalDocumentsCount">-</h3>
+                            <p class="text-muted">เอกสารทั้งหมด</p>
+                            <i class="fas fa-file fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="pdfDocumentsCount">-</h3>
+                            <p class="text-muted">ไฟล์ PDF</p>
+                            <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="imageDocumentsCount">-</h3>
+                            <p class="text-muted">ไฟล์รูปภาพ</p>
+                            <i class="fas fa-image fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card fade-in">
+                        <div class="card-body text-center">
+                            <h3 class="mb-2" id="totalStorageSize">-</h3>
+                            <p class="text-muted">พื้นที่ใช้งาน</p>
+                            <i class="fas fa-hdd fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="card fade-in" id="uploadSection" style="display: none;">
+                <div class="card-header">
+                    <h3><i class="fas fa-cloud-upload-alt"></i> อัปโหลดเอกสารใหม่</h3>
+                    <button class="btn btn-outline-secondary" id="cancelUploadBtn">
+                        <i class="fas fa-times"></i> ยกเลิก
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="patientSelect" class="form-label">เลือกผู้ป่วย <span class="text-danger">*</span></label>
+                                <select class="form-control" id="patientSelect" required>
+                                    <option value="">-- เลือกผู้ป่วย --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="documentType" class="form-label">ประเภทเอกสาร <span class="text-danger">*</span></label>
+                                <select class="form-control" id="documentType" required>
+                                    <option value="">-- เลือกประเภท --</option>
+                                    <option value="medical_report">รายงานทางการแพทย์</option>
+                                    <option value="test_result">ผลการตรวจ</option>
+                                    <option value="prescription">ใบสั่งยา</option>
+                                    <option value="imaging">ภาพทางการแพทย์</option>
+                                    <option value="lab_result">ผลแลป</option>
+                                    <option value="consent_form">ใบยินยอม</option>
+                                    <option value="other">อื่นๆ</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="documentTitle" class="form-label">ชื่อเอกสาร <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="documentTitle" required maxlength="100">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="documentTags" class="form-label">แท็ก</label>
+                                <input type="text" class="form-control" id="documentTags" placeholder="แยกด้วยเครื่องหมายจุลภาค">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="documentDescription" class="form-label">คำอธิบาย</label>
+                            <textarea class="form-control" id="documentDescription" rows="3" maxlength="500"></textarea>
+                        </div>
+                        
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h4>ลากและวางไฟล์ที่นี่</h4>
+                            <p>หรือ คลิกเพื่อเลือกไฟล์</p>
+                            <p class="text-muted">รองรับไฟล์: PDF, JPG, PNG, DOC, DOCX (สูงสุด 50MB)</p>
+                            <button type="button" class="btn btn-primary" id="selectFileBtn">
+                                <i class="fas fa-folder-open"></i> เลือกไฟล์
+                            </button>
+                            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple>
+                        </div>
+                        
+                        <div class="upload-progress" id="uploadProgress">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span id="uploadFileName">กำลังอัปโหลด...</span>
+                                <span id="uploadPercent">0%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="uploadProgressBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-success" id="uploadSubmitBtn">
+                                <i class="fas fa-upload"></i> อัปโหลดเอกสาร
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" id="clearFormBtn">
+                                <i class="fas fa-undo"></i> ล้างฟอร์ม
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> ตัวกรองเอกสาร</h3>
+                    <button class="btn btn-outline-primary" id="applyFiltersBtn">
+                        <i class="fas fa-search"></i> ค้นหา
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="filterPatient" class="form-label">ผู้ป่วย</label>
+                            <select class="form-control" id="filterPatient">
+                                <option value="">ทั้งหมด</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filterDocumentType" class="form-label">ประเภทเอกสาร</label>
+                            <select class="form-control" id="filterDocumentType">
+                                <option value="">ทั้งหมด</option>
+                                <option value="medical_report">รายงานทางการแพทย์</option>
+                                <option value="test_result">ผลการตรวจ</option>
+                                <option value="prescription">ใบสั่งยา</option>
+                                <option value="imaging">ภาพทางการแพทย์</option>
+                                <option value="lab_result">ผลแลป</option>
+                                <option value="consent_form">ใบยินยอม</option>
+                                <option value="other">อื่นๆ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filterStartDate" class="form-label">วันที่เริ่มต้น</label>
+                            <input type="date" class="form-control" id="filterStartDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filterEndDate" class="form-label">วันที่สิ้นสุด</label>
+                            <input type="date" class="form-control" id="filterEndDate">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> รายการเอกสาร</h3>
+                    <div>
+                        <select class="form-control me-2" id="limitSelect" style="width: auto; display: inline-block;">
+                            <option value="10">10 รายการ</option>
+                            <option value="20" selected>20 รายการ</option>
+                            <option value="50">50 รายการ</option>
+                        </select>
+                        <button class="btn btn-outline-primary" id="bulkDeleteBtn">
+                            <i class="fas fa-trash-alt"></i> ลบที่เลือก
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="documentsContainer">
+                        <div class="text-center">
+                            <div class="loading-spinner" style="width: 40px; height: 40px;"></div>
+                            <p class="mt-3">กำลังโหลดเอกสาร...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-4" id="paginationContainer">
+                        <div id="paginationInfo">
+                            แสดง 0 - 0 จาก 0 รายการ
+                        </div>
+                        <div id="paginationButtons">
+                            <!-- Pagination buttons will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Document Details Modal -->
+    <div class="modal fade" id="documentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt"></i>
+                        รายละเอียดเอกสาร
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="documentModalBody">
+                    <!-- Document details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="button" class="btn btn-primary" id="downloadDocumentBtn">
+                        <i class="fas fa-download"></i> ดาวน์โหลด
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let authToken = '';
+        let currentPage = 1;
+        let currentLimit = 20;
+        let selectedDocuments = [];
+        let currentDocumentId = null;
+
+        // Authentication Functions
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+
+        function checkAuthentication() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            authToken = token;
+            return true;
+        }
+
+        // API Helper Functions
+        async function makeAPIRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            // Don't set Content-Type for FormData (multipart uploads)
+            if (!(options.body instanceof FormData)) {
+                defaultOptions.headers['Content-Type'] = 'application/json';
+            }
+            
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getFileIcon(fileFormat) {
+            const format = fileFormat.toLowerCase();
+            if (format === 'pdf') return 'fas fa-file-pdf';
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(format)) return 'fas fa-image';
+            if (['doc', 'docx'].includes(format)) return 'fas fa-file-word';
+            return 'fas fa-file';
+        }
+
+        function getFileIconClass(fileFormat) {
+            const format = fileFormat.toLowerCase();
+            if (format === 'pdf') return 'pdf';
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(format)) return 'img';
+            if (['doc', 'docx'].includes(format)) return 'doc';
+            return 'other';
+        }
+
+        function getDocumentTypeLabel(type) {
+            const types = {
+                'medical_report': 'รายงานทางการแพทย์',
+                'test_result': 'ผลการตรวจ',
+                'prescription': 'ใบสั่งยา',
+                'imaging': 'ภาพทางการแพทย์',
+                'lab_result': 'ผลแลป',
+                'consent_form': 'ใบยินยอม',
+                'other': 'อื่นๆ'
+            };
+            return types[type] || type;
+        }
+
+        // Documents Functions
+        async function loadDocuments() {
+            try {
+                const filters = getFilters();
+                const queryParams = new URLSearchParams({
+                    page: currentPage,
+                    limit: currentLimit,
+                    ...filters
+                });
+
+                const response = await makeAPIRequest(`/api/admin/documents?${queryParams}`);
+                const documents = response.data || [];
+                
+                displayDocuments(documents);
+                updateDocumentStats(documents);
+                updatePagination(response.pagination);
+                
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                showAlert(`ไม่สามารถโหลดเอกสารได้: ${error.message}`, 'danger');
+                
+                // Show placeholder when API fails
+                document.getElementById('documentsContainer').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ไม่สามารถโหลดข้อมูลเอกสารจาก API ได้ กรุณาตรวจสอบการเชื่อมต่อ
+                    </div>
+                `;
+            }
+        }
+
+        function getFilters() {
+            const filters = {};
+            
+            const patient = document.getElementById('filterPatient').value;
+            if (patient) filters.patient_id = patient;
+            
+            const documentType = document.getElementById('filterDocumentType').value;
+            if (documentType) filters.document_type = documentType;
+            
+            const startDate = document.getElementById('filterStartDate').value;
+            if (startDate) filters.start_date = startDate;
+            
+            const endDate = document.getElementById('filterEndDate').value;
+            if (endDate) filters.end_date = endDate;
+            
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (searchTerm) filters.search = searchTerm;
+            
+            return filters;
+        }
+
+        function displayDocuments(documents) {
+            const container = document.getElementById('documentsContainer');
+            
+            if (!documents || documents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-file-slash fa-3x text-muted mb-3"></i>
+                        <h5>ไม่มีเอกสาร</h5>
+                        <p class="text-muted">ไม่พบเอกสารตามเงื่อนไขที่เลือก</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            documents.forEach(doc => {
+                const iconClass = getFileIconClass(doc.file_format);
+                const icon = getFileIcon(doc.file_format);
+                const typeLabel = getDocumentTypeLabel(doc.document_type);
+                const uploadDate = formatDate(doc.upload_date);
+                const fileSize = formatFileSize(doc.file_size || 0);
+                
+                const tags = doc.tags ? doc.tags.split(',').map(tag => tag.trim()) : [];
+                const tagsHtml = tags.map(tag => `<span class="document-tag">${tag}</span>`).join('');
+                
+                html += `
+                    <div class="document-card fade-in">
+                        <div class="d-flex align-items-start">
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="checkbox" value="${doc.document_id}" 
+                                       onchange="toggleDocumentSelection('${doc.document_id}')">
+                            </div>
+                            <div class="document-icon ${iconClass}">
+                                <i class="${icon}"></i>
+                            </div>
+                            <div class="document-info flex-grow-1">
+                                <h6>${doc.document_title || 'ไม่มีชื่อ'}</h6>
+                                <div class="document-meta">
+                                    <span><i class="fas fa-user"></i> ${doc.first_name} ${doc.last_name} (HN: ${doc.hn})</span>
+                                    <span><i class="fas fa-folder"></i> ${typeLabel}</span>
+                                    <span><i class="fas fa-calendar"></i> ${uploadDate}</span>
+                                    <span><i class="fas fa-hdd"></i> ${fileSize}</span>
+                                </div>
+                                ${doc.description ? `<div class="document-description">${doc.description}</div>` : ''}
+                                ${tagsHtml ? `<div class="document-tags">${tagsHtml}</div>` : ''}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        อัปโหลดโดย: ${doc.uploaded_by_name || 'ไม่ทราบ'}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="ms-3">
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewDocument('${doc.document_id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success me-1" onclick="downloadDocument('${doc.document_id}')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteDocument('${doc.document_id}')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateDocumentStats(documents) {
+            let totalDocs = documents.length;
+            let pdfCount = 0;
+            let imageCount = 0;
+            let totalSize = 0;
+
+            documents.forEach(doc => {
+                if (doc.file_format === 'pdf') pdfCount++;
+                if (['jpg', 'jpeg', 'png', 'gif'].includes(doc.file_format)) imageCount++;
+                totalSize += doc.file_size || 0;
+            });
+
+            document.getElementById('totalDocumentsCount').textContent = totalDocs;
+            document.getElementById('pdfDocumentsCount').textContent = pdfCount;
+            document.getElementById('imageDocumentsCount').textContent = imageCount;
+            document.getElementById('totalStorageSize').textContent = formatFileSize(totalSize);
+        }
+
+        function updatePagination(pagination) {
+            if (!pagination) return;
+
+            const info = document.getElementById('paginationInfo');
+            const buttons = document.getElementById('paginationButtons');
+            
+            const start = ((pagination.page - 1) * pagination.limit) + 1;
+            const end = Math.min(pagination.page * pagination.limit, pagination.total || 0);
+            
+            info.textContent = `แสดง ${start} - ${end} จาก ${pagination.total || 0} รายการ`;
+            
+            // Create pagination buttons
+            let buttonsHTML = '';
+            
+            if (pagination.page > 1) {
+                buttonsHTML += `<button class="btn btn-outline-primary me-2" onclick="changePage(${pagination.page - 1})">ก่อนหน้า</button>`;
+            }
+            
+            if (pagination.page < (pagination.totalPages || 1)) {
+                buttonsHTML += `<button class="btn btn-outline-primary" onclick="changePage(${pagination.page + 1})">ถัดไป</button>`;
+            }
+            
+            buttons.innerHTML = buttonsHTML;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadDocuments();
+        }
+
+        // Patient Loading Functions
+        async function loadPatients() {
+            try {
+                const response = await makeAPIRequest('/api/admin/users?role=patient&limit=1000');
+                const patients = response.data || [];
+                
+                populatePatientSelects(patients);
+                
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                
+                // Add placeholder options when API fails
+                const selects = ['patientSelect', 'filterPatient'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    select.innerHTML = '<option value="">ไม่สามารถโหลดรายชื่อผู้ป่วยได้</option>';
+                });
+            }
+        }
+
+        function populatePatientSelects(patients) {
+            const selects = ['patientSelect', 'filterPatient'];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const currentValue = select.value;
+                
+                select.innerHTML = selectId === 'filterPatient' ? 
+                    '<option value="">ทั้งหมด</option>' : 
+                    '<option value="">-- เลือกผู้ป่วย --</option>';
+                
+                patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.user_id;
+                    option.textContent = `${patient.full_name || 'ไม่ทราบชื่อ'} (HN: ${patient.hn || 'N/A'})`;
+                    select.appendChild(option);
+                });
+                
+                if (currentValue) select.value = currentValue;
+            });
+        }
+
+        // File Upload Functions
+        function showUploadSection() {
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideUploadSection() {
+            document.getElementById('uploadSection').style.display = 'none';
+            clearUploadForm();
+        }
+
+        function clearUploadForm() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadProgress').style.display = 'none';
+            document.getElementById('uploadProgressBar').style.width = '0%';
+            document.getElementById('uploadPercent').textContent = '0%';
+        }
+
+        function setupFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('fileUploadArea');
+            const selectFileBtn = document.getElementById('selectFileBtn');
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Select file button
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+            
+            // Upload area click
+            uploadArea.addEventListener('click', (e) => {
+                if (e.target !== selectFileBtn) {
+                    fileInput.click();
+                }
+            });
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect({ target: { files } });
+                }
+            });
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                const file = files[0];
+                
+                // Validate file type
+                const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                
+                if (!allowedTypes.includes(fileExtension)) {
+                    showAlert('ประเภทไฟล์ไม่ได้รับอนุญาต กรุณาเลือกไฟล์ PDF, JPG, PNG, DOC หรือ DOCX', 'warning');
+                    event.target.value = '';
+                    return;
+                }
+                
+                // Validate file size (50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    showAlert('ไฟล์มีขนาดใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 50MB', 'warning');
+                    event.target.value = '';
+                    return;
+                }
+                
+                // Auto-fill document title if empty
+                const titleInput = document.getElementById('documentTitle');
+                if (!titleInput.value) {
+                    const fileName = file.name.substring(0, file.name.lastIndexOf('.'));
+                    titleInput.value = fileName;
+                }
+                
+                showAlert(`เลือกไฟล์: ${file.name} (${formatFileSize(file.size)})`, 'info');
+            }
+        }
+
+        async function uploadDocument(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            
+            if (!fileInput.files.length) {
+                showAlert('กรุณาเลือกไฟล์ที่ต้องการอัปโหลด', 'warning');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('document', fileInput.files[0]);
+            formData.append('patient_id', document.getElementById('patientSelect').value);
+            formData.append('document_type', document.getElementById('documentType').value);
+            formData.append('document_title', document.getElementById('documentTitle').value);
+            formData.append('description', document.getElementById('documentDescription').value);
+            formData.append('tags', document.getElementById('documentTags').value);
+            
+            try {
+                const submitBtn = document.getElementById('uploadSubmitBtn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<div class="loading-spinner"></div> กำลังอัปโหลด...';
+                submitBtn.disabled = true;
+                
+                // Show progress bar
+                const progressContainer = document.getElementById('uploadProgress');
+                const progressBar = document.getElementById('uploadProgressBar');
+                const progressPercent = document.getElementById('uploadPercent');
+                const fileName = document.getElementById('uploadFileName');
+                
+                progressContainer.style.display = 'block';
+                fileName.textContent = fileInput.files[0].name;
+                
+                // Simulate upload progress (in real implementation, use XMLHttpRequest for progress tracking)
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    
+                    progressBar.style.width = `${progress}%`;
+                    progressPercent.textContent = `${Math.round(progress)}%`;
+                }, 100);
+                
+                const response = await makeAPIRequest('/api/admin/documents/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressPercent.textContent = '100%';
+                
+                showAlert('อัปโหลดเอกสารเรียบร้อยแล้ว', 'success');
+                
+                // Reset form and hide upload section
+                setTimeout(() => {
+                    hideUploadSection();
+                    loadDocuments();
+                }, 1000);
+                
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error uploading document:', error);
+                showAlert(`ไม่สามารถอัปโหลดเอกสารได้: ${error.message}`, 'danger');
+                
+                const submitBtn = document.getElementById('uploadSubmitBtn');
+                submitBtn.innerHTML = '<i class="fas fa-upload"></i> อัปโหลดเอกสาร';
+                submitBtn.disabled = false;
+                
+                document.getElementById('uploadProgress').style.display = 'none';
+            }
+        }
+
+        // Document Actions
+        function viewDocument(documentId) {
+            currentDocumentId = documentId;
+            
+            // In a real implementation, you would load document details from API
+            showAlert(`แสดงรายละเอียดเอกสาร ID: ${documentId}`, 'info');
+            
+            // Show modal with document details
+            const modal = new bootstrap.Modal(document.getElementById('documentModal'));
+            modal.show();
+        }
+
+        function downloadDocument(documentId) {
+            showAlert(`กำลังดาวน์โหลดเอกสาร ID: ${documentId}`, 'info');
+            
+            // In a real implementation, this would trigger actual file download
+            setTimeout(() => {
+                showAlert('ดาวน์โหลดเสร็จสิ้น', 'success');
+            }, 2000);
+        }
+
+        async function deleteDocument(documentId) {
+            if (!confirm('คุณต้องการลบเอกสารนี้หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
+                return;
+            }
+            
+            try {
+                showAlert('กำลังลบเอกสาร...', 'info');
+                
+                // In a real implementation, call DELETE API
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                showAlert('ลบเอกสารเรียบร้อยแล้ว', 'success');
+                loadDocuments();
+                
+            } catch (error) {
+                console.error('Error deleting document:', error);
+                showAlert(`ไม่สามารถลบเอกสารได้: ${error.message}`, 'danger');
+            }
+        }
+
+        function toggleDocumentSelection(documentId) {
+            const checkbox = document.querySelector(`input[value="${documentId}"]`);
+            
+            if (checkbox.checked) {
+                if (!selectedDocuments.includes(documentId)) {
+                    selectedDocuments.push(documentId);
+                }
+            } else {
+                selectedDocuments = selectedDocuments.filter(id => id !== documentId);
+            }
+            
+            updateBulkDeleteButton();
+        }
+
+        function updateBulkDeleteButton() {
+            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+            bulkDeleteBtn.disabled = selectedDocuments.length === 0;
+            bulkDeleteBtn.innerHTML = selectedDocuments.length > 0 ? 
+                `<i class="fas fa-trash-alt"></i> ลบที่เลือก (${selectedDocuments.length})` :
+                '<i class="fas fa-trash-alt"></i> ลบที่เลือก';
+        }
+
+        function bulkDeleteDocuments() {
+            if (selectedDocuments.length === 0) {
+                showAlert('กรุณาเลือกเอกสารที่ต้องการลบ', 'warning');
+                return;
+            }
+            
+            if (!confirm(`คุณต้องการลบเอกสาร ${selectedDocuments.length} รายการหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้`)) {
+                return;
+            }
+            
+            showAlert(`กำลังลบเอกสาร ${selectedDocuments.length} รายการ...`, 'info');
+            
+            // In a real implementation, call bulk delete API
+            setTimeout(() => {
+                showAlert('ลบเอกสารเรียบร้อยแล้ว', 'success');
+                selectedDocuments = [];
+                updateBulkDeleteButton();
+                loadDocuments();
+            }, 2000);
+        }
+
+        function applyFilters() {
+            currentPage = 1; // Reset to first page when applying filters
+            loadDocuments();
+        }
+
+        function refreshDocuments() {
+            const refreshBtn = document.getElementById('refreshDocumentsBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> กำลังรีเฟรช...';
+            refreshBtn.disabled = true;
+            
+            loadDocuments();
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                showAlert('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+            }, 1000);
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Button event listeners
+            document.getElementById('refreshDocumentsBtn').addEventListener('click', refreshDocuments);
+            document.getElementById('uploadDocumentBtn').addEventListener('click', showUploadSection);
+            document.getElementById('cancelUploadBtn').addEventListener('click', hideUploadSection);
+            document.getElementById('clearFormBtn').addEventListener('click', clearUploadForm);
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+            document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDeleteDocuments);
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Form submissions
+            document.getElementById('uploadForm').addEventListener('submit', uploadDocument);
+            
+            // Limit select change
+            document.getElementById('limitSelect').addEventListener('change', function() {
+                currentLimit = parseInt(this.value);
+                currentPage = 1;
+                loadDocuments();
+            });
+            
+            // Search input
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyFilters();
+                }
+            });
+            
+            // Set default date filters (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            document.getElementById('filterEndDate').valueAsDate = today;
+            document.getElementById('filterStartDate').valueAsDate = thirtyDaysAgo;
+            
+            // Setup file upload functionality
+            setupFileUpload();
+            
+            // Load initial data
+            loadPatients();
+            loadDocuments();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('ระบบจัดการเอกสารพร้อมใช้งาน', 'success');
+            }, 1000);
+        });
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible, refresh data
+                loadDocuments();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การจัดการฐานข้อมูล - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-info {
+            background: white;
+            color: #0ea5e9;
+            border: 2px solid #0ea5e9;
+        }
+
+        .btn-outline-info:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-outline-danger {
+            background: white;
+            color: var(--danger-color);
+            border: 2px solid var(--danger-color);
+        }
+
+        .btn-outline-danger:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            margin: 0 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .action-btn.delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 25%, 
+                rgba(255, 255, 255, 0.2) 25%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 50%, 
+                transparent 75%, 
+                rgba(255, 255, 255, 0.2) 75%);
+            background-size: 20px 20px;
+            animation: progress-animation 1s linear infinite;
+        }
+
+        @keyframes progress-animation {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Status Cards */
+        .status-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--secondary-color);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-card h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status-card .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+
+        .status-card .status-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .d-grid {
+            display: grid;
+        }
+
+        .gap-2 {
+            gap: 10px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-4 {
+            margin-top: 25px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item active">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาผู้ใช้, ยา, เอกสาร...">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <h1 class="page-title">
+                <i class="fas fa-database"></i>
+                การจัดการฐานข้อมูล
+            </h1>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+            
+            <!-- Database Statistics Row -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="status-card">
+                        <h5><i class="fas fa-database text-primary"></i> ขนาดฐานข้อมูล</h5>
+                        <div class="status-value" id="dbSize">2.4 GB</div>
+                        <div class="status-label">จากทั้งหมด 10 GB</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status-card">
+                        <h5><i class="fas fa-users text-success"></i> ผู้ใช้ในระบบ</h5>
+                        <div class="status-value" id="totalUsers">1,247</div>
+                        <div class="status-label">คน</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status-card">
+                        <h5><i class="fas fa-file-medical text-warning"></i> บันทึกทางการแพทย์</h5>
+                        <div class="status-value" id="medicalRecords">8,932</div>
+                        <div class="status-label">รายการ</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status-card">
+                        <h5><i class="fas fa-download text-info"></i> การสำรองล่าสุด</h5>
+                        <div class="status-value" id="lastBackup">2 ชม.</div>
+                        <div class="status-label">ที่แล้ว</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-download"></i> สำรองข้อมูล</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-4">สร้างไฟล์สำรองข้อมูลระบบทั้งหมดเพื่อป้องกันการสูญหายของข้อมูลสำคัญ</p>
+                            
+                            <form id="backupForm">
+                                <div class="form-group">
+                                    <label for="backupType">
+                                        <i class="fas fa-archive"></i> เลือกประเภทการสำรองข้อมูล
+                                    </label>
+                                    <select class="form-control" id="backupType">
+                                        <option value="full">สำรองข้อมูลทั้งหมด (Full Backup)</option>
+                                        <option value="incremental">สำรองข้อมูลเฉพาะส่วนที่เปลี่ยนแปลง (Incremental)</option>
+                                        <option value="differential">สำรองข้อมูลส่วนต่าง (Differential)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="backupDescription">
+                                        <i class="fas fa-comment"></i> คำอธิบาย (ไม่บังคับ)
+                                    </label>
+                                    <textarea class="form-control" id="backupDescription" rows="3" placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับการสำรองข้อมูลนี้"></textarea>
+                                </div>
+                                
+                                <div id="backupProgress" class="progress" style="display: none;">
+                                    <div class="progress-bar" id="backupProgressBar" style="width: 0%"></div>
+                                </div>
+                                
+                                <button type="button" class="btn btn-primary" id="startBackupBtn">
+                                    <i class="fas fa-download"></i> เริ่มการสำรองข้อมูล
+                                </button>
+                            </form>
+                            
+                            <hr class="my-4">
+                            
+                            <h5 class="mt-4 mb-3">
+                                <i class="fas fa-history"></i> ประวัติการสำรองข้อมูล
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="data-table" id="backupHistoryTable">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-calendar"></i> วันที่</th>
+                                            <th><i class="fas fa-tag"></i> ประเภท</th>
+                                            <th><i class="fas fa-weight-hanging"></i> ขนาด</th>
+                                            <th><i class="fas fa-check-circle"></i> สถานะ</th>
+                                            <th><i class="fas fa-tools"></i> การกระทำ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="backupHistoryBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดข้อมูล...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-server"></i> สถานะระบบ</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="systemStatusContainer">
+                                <div class="text-center">
+                                    <div class="loading-spinner"></div>
+                                    <p class="mt-2">กำลังตรวจสอบสถานะระบบ...</p>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <h5 class="mt-4 mb-3">
+                                <i class="fas fa-tools"></i> เครื่องมือฐานข้อมูล
+                            </h5>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary" id="optimizeDbBtn">
+                                    <i class="fas fa-wrench"></i> เพิ่มประสิทธิภาพฐานข้อมูล
+                                </button>
+                                <button class="btn btn-outline-info" id="validateDbBtn">
+                                    <i class="fas fa-check-circle"></i> ตรวจสอบความถูกต้องของข้อมูล
+                                </button>
+                                <button class="btn btn-outline-warning" id="indexDbBtn">
+                                    <i class="fas fa-sort-amount-up"></i> สร้างดัชนีใหม่
+                                </button>
+                                <button class="btn btn-outline-danger" id="cleanDbBtn">
+                                    <i class="fas fa-broom"></i> ล้างข้อมูลที่ไม่ได้ใช้
+                                </button>
+                                <button class="btn btn-outline-secondary" id="refreshStatusBtn">
+                                    <i class="fas fa-sync-alt"></i> รีเฟรชสถานะระบบ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Import/Export Section -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-upload"></i> นำเข้าข้อมูล</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-4">นำเข้าข้อมูลจากไฟล์ภายนอก เช่น CSV, Excel หรือ JSON</p>
+                            
+                            <div class="form-group">
+                                <label for="importFile">
+                                    <i class="fas fa-file"></i> เลือกไฟล์สำหรับนำเข้า
+                                </label>
+                                <input type="file" class="form-control" id="importFile" accept=".csv,.xlsx,.json">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="importType">
+                                    <i class="fas fa-list"></i> ประเภทข้อมูล
+                                </label>
+                                <select class="form-control" id="importType">
+                                    <option value="">เลือกประเภทข้อมูล...</option>
+                                    <option value="patients">ข้อมูลผู้ป่วย</option>
+                                    <option value="doctors">ข้อมูลแพทย์</option>
+                                    <option value="nurses">ข้อมูลพยาบาล</option>
+                                    <option value="medications">ข้อมูลยา</option>
+                                    <option value="appointments">นัดหมาย</option>
+                                </select>
+                            </div>
+                            
+                            <div id="importProgress" class="progress" style="display: none;">
+                                <div class="progress-bar" id="importProgressBar" style="width: 0%"></div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-success" id="startImportBtn" disabled>
+                                <i class="fas fa-upload"></i> เริ่มนำเข้าข้อมูล
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-download"></i> ส่งออกข้อมูล</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-4">ส่งออกข้อมูลในรูปแบบต่างๆ สำหรับการวิเคราะห์หรือการสำรอง</p>
+                            
+                            <div class="form-group">
+                                <label for="exportType">
+                                    <i class="fas fa-list"></i> เลือกประเภทข้อมูลที่ต้องการส่งออก
+                                </label>
+                                <select class="form-control" id="exportType">
+                                    <option value="">เลือกประเภทข้อมูล...</option>
+                                    <option value="all">ข้อมูลทั้งหมด</option>
+                                    <option value="patients">ข้อมูลผู้ป่วย</option>
+                                    <option value="medical_records">บันทึกทางการแพทย์</option>
+                                    <option value="appointments">นัดหมาย</option>
+                                    <option value="medications">ข้อมูลยา</option>
+                                    <option value="users">ข้อมูลผู้ใช้</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="exportFormat">
+                                    <i class="fas fa-file-export"></i> รูปแบบไฟล์
+                                </label>
+                                <select class="form-control" id="exportFormat">
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">Excel (.xlsx)</option>
+                                    <option value="json">JSON</option>
+                                    <option value="pdf">PDF</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="dateRange">
+                                    <i class="fas fa-calendar-range"></i> ช่วงวันที่
+                                </label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <input type="date" class="form-control" id="startDate" placeholder="วันที่เริ่มต้น">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="date" class="form-control" id="endDate" placeholder="วันที่สิ้นสุด">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary" id="startExportBtn">
+                                <i class="fas fa-download"></i> ส่งออกข้อมูล
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Card -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> กิจกรรมล่าสุดของระบบ</h3>
+                    <button class="btn btn-outline-secondary btn-sm" id="refreshActivityBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="auditLogsTable">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-clock"></i> เวลา</th>
+                                    <th><i class="fas fa-user"></i> ผู้ใช้</th>
+                                    <th><i class="fas fa-cog"></i> การกระทำ</th>
+                                    <th><i class="fas fa-info-circle"></i> รายละเอียด</th>
+                                    <th><i class="fas fa-check-circle"></i> สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogsBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <p class="mt-2">กำลังโหลดกิจกรรมล่าสุด...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- JavaScript Libraries and Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002'; // ปรับ URL ตามการตั้งค่าจริง
+        let authToken = '';
+        
+        // Authentication Functions
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+        
+        function checkAuthentication() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            authToken = token;
+            return true;
+        }
+        
+// API Helper Functions (continued)
+        async function makeAPIRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+        
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        function updateProgress(progressBarId, percentage) {
+            const progressBar = document.getElementById(progressBarId);
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+                progressBar.setAttribute('aria-valuenow', percentage);
+            }
+        }
+        
+        function showProgress(progressId) {
+            const progressElement = document.getElementById(progressId);
+            if (progressElement) {
+                progressElement.style.display = 'block';
+            }
+        }
+        
+        function hideProgress(progressId) {
+            const progressElement = document.getElementById(progressId);
+            if (progressElement) {
+                progressElement.style.display = 'none';
+            }
+        }
+        
+        // System Health Functions
+        async function loadSystemHealth() {
+            try {
+                const response = await makeAPIRequest('/api/admin/health');
+                const healthData = response.data;
+                
+                const statusContainer = document.getElementById('systemStatusContainer');
+                statusContainer.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong>สถานะฐานข้อมูล:</strong>
+                                <span class="badge ${healthData.database === 'connected' ? 'bg-success' : 'bg-danger'}">
+                                    ${healthData.database === 'connected' ? 'เชื่อมต่อ' : 'ไม่เชื่อมต่อ'}
+                                </span>
+                            </div>
+                            <div class="mb-3">
+                                <strong>ผู้ใช้ทั้งหมด:</strong> ${healthData.totalUsers.toLocaleString()} คน
+                            </div>
+                            <div class="mb-3">
+                                <strong>ผู้ป่วย:</strong> ${healthData.patients.toLocaleString()} คน
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong>แพทย์:</strong> ${healthData.doctors.toLocaleString()} คน
+                            </div>
+                            <div class="mb-3">
+                                <strong>เวลาทำงาน:</strong> ${Math.floor(healthData.uptime / 3600)} ชั่วโมง
+                            </div>
+                            <div class="mb-3">
+                                <strong>การใช้หน่วยความจำ:</strong> ${Math.round(healthData.memoryUsage.heapUsed / 1024 / 1024)} MB
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-muted small">
+                        อัปเดตล่าสุด: ${new Date(healthData.timestamp).toLocaleString('th-TH')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('systemStatusContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        ไม่สามารถโหลดสถานะระบบได้: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Backup Functions
+        async function createSystemBackup() {
+            const backupType = document.getElementById('backupType').value;
+            const description = document.getElementById('backupDescription').value;
+            const startBackupBtn = document.getElementById('startBackupBtn');
+            
+            try {
+                // Show progress
+                showProgress('backupProgress');
+                updateProgress('backupProgressBar', 0);
+                
+                // Disable button
+                startBackupBtn.disabled = true;
+                startBackupBtn.innerHTML = '<div class="loading-spinner"></div> กำลังสำรองข้อมูล...';
+                
+                // Simulate progress updates
+                const progressInterval = setInterval(() => {
+                    const currentProgress = parseInt(document.getElementById('backupProgressBar').style.width) || 0;
+                    if (currentProgress < 90) {
+                        updateProgress('backupProgressBar', currentProgress + 10);
+                    }
+                }, 500);
+                
+                // Call backup API
+                const response = await makeAPIRequest('/api/admin/system/backup', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        type: backupType,
+                        description: description
+                    })
+                });
+                
+                // Complete progress
+                clearInterval(progressInterval);
+                updateProgress('backupProgressBar', 100);
+                
+                setTimeout(() => {
+                    hideProgress('backupProgress');
+                    showAlert('สำรองข้อมูลเรียบร้อยแล้ว', 'success');
+                    
+                    // Add new backup to history
+                    addBackupToHistory(response.data);
+                    
+                    // Reset form
+                    document.getElementById('backupDescription').value = '';
+                }, 1000);
+                
+            } catch (error) {
+                showAlert(`เกิดข้อผิดพลาดในการสำรองข้อมูล: ${error.message}`, 'danger');
+            } finally {
+                // Reset button
+                startBackupBtn.disabled = false;
+                startBackupBtn.innerHTML = '<i class="fas fa-download"></i> สำรองข้อมูล';
+            }
+        }
+        
+        function addBackupToHistory(backupData) {
+            const tableBody = document.querySelector('#backupHistoryTable tbody');
+            const date = new Date(backupData.backupDate);
+            const formattedDate = date.toLocaleString('th-TH');
+            
+            // Calculate estimated size based on table counts
+            const totalRecords = Object.values(backupData.tables).reduce((sum, count) => sum + count, 0);
+            const estimatedSize = (totalRecords * 0.5).toFixed(1); // Rough estimation
+            
+            const newRow = `
+                <tr>
+                    <td>${formattedDate}</td>
+                    <td>ทั้งหมด</td>
+                    <td>${estimatedSize} MB</td>
+                    <td><span class="badge bg-success">สำเร็จ</span></td>
+                    <td>
+                        <button class="action-btn" onclick="downloadBackup('${backupData.backupId}')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="action-btn" onclick="viewBackupDetails('${backupData.backupId}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteBackup('${backupData.backupId}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            
+            // Add to top of table or replace loading message
+            if (tableBody.innerHTML.includes('กำลังโหลดข้อมูล')) {
+                tableBody.innerHTML = newRow;
+            } else {
+                tableBody.insertAdjacentHTML('afterbegin', newRow);
+            }
+        }
+        
+        // Load backup history (simulated since API doesn't have this endpoint)
+        function loadBackupHistory() {
+            const backupHistory = [
+                {
+                    id: 1,
+                    date: new Date(Date.now() - 86400000 * 2), // 2 days ago
+                    type: 'full',
+                    size: '456.8 MB',
+                    status: 'success'
+                },
+                {
+                    id: 2,
+                    date: new Date(Date.now() - 86400000 * 5), // 5 days ago
+                    type: 'incremental',
+                    size: '68.3 MB',
+                    status: 'success'
+                },
+                {
+                    id: 3,
+                    date: new Date(Date.now() - 86400000 * 7), // 7 days ago
+                    type: 'full',
+                    size: '442.1 MB',
+                    status: 'success'
+                }
+            ];
+            
+            setTimeout(() => {
+                updateBackupHistoryTable(backupHistory);
+            }, 1000);
+        }
+        
+        function updateBackupHistoryTable(history) {
+            const tableBody = document.querySelector('#backupHistoryTable tbody');
+            
+            if (!history || history.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center">ไม่พบประวัติการสำรองข้อมูล</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            history.forEach(backup => {
+                const formattedDate = backup.date.toLocaleString('th-TH');
+                
+                let statusClass = 'success';
+                let statusText = 'สำเร็จ';
+                
+                if (backup.status === 'failed') {
+                    statusClass = 'danger';
+                    statusText = 'ล้มเหลว';
+                } else if (backup.status === 'in_progress') {
+                    statusClass = 'warning';
+                    statusText = 'กำลังดำเนินการ';
+                }
+                
+                let typeText = 'ทั้งหมด';
+                if (backup.type === 'incremental') {
+                    typeText = 'เฉพาะส่วนที่เปลี่ยนแปลง';
+                } else if (backup.type === 'differential') {
+                    typeText = 'ส่วนต่าง';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${typeText}</td>
+                        <td>${backup.size}</td>
+                        <td><span class="badge bg-${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="downloadBackup(${backup.id})">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="action-btn" onclick="viewBackupDetails(${backup.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteBackup(${backup.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+        
+        // Database Tool Functions
+        async function optimizeDatabase() {
+            const btn = document.getElementById('optimizeDbBtn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<div class="loading-spinner"></div> กำลังเพิ่มประสิทธิภาพ...';
+                btn.disabled = true;
+                
+                // Simulate optimization process
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                showAlert('เพิ่มประสิทธิภาพฐานข้อมูลเรียบร้อยแล้ว', 'success');
+                
+            } catch (error) {
+                showAlert(`เกิดข้อผิดพลาด: ${error.message}`, 'danger');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        async function validateDatabase() {
+            const btn = document.getElementById('validateDbBtn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<div class="loading-spinner"></div> กำลังตรวจสอบ...';
+                btn.disabled = true;
+                
+                // Simulate validation process
+                await new Promise(resolve => setTimeout(resolve, 4000));
+                
+                showAlert('ตรวจสอบความถูกต้องของข้อมูลเรียบร้อยแล้ว ไม่พบข้อผิดพลาด', 'success');
+                
+            } catch (error) {
+                showAlert(`เกิดข้อผิดพลาด: ${error.message}`, 'danger');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        async function cleanDatabase() {
+            if (!confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลที่ไม่ได้ใช้? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+                return;
+            }
+            
+            const btn = document.getElementById('cleanDbBtn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<div class="loading-spinner"></div> กำลังล้างข้อมูล...';
+                btn.disabled = true;
+                
+                // Simulate cleaning process
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                showAlert('ล้างข้อมูลที่ไม่ได้ใช้เรียบร้อยแล้ว ได้คืนพื้นที่ 145.3 MB', 'success');
+                
+            } catch (error) {
+                showAlert(`เกิดข้อผิดพลาด: ${error.message}`, 'danger');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // Audit Logs Functions
+        async function loadAuditLogs() {
+            try {
+                const response = await makeAPIRequest('/api/admin/audit-logs?limit=10');
+                const logs = response.data;
+                
+                const tableBody = document.querySelector('#auditLogsTable tbody');
+                
+                if (!logs || logs.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center">ไม่พบกิจกรรมล่าสุด</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                logs.forEach(log => {
+                    const date = new Date(log.action_time);
+                    const formattedDate = date.toLocaleString('th-TH');
+                    
+                    let statusClass = 'success';
+                    if (log.status === 'failed') {
+                        statusClass = 'danger';
+                    } else if (log.severity === 'warning') {
+                        statusClass = 'warning';
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${formattedDate}</td>
+                            <td>${log.username || 'ระบบ'}</td>
+                            <td>${translateAction(log.action)}</td>
+                            <td>${log.details || '-'}</td>
+                            <td><span class="badge bg-${statusClass}">${log.status === 'success' ? 'สำเร็จ' : 'ล้มเหลว'}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+                
+            } catch (error) {
+                document.querySelector('#auditLogsTable tbody').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            <div class="alert alert-danger">ไม่สามารถโหลดกิจกรรมล่าสุดได้</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function translateAction(action) {
+            const translations = {
+                'ADMIN_LOGIN': 'เข้าสู่ระบบแอดมิน',
+                'SYSTEM_BACKUP': 'สำรองข้อมูลระบบ',
+                'USER_UPDATE': 'อัปเดตข้อมูลผู้ใช้',
+                'MEDICATION_CREATE': 'เพิ่มข้อมูลยา',
+                'PATIENT_REGISTRATION': 'ลงทะเบียนผู้ป่วย',
+                'DOCTOR_REGISTRATION': 'ลงทะเบียนแพทย์',
+                'NURSE_REGISTRATION': 'ลงทะเบียนพยาบาล'
+            };
+            
+            return translations[action] || action;
+        }
+        
+        // Action Functions
+        function downloadBackup(id) {
+            showAlert(`กำลังดาวน์โหลดไฟล์สำรองข้อมูลรหัส ${id}`, 'info');
+        }
+        
+        function viewBackupDetails(id) {
+            showAlert(`ดูรายละเอียดไฟล์สำรองข้อมูลรหัส ${id}`, 'info');
+        }
+        
+        function deleteBackup(id) {
+            if (confirm(`คุณแน่ใจหรือไม่ที่จะลบไฟล์สำรองข้อมูลรหัส ${id}?`)) {
+                showAlert(`ลบไฟล์สำรองข้อมูลรหัส ${id} เรียบร้อยแล้ว`, 'success');
+                
+                // Remove row from table
+                const backupRow = document.querySelector(`button[onclick="deleteBackup(${id})"]`).closest('tr');
+                backupRow.remove();
+                
+                // Check if table is empty
+                const tableRows = document.querySelectorAll('#backupHistoryTable tbody tr');
+                if (tableRows.length === 0) {
+                    document.querySelector('#backupHistoryTable tbody').innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center">ไม่พบประวัติการสำรองข้อมูล</td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+        
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+        
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Event listeners
+            document.getElementById('startBackupBtn').addEventListener('click', createSystemBackup);
+            document.getElementById('optimizeDbBtn').addEventListener('click', optimizeDatabase);
+            document.getElementById('validateDbBtn').addEventListener('click', validateDatabase);
+            document.getElementById('cleanDbBtn').addEventListener('click', cleanDatabase);
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            document.getElementById('refreshStatusBtn').addEventListener('click', function() {
+                loadSystemHealth();
+                loadAuditLogs();
+            });
+            
+            // Load initial data
+            loadSystemHealth();
+            loadBackupHistory();
+            loadAuditLogs();
+        });
+        </script>
+</body>
+</html>

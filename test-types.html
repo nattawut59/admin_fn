@@ -1,0 +1,1375 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการประเภทการตรวจ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Test Type Cards */
+        .test-type-card {
+            background: white;
+            border: 2px solid var(--bg-light);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 206, 206, 0.05), transparent);
+            transition: left 0.5s;
+        }
+
+        .test-type-card:hover::before {
+            left: 100%;
+        }
+
+        .test-type-card:hover {
+            border-color: var(--secondary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 206, 206, 0.15);
+        }
+
+        .test-type-card.default {
+            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, rgba(0, 206, 206, 0.05), white);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.1);
+        }
+
+        .test-type-card.custom {
+            border-color: var(--warning-color);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), white);
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+        }
+
+        .test-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .test-type-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .test-type-badge {
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-default {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .badge-custom {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+        }
+
+        .test-type-description {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .required-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .field-tag {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .field-tag:hover {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 206, 206, 0.3);
+        }
+
+        .test-type-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Form Styles */
+        .form-control {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Grid System */
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-4 {
+            margin-bottom: 25px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .test-type-actions {
+                flex-direction: column;
+            }
+
+            .test-type-actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .test-type-actions {
+                flex-direction: column;
+            }
+
+            .test-type-actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .test-type-card {
+                padding: 20px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item active">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาประเภทการตรวจ...">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">
+                    <i class="fas fa-vial"></i>
+                    จัดการประเภทการตรวจ
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshTestTypesBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรช
+                    </button>
+                    <button class="btn btn-primary" id="addTestTypeBtn">
+                        <i class="fas fa-plus"></i> เพิ่มประเภทการตรวจ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Test Types Grid -->
+            <div id="testTypesContainer" class="fade-in">
+                <div class="text-center">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-3">กำลังโหลดข้อมูลประเภทการตรวจ...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Test Type Modal -->
+    <div class="modal fade" id="testTypeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(0, 206, 206, 0.1); background: linear-gradient(135deg, #f8fafc, white); border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title" id="testTypeModalTitle" style="color: var(--primary-color); font-weight: 600;">
+                        <i class="fas fa-plus-circle" style="color: var(--secondary-color); margin-right: 10px;"></i>
+                        เพิ่มประเภทการตรวจใหม่
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="background-size: 20px;"></button>
+                </div>
+                <div class="modal-body" style="padding: 30px;">
+                    <form id="testTypeForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="testTypeCode" class="form-label">รหัสประเภทการตรวจ *</label>
+                                    <input type="text" class="form-control" id="testTypeCode" required>
+                                    <div class="form-text" style="color: var(--text-light);">ใช้ภาษาอังกฤษ ไม่มีช่องว่าง (เช่น OCT, VF)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="testTypeLabel" class="form-label">ชื่อการตรวจ *</label>
+                                    <input type="text" class="form-control" id="testTypeLabel" required>
+                                    <div class="form-text" style="color: var(--text-light);">ชื่อเต็มของการตรวจ</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="testTypeDescription" class="form-label">คำอธิบาย</label>
+                            <textarea class="form-control" id="testTypeDescription" rows="3" style="resize: vertical;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="requiredFields" class="form-label">ฟิลด์ที่ต้องการ</label>
+                            <div id="requiredFieldsContainer">
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" placeholder="ชื่อฟิลด์ (เช่น left_eye_iop)">
+                                    <button type="button" class="btn btn-outline-danger" onclick="removeField(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addFieldBtn">
+                                <i class="fas fa-plus"></i> เพิ่มฟิลด์
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid rgba(0, 206, 206, 0.1); background: linear-gradient(135deg, white, #f8fafc); border-radius: 0 0 20px 20px; padding: 20px 30px;">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" id="saveTestTypeBtn">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002/api/admin';
+        let authToken = localStorage.getItem('adminToken');
+        let currentEditingTestType = null;
+
+        // Utility Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert_' + Date.now();
+            
+            const alertHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" id="${alertId}">
+                    ${message}
+                    <button type="button" class="btn-close" onclick="closeAlert('${alertId}')"></button>
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                closeAlert(alertId);
+            }, 5000);
+        }
+
+        function closeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }
+
+        async function makeAPICall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                        ...options.headers
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        showAlert('กรุณาเข้าสู่ระบบใหม่', 'danger');
+                        localStorage.removeItem('adminToken');
+                        window.location.href = 'login.html';
+                        return null;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API call error:', error);
+                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error.message, 'danger');
+                return null;
+            }
+        }
+
+        // Main Functions
+        async function loadTestTypes() {
+            const container = document.getElementById('testTypesContainer');
+            container.innerHTML = `
+                <div class="text-center">
+                    <div class="loading-spinner"></div>
+                    <p>กำลังโหลดข้อมูลประเภทการตรวจ...</p>
+                </div>
+            `;
+
+           const result = await makeAPICall('/test-types');
+if (result && result.success) {
+    const testTypes = result.data;
+    if (testTypes.length > 0) {
+        let testTypesHTML = '<div class="row">';
+        
+        testTypes.forEach(testType => {
+            // แก้ไขตรงนี้
+            const testTypeCode = testType.value || testType.test_type || testType.code;
+            const isDefault = ['OCT', 'CTVF', 'Pachymetry', 'Gonioscopy'].includes(testTypeCode);
+            const cardClass = isDefault ? 'default' : 'custom';
+            const badgeClass = isDefault ? 'badge-default' : 'badge-custom';
+            const badgeText = isDefault ? 'ค่าเริ่มต้น' : 'กำหนดเอง';
+            
+            // แก้ไข required_fields
+            let fieldsHTML = '';
+if (testType.required_fields) {
+    if (Array.isArray(testType.required_fields)) {
+        fieldsHTML = testType.required_fields.map(field => `<span class="field-tag">${field}</span>`).join('');
+    } else {
+        fieldsHTML = `<span class="field-tag">${testType.required_fields}</span>`;
+    }
+}
+            
+            testTypesHTML += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="test-type-card ${cardClass}">
+                        <div class="test-type-header">
+                            <h4 class="test-type-title">${testType.label}</h4>
+                            <span class="test-type-badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                        <div class="test-type-description">
+                            ${testType.description || 'ไม่มีคำอธิบาย'}
+                        </div>
+                        ${fieldsHTML ? `
+                            <div class="mb-3">
+                                <strong>ฟิลด์ที่ต้องการ:</strong>
+                                <div class="required-fields mt-2">
+                                    ${fieldsHTML}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${!isDefault ? `
+                            <div class="test-type-actions">
+                                <button class="btn btn-warning btn-sm" onclick="editTestType('${testTypeCode}')">
+                                    <i class="fas fa-edit"></i> แก้ไข
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteTestType('${testTypeCode}')">
+                                    <i class="fas fa-trash"></i> ลบ
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        testTypesHTML += '</div>';
+        container.innerHTML = testTypesHTML;
+    } else {  // <- ลบ } ตัวแรกออก
+        container.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-microscope fa-3x text-muted mb-3"></i>
+                <h5>ไม่มีประเภทการตรวจ</h5>
+                <p class="text-muted">คลิกปุ่ม "เพิ่มประเภทการตรวจ" เพื่อเริ่มต้น</p>
+            </div>
+        `;
+    }
+} else {
+    container.innerHTML = `
+        <div class="alert alert-danger text-center">
+            <i class="fas fa-exclamation-triangle"></i>
+            เกิดข้อผิดพลาดในการโหลดข้อมูล
+        </div>
+    `;
+}
+
+
+async function saveTestType() {
+    const testTypeCode = document.getElementById('testTypeCode').value.trim();
+    const testTypeLabel = document.getElementById('testTypeLabel').value.trim();
+    const testTypeDescription = document.getElementById('testTypeDescription').value.trim();
+    
+    if (!testTypeCode || !testTypeLabel) {
+        showAlert('กรุณากรอกรหัสและชื่อการตรวจ', 'warning');
+        return;
+    }
+
+    // Collect required fields
+    const fieldInputs = document.querySelectorAll('#requiredFieldsContainer input');
+    const requiredFields = [];
+    fieldInputs.forEach(input => {
+        const value = input.value.trim();
+        if (value) {
+            requiredFields.push(value);
+        }
+    });
+
+    const testTypeData = {
+        test_type: testTypeCode,
+        label: testTypeLabel,
+        description: testTypeDescription,
+        required_fields: requiredFields
+    };
+
+    const result = await makeAPICall('/test-types', {
+        method: 'POST',
+        body: JSON.stringify(testTypeData)
+    });
+
+    if (result && result.success) {
+        showAlert('เพิ่มประเภทการตรวจสำเร็จ', 'success');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('testTypeModal'));
+        modal.hide();
+        loadTestTypes();
+        resetForm();
+    }
+}
+
+function editTestType(testTypeValue) {
+    currentEditingTestType = testTypeValue;
+    document.getElementById('testTypeModalTitle').textContent = 'แก้ไขประเภทการตรวจ';
+    document.getElementById('testTypeCode').disabled = true;
+    
+    const modal = new bootstrap.Modal(document.getElementById('testTypeModal'));
+    modal.show();
+    
+    showAlert('ฟีเจอร์แก้ไขจะเปิดใช้งานเร็วๆ นี้', 'info');
+}
+
+async function deleteTestType(testTypeValue) {
+    if (!confirm(`คุณต้องการลบประเภทการตรวจ "${testTypeValue}" หรือไม่?`)) {
+        return;
+    }
+
+    showAlert('ฟีเจอร์ลบจะเปิดใช้งานเร็วๆ นี้', 'warning');
+}
+
+function addField() {
+    const container = document.getElementById('requiredFieldsContainer');
+    const fieldHTML = `
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="ชื่อฟิลด์ (เช่น left_eye_iop)">
+            <button type="button" class="btn btn-outline-danger" onclick="removeField(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', fieldHTML);
+}
+
+function removeField(button) {
+    button.closest('.input-group').remove();
+}
+
+function resetForm() {
+    document.getElementById('testTypeForm').reset();
+    document.getElementById('testTypeCode').disabled = false;
+    document.getElementById('testTypeModalTitle').textContent = 'เพิ่มประเภทการตรวจใหม่';
+    currentEditingTestType = null;
+    
+    // Reset required fields to one empty field
+    const container = document.getElementById('requiredFieldsContainer');
+    container.innerHTML = `
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="ชื่อฟิลด์ (เช่น left_eye_iop)">
+            <button type="button" class="btn btn-outline-danger" onclick="removeField(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+}
+
+// Event Listeners
+document.getElementById('refreshTestTypesBtn').addEventListener('click', function() {
+    loadTestTypes();
+    showAlert('รีเฟรชข้อมูลแล้ว', 'success');
+});
+
+document.getElementById('addTestTypeBtn').addEventListener('click', function() {
+    resetForm();
+    const modal = new bootstrap.Modal(document.getElementById('testTypeModal'));
+    modal.show();
+});
+
+document.getElementById('addFieldBtn').addEventListener('click', addField);
+document.getElementById('saveTestTypeBtn').addEventListener('click', saveTestType);
+
+document.getElementById('profile-toggle').addEventListener('click', function() {
+    const dropdown = document.getElementById('profile-dropdown-menu');
+    dropdown.classList.toggle('show');
+});
+
+document.getElementById('menu-toggle').addEventListener('click', function() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('show');
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('profile-dropdown-menu');
+    const toggle = document.getElementById('profile-toggle');
+    
+    if (!toggle.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('show');
+    }
+});
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    if (!authToken) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Load initial data
+    loadTestTypes();
+    
+    // Set user info if available
+    const userData = JSON.parse(localStorage.getItem('adminUserData') || '{}');
+    if (userData.username) {
+        document.getElementById('headerUsername').textContent = userData.username;
+        document.getElementById('userInitial').textContent = userData.username.charAt(0).toUpperCase();
+    }
+});
+
+// Logout function
+document.getElementById('logoutBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUserData');
+    window.location.href = 'login.html';
+});
+        }
+    </script>
+</body>
+</html>

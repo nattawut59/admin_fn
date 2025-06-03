@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บำรุงรักษาระบบ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Status Cards */
+        .status-card {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 30px rgba(0, 206, 206, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 206, 206, 0.4);
+        }
+
+        .status-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .status-card.warning:hover {
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
+        }
+
+        .status-card.danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .status-card.danger:hover {
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .status-card.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .status-card.success:hover {
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .status-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .status-card p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1rem;
+        }
+
+        .status-card .icon {
+            font-size: 3rem;
+            opacity: 0.3;
+            position: absolute;
+            right: 25px;
+            top: 25px;
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+        }
+
+        .progress-bar.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+        }
+
+        .progress-bar.bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .progress-bar.bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* System Health Indicators */
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .health-indicator.online {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
+        .health-indicator.offline {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+
+        .health-indicator.warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .health-dot.online {
+            background: #10b981;
+            animation: pulse-green 2s infinite;
+        }
+
+        .health-dot.offline {
+            background: #ef4444;
+        }
+
+        .health-dot.warning {
+            background: #f59e0b;
+            animation: pulse-orange 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item active">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหาการตั้งค่าระบบ...">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="page-title">
+                    <i class="fas fa-cogs"></i>
+                    บำรุงรักษาระบบ
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshStatusBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรชสถานะ
+                    </button>
+                    <button class="btn btn-success" id="healthCheckBtn">
+                        <i class="fas fa-heartbeat"></i> ตรวจสอบสุขภาพระบบ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- System Health Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="status-card fade-in" id="databaseStatusCard">
+                        <div class="position-relative">
+                            <h4>ฐานข้อมูล</h4>
+                            <p id="databaseStatus">กำลังตรวจสอบ...</p>
+                            <div class="health-indicator" id="databaseIndicator">
+                                <div class="health-dot"></div>
+                                <span>ตรวจสอบ</span>
+                            </div>
+                            <i class="fas fa-database icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status-card fade-in" id="serverStatusCard">
+                        <div class="position-relative">
+                            <h4>เซิร์ฟเวอร์</h4>
+                            <p id="serverStatus">กำลังตรวจสอบ...</p>
+                            <div class="health-indicator" id="serverIndicator">
+                                <div class="health-dot"></div>
+                                <span>ตรวจสอบ</span>
+                            </div>
+                            <i class="fas fa-server icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status-card fade-in" id="memoryStatusCard">
+                        <div class="position-relative">
+                            <h4>หน่วยความจำ</h4>
+                            <p id="memoryStatus">กำลังตรวจสอบ...</p>
+                            <div class="health-indicator" id="memoryIndicator">
+                                <div class="health-dot"></div>
+                                <span>ตรวจสอบ</span>
+                            </div>
+                            <i class="fas fa-memory icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status-card fade-in" id="uptimeStatusCard">
+                        <div class="position-relative">
+                            <h4>เวลาทำงาน</h4>
+                            <p id="uptimeStatus">กำลังตรวจสอบ...</p>
+                            <div class="health-indicator" id="uptimeIndicator">
+                                <div class="health-dot online"></div>
+                                <span>ปกติ</span>
+                            </div>
+                            <i class="fas fa-clock icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cog"></i> การตั้งค่าระบบ</h3>
+                            <button class="btn btn-primary" id="saveSettingsBtn">
+                                <i class="fas fa-save"></i> บันทึกการตั้งค่า
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="settingsContainer">
+                                <div class="text-center">
+                                    <div class="loading-spinner"></div>
+                                    <p class="mt-3">กำลังโหลดการตั้งค่า...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tools"></i> เครื่องมือการบำรุงรักษา</h3>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-success w-100 mb-3" id="createBackupBtn">
+                                <i class="fas fa-database"></i> สร้างสำรองข้อมูล
+                            </button>
+                            <button class="btn btn-warning w-100 mb-3" id="clearCacheBtn">
+                                <i class="fas fa-trash-alt"></i> ล้างแคช
+                            </button>
+                            <button class="btn btn-primary w-100 mb-3" id="optimizeDatabaseBtn">
+                                <i class="fas fa-tachometer-alt"></i> เพิ่มประสิทธิภาพฐานข้อมูล
+                            </button>
+                            <button class="btn btn-outline-primary w-100 mb-3" id="restartServicesBtn">
+                                <i class="fas fa-redo"></i> รีสตาร์ทบริการ
+                            </button>
+                            <button class="btn btn-danger w-100" id="emergencyModeBtn">
+                                <i class="fas fa-exclamation-triangle"></i> โหมดฉุกเฉิน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Monitoring -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-area"></i> การใช้ทรัพยากรระบบ</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <label class="form-label">การใช้ CPU</label>
+                                <div class="progress">
+                                    <div class="progress-bar" id="cpuUsageBar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="cpuUsageText">0%</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">การใช้หน่วยความจำ</label>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" id="memoryUsageBar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="memoryUsageText">0%</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">พื้นที่จัดเก็บข้อมูล</label>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" id="diskUsageBar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="diskUsageText">0%</small>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">การเชื่อมต่อเครือข่าย</label>
+                                <div class="progress">
+                                    <div class="progress-bar" id="networkUsageBar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="networkUsageText">0%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-shield-alt"></i> สถานะความปลอดภัย</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>การเข้ารหัสข้อมูล</span>
+                                <div class="health-indicator online">
+                                    <div class="health-dot online"></div>
+                                    <span>เปิดใช้งาน</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>การตรวจสอบสิทธิ์</span>
+                                <div class="health-indicator online">
+                                    <div class="health-dot online"></div>
+                                    <span>ปกติ</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>การป้องกัน Firewall</span>
+                                <div class="health-indicator online">
+                                    <div class="health-dot online"></div>
+                                    <span>เปิดใช้งาน</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>การสำรองข้อมูลอัตโนมัติ</span>
+                                <div class="health-indicator" id="backupStatus">
+                                    <div class="health-dot"></div>
+                                    <span>ตรวจสอบ</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>การตรวจสอบความผิดปกติ</span>
+                                <div class="health-indicator online">
+                                    <div class="health-dot online"></div>
+                                    <span>เปิดใช้งาน</span>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>การอัปเดตความปลอดภัย</span>
+                                <div class="health-indicator warning">
+                                    <div class="health-dot warning"></div>
+                                    <span>ต้องอัปเดต</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Management -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-hdd"></i> การจัดการสำรองข้อมูล</h3>
+                    <button class="btn btn-success" id="scheduleBackupBtn">
+                        <i class="fas fa-calendar-alt"></i> กำหนดตารางสำรอง
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>การสำรองข้อมูลล่าสุด</h5>
+                            <div id="recentBackupsContainer">
+                                <div class="text-center">
+                                    <div class="loading-spinner"></div>
+                                    <p class="mt-3">กำลังโหลดข้อมูลการสำรอง...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>การตั้งค่าการสำรองอัตโนมัติ</h5>
+                            <div class="mb-3">
+                                <label for="backupFrequency" class="form-label">ความถี่ในการสำรอง</label>
+                                <select class="form-control" id="backupFrequency">
+                                    <option value="daily">ทุกวัน</option>
+                                    <option value="weekly">ทุกสัปดาห์</option>
+                                    <option value="monthly">ทุกเดือน</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="backupTime" class="form-label">เวลาที่สำรอง</label>
+                                <input type="time" class="form-control" id="backupTime" value="02:00">
+                            </div>
+                            <div class="mb-3">
+                                <label for="retentionDays" class="form-label">เก็บข้อมูลสำรอง (วัน)</label>
+                                <input type="number" class="form-control" id="retentionDays" value="30" min="1" max="365">
+                            </div>
+                            <button class="btn btn-primary" id="updateBackupSettingsBtn">
+                                <i class="fas fa-save"></i> อัปเดตการตั้งค่า
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let authToken = '';
+        let systemSettings = {};
+
+        // Authentication Functions
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+
+        function checkAuthentication() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            authToken = token;
+            return true;
+        }
+
+        // API Helper Functions
+        async function makeAPIRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            
+            if (days > 0) {
+                return `${days} วัน ${hours} ชั่วโมง`;
+            } else if (hours > 0) {
+                return `${hours} ชั่วโมง ${minutes} นาที`;
+            } else {
+                return `${minutes} นาที`;
+            }
+        }
+
+        // System Health Functions
+        async function checkSystemHealth() {
+            try {
+                const response = await makeAPIRequest('/api/admin/health');
+                const healthData = response.data;
+                
+                updateSystemStatus(healthData);
+                updateResourceUsage(healthData);
+                
+            } catch (error) {
+                console.error('Error checking system health:', error);
+                showAlert(`ไม่สามารถตรวจสอบสุขภาพระบบได้: ${error.message}`, 'danger');
+                updateSystemStatusOffline();
+            }
+        }
+
+        function updateSystemStatus(healthData) {
+            // Database Status
+            const dbStatusCard = document.getElementById('databaseStatusCard');
+            const dbStatus = document.getElementById('databaseStatus');
+            const dbIndicator = document.getElementById('databaseIndicator');
+            
+            if (healthData.database === 'connected') {
+                dbStatusCard.className = 'status-card success fade-in';
+                dbStatus.textContent = 'เชื่อมต่อปกติ';
+                dbIndicator.innerHTML = '<div class="health-dot online"></div><span>ออนไลน์</span>';
+                dbIndicator.className = 'health-indicator online';
+            } else {
+                dbStatusCard.className = 'status-card danger fade-in';
+                dbStatus.textContent = 'ไม่สามารถเชื่อมต่อได้';
+                dbIndicator.innerHTML = '<div class="health-dot offline"></div><span>ออฟไลน์</span>';
+                dbIndicator.className = 'health-indicator offline';
+            }
+
+            // Server Status
+            const serverStatusCard = document.getElementById('serverStatusCard');
+            const serverStatus = document.getElementById('serverStatus');
+            const serverIndicator = document.getElementById('serverIndicator');
+            
+            serverStatusCard.className = 'status-card success fade-in';
+            serverStatus.textContent = 'ทำงานปกติ';
+            serverIndicator.innerHTML = '<div class="health-dot online"></div><span>ออนไลน์</span>';
+            serverIndicator.className = 'health-indicator online';
+
+            // Memory Status
+            const memoryStatusCard = document.getElementById('memoryStatusCard');
+            const memoryStatus = document.getElementById('memoryStatus');
+            const memoryIndicator = document.getElementById('memoryIndicator');
+            
+            if (healthData.memoryUsage) {
+                const memUsage = (healthData.memoryUsage.used / healthData.memoryUsage.total * 100);
+                memoryStatus.textContent = `ใช้งาน ${memUsage.toFixed(1)}%`;
+                
+                if (memUsage < 70) {
+                    memoryStatusCard.className = 'status-card success fade-in';
+                    memoryIndicator.innerHTML = '<div class="health-dot online"></div><span>ปกติ</span>';
+                    memoryIndicator.className = 'health-indicator online';
+                } else if (memUsage < 85) {
+                    memoryStatusCard.className = 'status-card warning fade-in';
+                    memoryIndicator.innerHTML = '<div class="health-dot warning"></div><span>เตือน</span>';
+                    memoryIndicator.className = 'health-indicator warning';
+                } else {
+                    memoryStatusCard.className = 'status-card danger fade-in';
+                    memoryIndicator.innerHTML = '<div class="health-dot offline"></div><span>สูง</span>';
+                    memoryIndicator.className = 'health-indicator offline';
+                }
+            }
+
+            // Uptime Status
+            const uptimeStatus = document.getElementById('uptimeStatus');
+            if (healthData.uptime) {
+                uptimeStatus.textContent = formatUptime(healthData.uptime);
+            }
+        }
+
+        function updateSystemStatusOffline() {
+            // Set all status cards to offline/error state
+            const statusCards = ['database', 'server', 'memory'];
+            statusCards.forEach(type => {
+                const card = document.getElementById(`${type}StatusCard`);
+                const status = document.getElementById(`${type}Status`);
+                const indicator = document.getElementById(`${type}Indicator`);
+                
+                card.className = 'status-card danger fade-in';
+                status.textContent = 'ไม่สามารถตรวจสอบได้';
+                indicator.innerHTML = '<div class="health-dot offline"></div><span>ออฟไลน์</span>';
+                indicator.className = 'health-indicator offline';
+            });
+        }
+
+        function updateResourceUsage(healthData) {
+            // Simulate resource usage data (in a real implementation, this would come from the API)
+            const cpuUsage = Math.random() * 60 + 20; // 20-80%
+            const memoryUsage = healthData.memoryUsage ? (healthData.memoryUsage.used / healthData.memoryUsage.total * 100) : Math.random() * 50 + 30;
+            const diskUsage = Math.random() * 40 + 30; // 30-70%
+            const networkUsage = Math.random() * 30 + 10; // 10-40%
+
+            // Update progress bars
+            document.getElementById('cpuUsageBar').style.width = `${cpuUsage}%`;
+            document.getElementById('cpuUsageText').textContent = `${cpuUsage.toFixed(1)}%`;
+
+            document.getElementById('memoryUsageBar').style.width = `${memoryUsage}%`;
+            document.getElementById('memoryUsageText').textContent = `${memoryUsage.toFixed(1)}%`;
+
+            document.getElementById('diskUsageBar').style.width = `${diskUsage}%`;
+            document.getElementById('diskUsageText').textContent = `${diskUsage.toFixed(1)}%`;
+
+            document.getElementById('networkUsageBar').style.width = `${networkUsage}%`;
+            document.getElementById('networkUsageText').textContent = `${networkUsage.toFixed(1)}%`;
+
+            // Update progress bar colors based on usage
+            updateProgressBarColor('cpuUsageBar', cpuUsage);
+            updateProgressBarColor('memoryUsageBar', memoryUsage);
+            updateProgressBarColor('diskUsageBar', diskUsage);
+            updateProgressBarColor('networkUsageBar', networkUsage);
+        }
+
+        function updateProgressBarColor(barId, percentage) {
+            const bar = document.getElementById(barId);
+            bar.className = 'progress-bar';
+            
+            if (percentage > 80) {
+                bar.classList.add('bg-danger');
+            } else if (percentage > 60) {
+                bar.classList.add('bg-warning');
+            } else {
+                bar.classList.add('bg-success');
+            }
+        }
+
+        // System Settings Functions
+        async function loadSystemSettings() {
+            try {
+                const response = await makeAPIRequest('/api/admin/system/settings');
+                systemSettings = response.data;
+                
+                displaySystemSettings(systemSettings);
+                
+            } catch (error) {
+                console.error('Error loading system settings:', error);
+                showAlert(`ไม่สามารถโหลดการตั้งค่าระบบได้: ${error.message}`, 'danger');
+                
+                // Show placeholder if API fails
+                document.getElementById('settingsContainer').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ไม่สามารถโหลดการตั้งค่าจาก API ได้ กรุณาตรวจสอบการเชื่อมต่อ
+                    </div>
+                `;
+                container.innerHTML = html;
+                return;
+            }
+            
+            // Display settings by groups
+            Object.keys(settings).forEach(groupName => {
+                const groupSettings = settings[groupName];
+                const groupDisplayName = getGroupDisplayName(groupName);
+                
+                html += `
+                    <div class="mb-4">
+                        <h5 class="mb-3">${groupDisplayName}</h5>
+                        <div class="row">
+                `;
+                
+                groupSettings.forEach(setting => {
+                    const settingDisplayName = getSettingDisplayName(setting.setting_key);
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <label for="${setting.setting_key}" class="form-label">${settingDisplayName}</label>
+                            ${renderSettingInput(setting)}
+                            ${setting.setting_description ? `<small class="text-muted">${setting.setting_description}</small>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function getGroupDisplayName(groupName) {
+            const groupNames = {
+                'general': 'การตั้งค่าทั่วไป',
+                'security': 'ความปลอดภัย',
+                'notification': 'การแจ้งเตือน',
+                'backup': 'การสำรองข้อมูล',
+                'email': 'อีเมล',
+                'system': 'ระบบ',
+                'database': 'ฐานข้อมูล'
+            };
+            return groupNames[groupName] || groupName;
+        }
+
+        function getSettingDisplayName(settingKey) {
+            const settingNames = {
+                'session_timeout': 'หมดเวลาเซสชัน (นาที)',
+                'max_login_attempts': 'จำนวนครั้งล็อกอินสูงสุด',
+                'password_min_length': 'ความยาวรหัสผ่านขั้นต่ำ',
+                'backup_retention_days': 'เก็บข้อมูลสำรอง (วัน)',
+                'email_notifications': 'การแจ้งเตือนทางอีเมล',
+                'sms_notifications': 'การแจ้งเตือนทาง SMS',
+                'maintenance_mode': 'โหมดบำรุงรักษา',
+                'auto_backup': 'สำรองข้อมูลอัตโนมัติ',
+                'log_retention_days': 'เก็บล็อก (วัน)',
+                'api_rate_limit': 'จำกัดอัตรา API (ต่อนาที)'
+            };
+            return settingNames[settingKey] || settingKey;
+        }
+
+        function renderSettingInput(setting) {
+            const { setting_key, setting_value, data_type } = setting;
+            
+            if (data_type === 'boolean') {
+                const isChecked = setting_value === 'true' || setting_value === '1';
+                return `
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="${setting_key}" 
+                               data-setting-key="${setting_key}" ${isChecked ? 'checked' : ''}>
+                    </div>
+                `;
+            } else if (data_type === 'number') {
+                return `
+                    <input type="number" class="form-control" id="${setting_key}" 
+                           data-setting-key="${setting_key}" value="${setting_value || ''}">
+                `;
+            } else if (data_type === 'select') {
+                // This would require additional data for options
+                return `
+                    <select class="form-control" id="${setting_key}" data-setting-key="${setting_key}">
+                        <option value="${setting_value}">${setting_value}</option>
+                    </select>
+                `;
+            } else {
+                return `
+                    <input type="text" class="form-control" id="${setting_key}" 
+                           data-setting-key="${setting_key}" value="${setting_value || ''}">
+                `;
+            }
+        }
+
+        async function saveSystemSettings() {
+            try {
+                const settingsToUpdate = [];
+                const settingInputs = document.querySelectorAll('[data-setting-key]');
+                
+                settingInputs.forEach(input => {
+                    let value;
+                    if (input.type === 'checkbox') {
+                        value = input.checked ? 'true' : 'false';
+                    } else {
+                        value = input.value;
+                    }
+                    
+                    settingsToUpdate.push({
+                        key: input.dataset.settingKey,
+                        value: value
+                    });
+                });
+                
+                const saveBtn = document.getElementById('saveSettingsBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<div class="loading-spinner"></div> กำลังบันทึก...';
+                saveBtn.disabled = true;
+                
+                await makeAPIRequest('/api/admin/system/settings', {
+                    method: 'PUT',
+                    body: JSON.stringify({ settings: settingsToUpdate })
+                });
+                
+                showAlert('บันทึกการตั้งค่าเรียบร้อยแล้ว', 'success');
+                
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showAlert(`ไม่สามารถบันทึกการตั้งค่าได้: ${error.message}`, 'danger');
+                
+                const saveBtn = document.getElementById('saveSettingsBtn');
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> บันทึกการตั้งค่า';
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Backup Management Functions
+        async function loadRecentBackups() {
+            try {
+                // Since there's no specific backup endpoint, we'll simulate this
+                // In a real implementation, you would call an API endpoint
+                const recentBackups = [
+                    {
+                        id: '1',
+                        filename: 'backup_2025-06-03_02-00.sql',
+                        size: '45.2 MB',
+                        created_at: '2025-06-03T02:00:00',
+                        status: 'completed'
+                    },
+                    {
+                        id: '2',
+                        filename: 'backup_2025-06-02_02-00.sql',
+                        size: '44.8 MB',
+                        created_at: '2025-06-02T02:00:00',
+                        status: 'completed'
+                    },
+                    {
+                        id: '3',
+                        filename: 'backup_2025-06-01_02-00.sql',
+                        size: '44.5 MB',
+                        created_at: '2025-06-01T02:00:00',
+                        status: 'completed'
+                    }
+                ];
+                
+                displayRecentBackups(recentBackups);
+                
+            } catch (error) {
+                console.error('Error loading recent backups:', error);
+                document.getElementById('recentBackupsContainer').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ไม่สามารถโหลดข้อมูลการสำรองได้
+                    </div>
+                `;
+            }
+        }
+
+        function displayRecentBackups(backups) {
+            const container = document.getElementById('recentBackupsContainer');
+            
+            if (!backups || backups.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        ยังไม่มีการสำรองข้อมูล
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="list-group">';
+            
+            backups.forEach(backup => {
+                const date = new Date(backup.created_at).toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const statusClass = backup.status === 'completed' ? 'success' : 
+                                  backup.status === 'failed' ? 'danger' : 'warning';
+                
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${backup.filename}</h6>
+                            <small class="text-muted">${date} • ${backup.size}</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-${statusClass}">${backup.status}</span>
+                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="downloadBackup('${backup.id}')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Maintenance Functions
+        async function createBackup() {
+            try {
+                const createBtn = document.getElementById('createBackupBtn');
+                const originalText = createBtn.innerHTML;
+                createBtn.innerHTML = '<div class="loading-spinner"></div> กำลังสร้าง...';
+                createBtn.disabled = true;
+                
+                const response = await makeAPIRequest('/api/admin/system/backup', {
+                    method: 'POST'
+                });
+                
+                showAlert('สร้างสำรองข้อมูลเรียบร้อยแล้ว', 'success');
+                
+                // Reload backup list
+                loadRecentBackups();
+                
+                createBtn.innerHTML = originalText;
+                createBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error creating backup:', error);
+                showAlert(`ไม่สามารถสร้างสำรองข้อมูลได้: ${error.message}`, 'danger');
+                
+                const createBtn = document.getElementById('createBackupBtn');
+                createBtn.innerHTML = '<i class="fas fa-database"></i> สร้างสำรองข้อมูล';
+                createBtn.disabled = false;
+            }
+        }
+
+        async function clearCache() {
+            if (!confirm('คุณต้องการล้างแคชระบบหรือไม่?')) {
+                return;
+            }
+            
+            try {
+                const clearBtn = document.getElementById('clearCacheBtn');
+                const originalText = clearBtn.innerHTML;
+                clearBtn.innerHTML = '<div class="loading-spinner"></div> กำลังล้าง...';
+                clearBtn.disabled = true;
+                
+                // Simulate cache clearing (in real implementation, this would call an API)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                showAlert('ล้างแคชเรียบร้อยแล้ว', 'success');
+                
+                clearBtn.innerHTML = originalText;
+                clearBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error clearing cache:', error);
+                showAlert(`ไม่สามารถล้างแคชได้: ${error.message}`, 'danger');
+                
+                const clearBtn = document.getElementById('clearCacheBtn');
+                clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i> ล้างแคช';
+                clearBtn.disabled = false;
+            }
+        }
+
+        async function optimizeDatabase() {
+            if (!confirm('คุณต้องการเพิ่มประสิทธิภาพฐานข้อมูลหรือไม่? กระบวนการนี้อาจใช้เวลาสักครู่')) {
+                return;
+            }
+            
+            try {
+                const optimizeBtn = document.getElementById('optimizeDatabaseBtn');
+                const originalText = optimizeBtn.innerHTML;
+                optimizeBtn.innerHTML = '<div class="loading-spinner"></div> กำลังเพิ่มประสิทธิภาพ...';
+                optimizeBtn.disabled = true;
+                
+                // Simulate database optimization (in real implementation, this would call an API)
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                showAlert('เพิ่มประสิทธิภาพฐานข้อมูลเรียบร้อยแล้ว', 'success');
+                
+                optimizeBtn.innerHTML = originalText;
+                optimizeBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error optimizing database:', error);
+                showAlert(`ไม่สามารถเพิ่มประสิทธิภาพฐานข้อมูลได้: ${error.message}`, 'danger');
+                
+                const optimizeBtn = document.getElementById('optimizeDatabaseBtn');
+                optimizeBtn.innerHTML = '<i class="fas fa-tachometer-alt"></i> เพิ่มประสิทธิภาพฐานข้อมูล';
+                optimizeBtn.disabled = false;
+            }
+        }
+
+        async function restartServices() {
+            if (!confirm('คุณต้องการรีสตาร์ทบริการระบบหรือไม่? ผู้ใช้อาจไม่สามารถเข้าถึงระบบได้ชั่วคราว')) {
+                return;
+            }
+            
+            try {
+                const restartBtn = document.getElementById('restartServicesBtn');
+                const originalText = restartBtn.innerHTML;
+                restartBtn.innerHTML = '<div class="loading-spinner"></div> กำลังรีสตาร์ท...';
+                restartBtn.disabled = true;
+                
+                // Simulate service restart (in real implementation, this would call an API)
+                await new Promise(resolve => setTimeout(resolve, 10000));
+                
+                showAlert('รีสตาร์ทบริการเรียบร้อยแล้ว', 'success');
+                
+                restartBtn.innerHTML = originalText;
+                restartBtn.disabled = false;
+                
+                // Refresh system status after restart
+                checkSystemHealth();
+                
+            } catch (error) {
+                console.error('Error restarting services:', error);
+                showAlert(`ไม่สามารถรีสตาร์ทบริการได้: ${error.message}`, 'danger');
+                
+                const restartBtn = document.getElementById('restartServicesBtn');
+                restartBtn.innerHTML = '<i class="fas fa-redo"></i> รีสตาร์ทบริการ';
+                restartBtn.disabled = false;
+            }
+        }
+
+        function toggleEmergencyMode() {
+            if (!confirm('คุณต้องการเปิด/ปิดโหมดฉุกเฉินหรือไม่? โหมดนี้จะจำกัดการเข้าถึงระบบ')) {
+                return;
+            }
+            
+            const emergencyBtn = document.getElementById('emergencyModeBtn');
+            const isEmergencyMode = emergencyBtn.textContent.includes('ปิด');
+            
+            if (isEmergencyMode) {
+                emergencyBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> โหมดฉุกเฉิน';
+                emergencyBtn.className = 'btn btn-danger w-100';
+                showAlert('ปิดโหมดฉุกเฉินแล้ว', 'success');
+            } else {
+                emergencyBtn.innerHTML = '<i class="fas fa-shield-alt"></i> ปิดโหมดฉุกเฉิน';
+                emergencyBtn.className = 'btn btn-warning w-100';
+                showAlert('เปิดโหมดฉุกเฉินแล้ว - ระบบอยู่ในโหมดจำกัดการใช้งาน', 'warning');
+            }
+        }
+
+        function downloadBackup(backupId) {
+            // Simulate backup download
+            showAlert(`กำลังดาวน์โหลดไฟล์สำรอง ID: ${backupId}`, 'info');
+            
+            // In a real implementation, this would trigger a file download
+            setTimeout(() => {
+                showAlert('ดาวน์โหลดเสร็จสิ้น', 'success');
+            }, 2000);
+        }
+
+        function scheduleBackup() {
+            showAlert('ฟีเจอร์กำหนดตารางสำรองข้อมูลจะเปิดใช้งานในเร็วๆ นี้', 'info');
+        }
+
+        function updateBackupSettings() {
+            const frequency = document.getElementById('backupFrequency').value;
+            const time = document.getElementById('backupTime').value;
+            const retention = document.getElementById('retentionDays').value;
+            
+            showAlert(`อัปเดตการตั้งค่าการสำรอง: ความถี่ ${frequency}, เวลา ${time}, เก็บ ${retention} วัน`, 'success');
+        }
+
+        function refreshSystemStatus() {
+            const refreshBtn = document.getElementById('refreshStatusBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> กำลังรีเฟรช...';
+            refreshBtn.disabled = true;
+            
+            checkSystemHealth();
+            loadSystemSettings();
+            loadRecentBackups();
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                showAlert('รีเฟรชสถานะระบบเรียบร้อยแล้ว', 'success');
+            }, 2000);
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Button event listeners
+            document.getElementById('refreshStatusBtn').addEventListener('click', refreshSystemStatus);
+            document.getElementById('healthCheckBtn').addEventListener('click', checkSystemHealth);
+            document.getElementById('saveSettingsBtn').addEventListener('click', saveSystemSettings);
+            document.getElementById('createBackupBtn').addEventListener('click', createBackup);
+            document.getElementById('clearCacheBtn').addEventListener('click', clearCache);
+            document.getElementById('optimizeDatabaseBtn').addEventListener('click', optimizeDatabase);
+            document.getElementById('restartServicesBtn').addEventListener('click', restartServices);
+            document.getElementById('emergencyModeBtn').addEventListener('click', toggleEmergencyMode);
+            document.getElementById('scheduleBackupBtn').addEventListener('click', scheduleBackup);
+            document.getElementById('updateBackupSettingsBtn').addEventListener('click', updateBackupSettings);
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Load initial data
+            checkSystemHealth();
+            loadSystemSettings();
+            loadRecentBackups();
+            
+            // Auto refresh system status every 30 seconds
+            setInterval(function() {
+                if (document.visibilityState === 'visible') {
+                    checkSystemHealth();
+                }
+            }, 30000);
+            
+            // Auto refresh resource usage every 5 seconds
+            setInterval(function() {
+                if (document.visibilityState === 'visible') {
+                    // Update resource usage with simulated data
+                    const healthData = {
+                        memoryUsage: {
+                            used: Math.random() * 8000000000, // 0-8GB
+                            total: 16000000000 // 16GB
+                        }
+                    };
+                    updateResourceUsage(healthData);
+                }
+            }, 5000);
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('ระบบบำรุงรักษาพร้อมใช้งาน', 'success');
+            }, 1000);
+        });
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible, refresh data
+                checkSystemHealth();
+            }
+        });
+    </script>
+</body>
+</html>

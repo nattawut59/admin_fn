@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การจัดการฐานข้อมูล - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-info {
+            background: white;
+            color: #0ea5e9;
+            border: 2px solid #0ea5e9;
+        }
+
+        .btn-outline-info:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-outline-danger {
+            background: white;
+            color: var(--danger-color);
+            border: 2px solid var(--danger-color);
+        }
+
+        .btn-outline-danger:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 10px;
+            margin: 0 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .action-btn.delete:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 25%, 
+                rgba(255, 255, 255, 0.2) 25%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 50%, 
+                transparent 75%, 
+                rgba(255, 255, 255, 0.2) 75%);
+            background-size: 20px 20px;
+            animation: progress-animation 1s linear infinite;
+        }
+
+        @keyframes progress-animation {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Status Cards */
+        .status-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--secondary-color);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-card h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status-card .status-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+
+        .status-card .status-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .d-grid {
+            display: grid;
+        }
+
+        .gap-2 {
+            gap: 10px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-4 {
+            margin-top: 25px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye" style="font-size: 2rem; color: var(--secondary-color);"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('admin-dashboard.html')">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </div>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('users-management.html')">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('doctors.html')">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('nurses.html')">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('patients.html')">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </div>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <div class="sidebar-menu-item active">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('database.html')">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('access-rights.html')">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('test-types.html')">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </div>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('glaucoma-data.html')">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('statistics.html')">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('audit-logs.html')">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </div>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <div class="sidebar-menu-item" onclick="navigateTo('system-maintenance.html')">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('notifications.html')">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('documents.html')">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('alerts.html')">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="navigateTo('special-exams.html')">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหายา..." id="globalSearch">
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-img" onclick="logoutUser()">
+                <span id="userInitial">A</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <h1 class="page-title">จัดการข้อมูลยา</h1>
+            
+            <!-- Success Alert -->
+            <div class="alert alert-success" id="successAlert" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                <span id="successMessage">สำเร็จ</span>
+                <button type="button" class="alert-close" onclick="hideAlert('successAlert')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Error Alert -->
+            <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorMessage">เกิดข้อผิดพลาด</span>
+                <button type="button" class="alert-close" onclick="hideAlert('errorAlert')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Medications Management Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>จัดการข้อมูลยา</h3>
+                    <button class="btn btn-primary" onclick="showAddMedicationModal()">
+                        <i class="fas fa-plus"></i> เพิ่มยาใหม่
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="categoryFilter" onchange="filterMedications()">
+                                <option value="">ทุกหมวดหมู่</option>
+                                <option value="glaucoma_drops">ยาหยอดตาโรคต้อหิน</option>
+                                <option value="oral_medication">ยาเม็ด</option>
+                                <option value="supplement">ผลิตภัณฑ์เสริมอาหาร</option>
+                                <option value="injection">ยาฉีด</option>
+                                <option value="topical">ยาทาภายนอก</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter" onchange="filterMedications()">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="active">ใช้งาน</option>
+                                <option value="discontinued">หยุดใช้</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchMedication" placeholder="ค้นหาชื่อยา..." onkeyup="searchMedications()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-secondary w-100" onclick="refreshMedications()">
+                                <i class="fas fa-refresh"></i> รีเฟรช
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Medications Table -->
+                    <div class="table-responsive">
+                        <table class="data-table" id="medicationsTable">
+                            <thead>
+                                <tr>
+                                    <th>ชื่อยา</th>
+                                    <th>ชื่อสามัญ</th>
+                                    <th>หมวดหมู่</th>
+                                    <th>รูปแบบ</th>
+                                    <th>ความแรง</th>
+                                    <th>ผู้ผลิต</th>
+                                    <th>สถานะ</th>
+                                    <th>การกระทำ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <div class="loading-spinner"></div> กำลังโหลด...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation" class="mt-3">
+                        <ul class="pagination" id="medicationsPagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Medication Modal -->
+    <div class="modal" id="addMedicationModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">เพิ่มยาใหม่</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('addMedicationModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addMedicationForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ชื่อยา *</label>
+                                    <input type="text" class="form-control" id="medicationName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ชื่อสามัญ *</label>
+                                    <input type="text" class="form-control" id="genericName" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">หมวดหมู่ *</label>
+                                    <select class="form-select" id="category" required>
+                                        <option value="">เลือกหมวดหมู่</option>
+                                        <option value="glaucoma_drops">ยาหยอดตาโรคต้อหิน</option>
+                                        <option value="oral_medication">ยาเม็ด</option>
+                                        <option value="supplement">ผลิตภัณฑ์เสริมอาหาร</option>
+                                        <option value="injection">ยาฉีด</option>
+                                        <option value="topical">ยาทาภายนอก</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">รูปแบบ *</label>
+                                    <select class="form-select" id="form" required>
+                                        <option value="">เลือกรูปแบบ</option>
+                                        <option value="tablet">เม็ด</option>
+                                        <option value="capsule">แคปซูล</option>
+                                        <option value="liquid">น้ำ</option>
+                                        <option value="drops">หยด</option>
+                                        <option value="cream">ครีม</option>
+                                        <option value="gel">เจล</option>
+                                        <option value="injection">ฉีด</option>
+                                        <option value="powder">ผง</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ความแรง *</label>
+                                    <input type="text" class="form-control" id="strength" required placeholder="เช่น 5 mg, 0.5%">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ผู้ผลิต</label>
+                                    <input type="text" class="form-control" id="manufacturer">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">คำอธิบาย</label>
+                            <textarea class="form-control" id="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">วิธีใช้</label>
+                            <textarea class="form-control" id="dosageInstructions" rows="3" placeholder="วิธีการใช้ยาและขนาดที่แนะนำ"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ผลข้างเคียง</label>
+                            <textarea class="form-control" id="sideEffects" rows="3" placeholder="ผลข้างเคียงที่อาจเกิดขึ้น"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ข้อห้าม</label>
+                            <textarea class="form-control" id="contraindications" rows="3" placeholder="ข้อห้ามในการใช้ยา"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ปฏิกิริยาระหว่างยา</label>
+                            <textarea class="form-control" id="interactions" rows="3" placeholder="ปฏิกิริยาที่อาจเกิดขึ้นกับยาอื่น"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('addMedicationModal')">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddMedication()">
+                        <i class="fas fa-save"></i> บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Medication Modal -->
+    <div class="modal" id="viewMedicationModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">รายละเอียดยา</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('viewMedicationModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewMedicationModalBody">
+                    <!-- Medication details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('viewMedicationModal')">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Medication Modal -->
+    <div class="modal" id="editMedicationModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">แก้ไขข้อมูลยา</h5>
+                    <button type="button" class="btn-close" onclick="hideModal('editMedicationModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editMedicationForm">
+                        <input type="hidden" id="editMedicationId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ชื่อยา *</label>
+                                    <input type="text" class="form-control" id="editMedicationName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ชื่อสามัญ *</label>
+                                    <input type="text" class="form-control" id="editGenericName" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">หมวดหมู่ *</label>
+                                    <select class="form-select" id="editCategory" required>
+                                        <option value="">เลือกหมวดหมู่</option>
+                                        <option value="glaucoma_drops">ยาหยอดตาโรคต้อหิน</option>
+                                        <option value="oral_medication">ยาเม็ด</option>
+                                        <option value="supplement">ผลิตภัณฑ์เสริมอาหาร</option>
+                                        <option value="injection">ยาฉีด</option>
+                                        <option value="topical">ยาทาภายนอก</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">รูปแบบ *</label>
+                                    <select class="form-select" id="editForm" required>
+                                        <option value="">เลือกรูปแบบ</option>
+                                        <option value="tablet">เม็ด</option>
+                                        <option value="capsule">แคปซูล</option>
+                                        <option value="liquid">น้ำ</option>
+                                        <option value="drops">หยด</option>
+                                        <option value="cream">ครีม</option>
+                                        <option value="gel">เจล</option>
+                                        <option value="injection">ฉีด</option>
+                                        <option value="powder">ผง</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ความแรง *</label>
+                                    <input type="text" class="form-control" id="editStrength" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">ผู้ผลิต</label>
+                                    <input type="text" class="form-control" id="editManufacturer">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">สถานะ</label>
+                            <select class="form-select" id="editStatus">
+                                <option value="active">ใช้งาน</option>
+                                <option value="discontinued">หยุดใช้</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">คำอธิบาย</label>
+                            <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">วิธีใช้</label>
+                            <textarea class="form-control" id="editDosageInstructions" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ผลข้างเคียง</label>
+                            <textarea class="form-control" id="editSideEffects" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ข้อห้าม</label>
+                            <textarea class="form-control" id="editContraindications" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ปฏิกิริยาระหว่างยา</label>
+                            <textarea class="form-control" id="editInteractions" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('editMedicationModal')">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditMedication()">
+                        <i class="fas fa-save"></i> บันทึกการแก้ไข
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let currentPage = 1;
+        let currentFilters = {
+            category: '',
+            status: '',
+            search: ''
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for authentication
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Load medications data
+            loadMedications();
+        });
+        
+        // Navigation Functions
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function logoutUser() {
+            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // API Helper Functions
+        async function apiRequest(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+                
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    window.location.href = 'index.html';
+                    return null;
+                }
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'เกิดข้อผิดพลาด');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                showError(error.message);
+                return null;
+            }
+        }
+
+        // Alert Functions
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            const messageElement = document.getElementById('successMessage');
+            messageElement.textContent = message;
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            const messageElement = document.getElementById('errorMessage');
+            messageElement.textContent = message;
+            alert.style.display = 'flex';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideAlert(alertId) {
+            document.getElementById(alertId).style.display = 'none';
+        }
+
+        // Modal Functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Load Medications Data
+        async function loadMedications(page = 1) {
+            try {
+                const queryParams = new URLSearchParams({
+                    page: page,
+                    limit: 20,
+                    ...currentFilters
+                });
+
+                const response = await apiRequest(`/api/admin/medications?${queryParams}`);
+                if (response && response.success) {
+                    displayMedications(response.data);
+                    displayPagination(response.pagination);
+                    currentPage = page;
+                }
+            } catch (error) {
+                console.error('Error loading medications:', error);
+            }
+        }
+
+        function displayMedications(medications) {
+            const tableBody = document.querySelector('#medicationsTable tbody');
+            let html = '';
+            
+            if (medications.length === 0) {
+                html = '<tr><td colspan="8" class="text-center">ไม่พบข้อมูลยา</td></tr>';
+            } else {
+                medications.forEach(medication => {
+                    const statusClass = medication.status === 'active' ? 'active' : 'discontinued';
+                    const statusText = medication.status === 'active' ? 'ใช้งาน' : 'หยุดใช้';
+                    const categoryText = getCategoryText(medication.category);
+                    const formText = getFormText(medication.form);
+                    
+                    html += `
+                        <tr>
+                            <td>${medication.name}</td>
+                            <td>${medication.generic_name || '-'}</td>
+                            <td>${categoryText}</td>
+                            <td>${formText}</td>
+                            <td>${medication.strength || '-'}</td>
+                            <td>${medication.manufacturer || '-'}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <button class="action-btn" onclick="viewMedication('${medication.medication_id}')" title="ดูรายละเอียด">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn" onclick="editMedication('${medication.medication_id}')" title="แก้ไข">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteMedication('${medication.medication_id}', '${medication.name}')" title="ลบ">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            tableBody.innerHTML = html;
+        }
+
+        function displayPagination(pagination) {
+            const paginationElement = document.getElementById('medicationsPagination');
+            let html = '';
+            
+            if (pagination.totalPages <= 1) {
+                paginationElement.innerHTML = '';
+                return;
+            }
+            
+            // Previous button
+            if (pagination.page > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadMedications(${pagination.page - 1})">ก่อนหน้า</a></li>`;
+            }
+            
+            // Page numbers
+            for (let i = 1; i <= pagination.totalPages; i++) {
+                if (i === pagination.page) {
+                    html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+                } else {
+                    html += `<li class="page-item"><a class="page-link" href="#" onclick="loadMedications(${i})">${i}</a></li>`;
+                }
+            }
+            
+            // Next button
+            if (pagination.page < pagination.totalPages) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadMedications(${pagination.page + 1})">ถัดไป</a></li>`;
+            }
+            
+            paginationElement.innerHTML = html;
+        }
+
+        // Filter and Search Functions
+        function filterMedications() {
+            currentFilters.category = document.getElementById('categoryFilter').value;
+            currentFilters.status = document.getElementById('statusFilter').value;
+            loadMedications(1);
+        }
+
+        function searchMedications() {
+            currentFilters.search = document.getElementById('searchMedication').value;
+            loadMedications(1);
+        }
+
+        function refreshMedications() {
+            // Reset filters
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('searchMedication').value = '';
+            currentFilters = { category: '', status: '', search: '' };
+            loadMedications(1);
+        }
+
+        // Medication Management Functions
+        function showAddMedicationModal() {
+            document.getElementById('addMedicationForm').reset();
+            showModal('addMedicationModal');
+        }
+
+        async function submitAddMedication() {
+            const medicationData = {
+                name: document.getElementById('medicationName').value,
+                generic_name: document.getElementById('genericName').value,
+                category: document.getElementById('category').value,
+                form: document.getElementById('form').value,
+                strength: document.getElementById('strength').value,
+                manufacturer: document.getElementById('manufacturer').value,
+                description: document.getElementById('description').value,
+                dosage_instructions: document.getElementById('dosageInstructions').value,
+                side_effects: document.getElementById('sideEffects').value,
+                contraindications: document.getElementById('contraindications').value,
+                interactions: document.getElementById('interactions').value
+            };
+
+            // Basic validation
+            if (!medicationData.name || !medicationData.generic_name || !medicationData.category || 
+                !medicationData.form || !medicationData.strength) {
+                showError('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+                return;
+            }
+
+            try {
+                const response = await apiRequest('/api/admin/medications', {
+                    method: 'POST',
+                    body: JSON.stringify(medicationData)
+                });
+
+                if (response && response.success) {
+                    hideModal('addMedicationModal');
+                    showSuccess('เพิ่มข้อมูลยาสำเร็จ');
+                    loadMedications(currentPage);
+                }
+            } catch (error) {
+                console.error('Error adding medication:', error);
+            }
+        }
+
+        // View Medication Details
+        async function viewMedication(medicationId) {
+            try {
+                const response = await apiRequest(`/api/admin/medications/${medicationId}`);
+                if (response && response.success) {
+                    displayMedicationDetails(response.data);
+                    showModal('viewMedicationModal');
+                }
+            } catch (error) {
+                // If individual API doesn't exist, get from list
+                const medications = await apiRequest('/api/admin/medications');
+                if (medications && medications.success) {
+                    const medication = medications.data.find(m => m.medication_id === medicationId);
+                    if (medication) {
+                        displayMedicationDetails(medication);
+                        showModal('viewMedicationModal');
+                    }
+                }
+            }
+        }
+
+        function displayMedicationDetails(medicationData) {
+            const modalBody = document.getElementById('viewMedicationModalBody');
+            const categoryText = getCategoryText(medicationData.category);
+            const formText = getFormText(medicationData.form);
+            const statusText = medicationData.status === 'active' ? 'ใช้งาน' : 'หยุดใช้';
+            const statusClass = medicationData.status === 'active' ? 'active' : 'discontinued';
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ชื่อยา:</strong> ${medicationData.name}</p>
+                        <p><strong>ชื่อสามัญ:</strong> ${medicationData.generic_name || '-'}</p>
+                        <p><strong>หมวดหมู่:</strong> ${categoryText}</p>
+                        <p><strong>รูปแบบ:</strong> ${formText}</p>
+                        <p><strong>ความแรง:</strong> ${medicationData.strength || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>ผู้ผลิต:</strong> ${medicationData.manufacturer || '-'}</p>
+                        <p><strong>สถานะ:</strong> <span class="status-badge ${statusClass}">${statusText}</span></p>
+                        <p><strong>วันที่เพิ่ม:</strong> ${medicationData.created_at ? new Date(medicationData.created_at).toLocaleDateString('th-TH') : '-'}</p>
+                        <p><strong>อัปเดตล่าสุด:</strong> ${medicationData.updated_at ? new Date(medicationData.updated_at).toLocaleDateString('th-TH') : '-'}</p>
+                    </div>
+                </div>
+            `;
+
+            if (medicationData.description) {
+                html += `
+                    <hr>
+                    <h6>คำอธิบาย</h6>
+                    <p>${medicationData.description}</p>
+                `;
+            }
+
+            if (medicationData.dosage_instructions) {
+                html += `
+                    <hr>
+                    <h6>วิธีใช้</h6>
+                    <p>${medicationData.dosage_instructions}</p>
+                `;
+            }
+
+            if (medicationData.side_effects) {
+                html += `
+                    <hr>
+                    <h6>ผลข้างเคียง</h6>
+                    <p>${medicationData.side_effects}</p>
+                `;
+            }
+
+            if (medicationData.contraindications) {
+                html += `
+                    <hr>
+                    <h6>ข้อห้าม</h6>
+                    <p>${medicationData.contraindications}</p>
+                `;
+            }
+
+            if (medicationData.interactions) {
+                html += `
+                    <hr>
+                    <h6>ปฏิกิริยาระหว่างยา</h6>
+                    <p>${medicationData.interactions}</p>
+                `;
+            }
+
+            modalBody.innerHTML = html;
+        }
+
+        // Edit Medication
+        async function editMedication(medicationId) {
+            try {
+                const response = await apiRequest(`/api/admin/medications/${medicationId}`);
+                let medicationData;
+                
+                if (response && response.success) {
+                    medicationData = response.data;
+                } else {
+                    // If individual API doesn't exist, get from list
+                    const medications = await apiRequest('/api/admin/medications');
+                    if (medications && medications.success) {
+                        medicationData = medications.data.find(m => m.medication_id === medicationId);
+                    }
+                }
+
+                if (medicationData) {
+                    document.getElementById('editMedicationId').value = medicationId;
+                    document.getElementById('editMedicationName').value = medicationData.name || '';
+                    document.getElementById('editGenericName').value = medicationData.generic_name || '';
+                    document.getElementById('editCategory').value = medicationData.category || '';
+                    document.getElementById('editForm').value = medicationData.form || '';
+                    document.getElementById('editStrength').value = medicationData.strength || '';
+                    document.getElementById('editManufacturer').value = medicationData.manufacturer || '';
+                    document.getElementById('editStatus').value = medicationData.status || 'active';
+                    document.getElementById('editDescription').value = medicationData.description || '';
+                    document.getElementById('editDosageInstructions').value = medicationData.dosage_instructions || '';
+                    document.getElementById('editSideEffects').value = medicationData.side_effects || '';
+                    document.getElementById('editContraindications').value = medicationData.contraindications || '';
+                    document.getElementById('editInteractions').value = medicationData.interactions || '';
+                    
+                    showModal('editMedicationModal');
+                }
+            } catch (error) {
+                console.error('Error loading medication for edit:', error);
+            }
+        }
+
+        async function submitEditMedication() {
+            const medicationId = document.getElementById('editMedicationId').value;
+            const updateData = {
+                name: document.getElementById('editMedicationName').value,
+                generic_name: document.getElementById('editGenericName').value,
+                category: document.getElementById('editCategory').value,
+                form: document.getElementById('editForm').value,
+                strength: document.getElementById('editStrength').value,
+                manufacturer: document.getElementById('editManufacturer').value,
+                status: document.getElementById('editStatus').value,
+                description: document.getElementById('editDescription').value,
+                dosage_instructions: document.getElementById('editDosageInstructions').value,
+                side_effects: document.getElementById('editSideEffects').value,
+                contraindications: document.getElementById('editContraindications').value,
+                interactions: document.getElementById('editInteractions').value
+            };
+
+            try {
+                const response = await apiRequest(`/api/admin/medications/${medicationId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response && response.success) {
+                    hideModal('editMedicationModal');
+                    showSuccess('แก้ไขข้อมูลยาสำเร็จ');
+                    loadMedications(currentPage);
+                }
+            } catch (error) {
+                console.error('Error updating medication:', error);
+            }
+        }
+
+        // Delete Medication
+        async function deleteMedication(medicationId, medicationName) {
+            if (!confirm(`คุณต้องการลบยา "${medicationName}" หรือไม่?\n\nหมายเหตุ: หากยานี้ถูกใช้งานอยู่จะไม่สามารถลบได้`)) {
+                return;
+            }
+
+            const reason = prompt('กรุณาระบุเหตุผล (ไม่บังคับ):');
+
+            try {
+                const response = await apiRequest(`/api/admin/medications/${medicationId}`, {
+                    method: 'DELETE',
+                    body: JSON.stringify({ reason: reason || 'ไม่ระบุเหตุผล' })
+                });
+
+                if (response && response.success) {
+                    showSuccess(`ลบยา "${medicationName}" สำเร็จ`);
+                    loadMedications(currentPage);
+                }
+            } catch (error) {
+                console.error('Error deleting medication:', error);
+            }
+        }
+
+        // Helper Functions
+        function getCategoryText(category) {
+            const categoryMap = {
+                'glaucoma_drops': 'ยาหยอดตาโรคต้อหิน',
+                'oral_medication': 'ยาเม็ด',
+                'supplement': 'ผลิตภัณฑ์เสริมอาหาร',
+                'injection': 'ยาฉีด',
+                'topical': 'ยาทาภายนอก'
+            };
+            return categoryMap[category] || category || '-';
+        }
+
+        function getFormText(form) {
+            const formMap = {
+                'tablet': 'เม็ด',
+                'capsule': 'แคปซูล',
+                'liquid': 'น้ำ',
+                'drops': 'หยด',
+                'cream': 'ครีม',
+                'gel': 'เจล',
+                'injection': 'ฉีด',
+                'powder': 'ผง'
+            };
+            return formMap[form] || form || '-';
+        }
+
+        // Initialize validation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add real-time validation
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.style.borderColor = 'var(--danger-color)';
+                    } else {
+                        this.style.borderColor = '';
+                    }
+                });
+            });
+        });
+
+        // Export function for external use
+        window.medicationsManagement = {
+            loadMedications,
+            viewMedication,
+            editMedication,
+            deleteMedication,
+            showAddMedicationModal
+        };
+    </script>
+</body>
+</html>

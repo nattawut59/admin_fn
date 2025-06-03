@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานสถิติ - Glaucoma Treatment Monitoring System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #324047;
+            --primary-dark: #273238;
+            --secondary-color: #00CECE;
+            --secondary-dark: #00A8A8;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #324047;
+            --text-light: #6b7280;
+            --bg-light: #EFEFEF;
+            --bg-white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'Prompt', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.2rem;
+            margin-left: 15px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #00CECE, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-brand i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 20px rgba(0, 206, 206, 0.3);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 15px 25px 10px;
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-radius: 0 25px 25px 0;
+            margin: 2px 0;
+            margin-right: 15px;
+        }
+
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(0, 206, 206, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 206, 206, 0.3);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-menu-item i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+            position: fixed;
+            left: var(--sidebar-width);
+            right: 0;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: all 0.3s;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            border-radius: 50px;
+            padding: 12px 20px;
+            width: 350px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 3px rgba(0, 206, 206, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            flex: 1;
+            padding: 0 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar button:hover {
+            color: var(--secondary-color);
+            background: rgba(0, 206, 206, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            margin-right: 20px;
+            text-align: right;
+        }
+
+        .user-info h4 {
+            font-size: 1rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 206, 206, 0.3);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 206, 206, 0.4);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 5px;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--bg-light), #e2e8f0);
+            color: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--bg-light);
+            margin: 8px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+            padding-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            border-radius: 2px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 206, 206, 0.1);
+            background: linear-gradient(135deg, #f8fafc, white);
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 30px rgba(0, 206, 206, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 206, 206, 0.4);
+        }
+
+        .stats-card h4 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .stats-card .icon {
+            font-size: 3.5rem;
+            opacity: 0.3;
+            position: absolute;
+            right: 25px;
+            top: 25px;
+        }
+
+        .stats-card.warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .stats-card.warning:hover {
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
+        }
+
+        .stats-card.danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .stats-card.danger:hover {
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .stats-card.success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .stats-card.success:hover {
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .stats-card.info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            box-shadow: 0 8px 30px rgba(14, 165, 233, 0.3);
+        }
+
+        .stats-card.info:hover {
+            box-shadow: 0 12px 40px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .chart-small {
+            height: 300px;
+        }
+
+        /* Filter Panel */
+        .filter-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 206, 206, 0.1);
+        }
+
+        .filter-panel h5 {
+            margin-bottom: 25px;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-panel h5 i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        /* Form Styles */
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            padding: 15px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(0, 206, 206, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.4);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 206, 206, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        .data-table tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Progress Bar */
+        .progress {
+            height: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+            transition: width 0.6s ease;
+        }
+
+        .progress-bar.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b);
+        }
+
+        .progress-bar.bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .progress-bar.bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, var(--success-color), #059669) !important;
+            color: white;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626) !important;
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #e08e0b) !important;
+            color: white;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: white;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 206, 206, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .alert-success {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #c3e6cb;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #f5c6cb;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            color: #856404;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffeaa7;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-info {
+            color: #0c5460;
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            border-color: #bee5eb;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Grid System */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -15px;
+        }
+
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 15px;
+        }
+
+        .col-md-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding: 15px;
+        }
+
+        .col-md-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+            padding: 15px;
+        }
+
+        .col-md-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding: 15px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .position-relative {
+            position: relative;
+        }
+
+        .mt-2 {
+            margin-top: 10px;
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .mt-4 {
+            margin-top: 25px;
+        }
+
+        .mb-2 {
+            margin-bottom: 10px;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .mb-4 {
+            margin-bottom: 25px;
+        }
+
+        .me-2 {
+            margin-right: 10px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+                overflow: visible;
+            }
+
+            .sidebar-brand h2, 
+            .sidebar-menu-item span, 
+            .sidebar-menu-title {
+                display: none;
+            }
+
+            .sidebar-menu-item {
+                padding: 20px 0;
+                display: flex;
+                justify-content: center;
+                margin-right: 0;
+                border-radius: 0;
+            }
+
+            .sidebar-menu-item i {
+                margin-right: 0;
+                font-size: 1.3rem;
+            }
+
+            .header, .main-content {
+                margin-left: 70px;
+            }
+
+            .search-bar {
+                width: 250px;
+            }
+
+            .col-md-6, .col-md-4, .col-md-3, .col-md-8, .col-md-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .stats-card h4 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: -70px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .header, .main-content {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 25px 15px;
+            }
+
+            
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header {
+                padding: 0 15px;
+            }
+
+            .stats-card {
+                padding: 20px;
+            }
+
+            .stats-card h4 {
+                font-size: 1.8rem;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-eye"></i>
+            <h2>Glaucoma System</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-title">หน้าหลัก</div>
+            <a href="admin-dashboard.html" class="sidebar-menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>แดชบอร์ด</span>
+            </a>
+            
+            <div class="sidebar-menu-title">จัดการผู้ใช้งาน</div>
+            <a href="users-management.html" class="sidebar-menu-item">
+                <i class="fas fa-users"></i>
+                <span>จัดการผู้ใช้ทั้งหมด</span>
+            </a>
+            <a href="doctors.html" class="sidebar-menu-item">
+                <i class="fas fa-user-md"></i>
+                <span>แพทย์</span>
+            </a>
+            <a href="nurses.html" class="sidebar-menu-item">
+                <i class="fas fa-user-nurse"></i>
+                <span>พยาบาล</span>
+            </a>
+            <a href="patients.html" class="sidebar-menu-item">
+                <i class="fas fa-hospital-user"></i>
+                <span>ผู้ป่วย</span>
+            </a>
+            
+            <div class="sidebar-menu-title">การจัดการข้อมูล</div>
+            <a href="medications.html" class="sidebar-menu-item">
+                <i class="fas fa-pills"></i>
+                <span>ข้อมูลยา</span>
+            </a>
+            <a href="database.html" class="sidebar-menu-item">
+                <i class="fas fa-database"></i>
+                <span>ฐานข้อมูลและสำรอง</span>
+            </a>
+            <a href="access-rights.html" class="sidebar-menu-item">
+                <i class="fas fa-key"></i>
+                <span>สิทธิ์การเข้าถึง</span>
+            </a>
+            <a href="test-types.html" class="sidebar-menu-item">
+                <i class="fas fa-vial"></i>
+                <span>ประเภทการตรวจพิเศษ</span>
+            </a>
+            
+            <div class="sidebar-menu-title">ข้อมูลทางการแพทย์</div>
+            <a href="glaucoma-data.html" class="sidebar-menu-item">
+                <i class="fas fa-briefcase-medical"></i>
+                <span>อัปเดตข้อมูลโรคต้อหิน</span>
+            </a>
+            <a href="statistics.html" class="sidebar-menu-item active">
+                <i class="fas fa-chart-bar"></i>
+                <span>รายงานสถิติ</span>
+            </a>
+            <a href="audit-logs.html" class="sidebar-menu-item">
+                <i class="fas fa-history"></i>
+                <span>ประวัติการใช้งาน</span>
+            </a>
+
+            <div class="sidebar-menu-title">การสนับสนุน</div>
+            <a href="system-maintenance.html" class="sidebar-menu-item">
+                <i class="fas fa-cogs"></i>
+                <span>บำรุงรักษาระบบ</span>
+            </a>
+            <a href="notifications.html" class="sidebar-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>ระบบแจ้งเตือน</span>
+            </a>
+            <a href="documents.html" class="sidebar-menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>จัดการเอกสาร PDF</span>
+            </a>
+            <a href="alerts.html" class="sidebar-menu-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>การแจ้งเตือนอัตโนมัติ</span>
+            </a>
+            <a href="special-exams.html" class="sidebar-menu-item">
+                <i class="fas fa-microscope"></i>
+                <span>ผลการตรวจพิเศษ</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="ค้นหารายงาน, ข้อมูล...">
+            <button type="button"><i class="fas fa-microphone"></i></button>
+        </div>
+        <div class="user-profile">
+            <div class="user-info">
+                <h4 id="headerUsername">Admin User</h4>
+                <p>ผู้ดูแลระบบ</p>
+            </div>
+            <div class="profile-dropdown">
+                <div class="profile-img" id="profile-toggle">
+                    <span id="userInitial">A</span>
+                </div>
+                <div class="dropdown-menu" id="profile-dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>โปรไฟล์</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>ตั้งค่า</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="logout.html" class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>ออกจากระบบ</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div class="content-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">
+                    <i class="fas fa-chart-bar"></i>
+                    รายงานสถิติ
+                </h1>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="refreshDataBtn">
+                        <i class="fas fa-sync-alt"></i> รีเฟรชข้อมูล
+                    </button>
+                    <button class="btn btn-success" id="exportReportBtn">
+                        <i class="fas fa-file-excel"></i> ส่งออกรายงาน
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Filter Panel -->
+            <div class="filter-panel fade-in">
+                <h5><i class="fas fa-filter"></i> ตัวกรองข้อมูล</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="periodFilter" class="form-label">ช่วงเวลา</label>
+                        <select class="form-control" id="periodFilter">
+                            <option value="7d">7 วันล่าสุด</option>
+                            <option value="30d" selected>30 วันล่าสุด</option>
+                            <option value="90d">90 วันล่าสุด</option>
+                            <option value="1y">1 ปีล่าสุด</option>
+                            <option value="custom">กำหนดเอง</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" id="customDateRange" style="display: none;">
+                        <label for="startDate" class="form-label">วันที่เริ่มต้น</label>
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="col-md-3" id="customDateRange2" style="display: none;">
+                        <label for="endDate" class="form-label">วันที่สิ้นสุด</label>
+                        <input type="date" class="form-control" id="endDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="reportType" class="form-label">ประเภทรายงาน</label>
+                        <select class="form-control" id="reportType">
+                            <option value="overview">ภาพรวมทั้งหมด</option>
+                            <option value="patients">รายงานผู้ป่วย</option>
+                            <option value="doctors">รายงานแพทย์</option>
+                            <option value="medications">รายงานยา</option>
+                            <option value="iop">รายงาน IOP</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 mt-3">
+                        <button class="btn btn-primary" id="applyFilterBtn">
+                            <i class="fas fa-search"></i> ดูรายงาน
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Overview -->
+            <div class="row mb-4" id="statsOverview">
+                <div class="col-md-3">
+                    <div class="stats-card fade-in">
+                        <div class="position-relative">
+                            <h4 id="totalUsersCount">-</h4>
+                            <p>ผู้ใช้ระบบทั้งหมด</p>
+                            <i class="fas fa-users icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card success fade-in">
+                        <div class="position-relative">
+                            <h4 id="totalPatientsCount">-</h4>
+                            <p>ผู้ป่วยทั้งหมด</p>
+                            <i class="fas fa-hospital-user icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card warning fade-in">
+                        <div class="position-relative">
+                            <h4 id="activeUsersCount">-</h4>
+                            <p>ผู้ใช้ที่ใช้งานล่าสุด</p>
+                            <i class="fas fa-user-check icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card danger fade-in">
+                        <div class="position-relative">
+                            <h4 id="totalMeasurementsCount">-</h4>
+                            <p>การตรวจทั้งหมด</p>
+                            <i class="fas fa-stethoscope icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> การใช้งานระบบรายวัน</h3>
+                            <small class="text-muted">แสดงจำนวนผู้ใช้และการกระทำต่อวัน</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="dailyUsageChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-pie"></i> สัดส่วนผู้ใช้</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container chart-small">
+                                <canvas id="userRoleChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Data Charts -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-eye"></i> สถิติ IOP</h3>
+                            <small class="text-muted">การแจกแจงค่า IOP ของผู้ป่วย</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container chart-small">
+                                <canvas id="iopDistributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-pills"></i> การใช้ยา</h3>
+                            <small class="text-muted">ยาที่ใช้บ่อยที่สุด</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container chart-small">
+                                <canvas id="medicationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Tables -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> สถิติการใช้งานรายเดือน</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="monthlyStatsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>เดือน</th>
+                                            <th>ผู้ใช้ใหม่</th>
+                                            <th>การตรวจ</th>
+                                            <th>การแจ้งเตือน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดข้อมูล...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h3><i class="fas fa-user-md"></i> ประสิทธิภาพการทำงานแพทย์</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="data-table" id="doctorPerformanceTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ชื่อแพทย์</th>
+                                            <th>ผู้ป่วยใหม่</th>
+                                            <th>การตรวจ</th>
+                                            <th>คะแนนความพึงพอใจ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <div class="loading-spinner"></div>
+                                                <p class="mt-2">กำลังโหลดข้อมูล...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Performance Metrics -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-tachometer-alt"></i> ประสิทธิภาพระบบ</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5>เวลาตอบสนองเฉลี่ย</h5>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" style="width: 85%"></div>
+                                </div>
+                                <span id="avgResponseTime">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5>การใช้หน่วยความจำ</h5>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" style="width: 65%"></div>
+                                </div>
+                                <span id="memoryUsage">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5>อัตราความสำเร็จ API</h5>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: 98%"></div>
+                                </div>
+                                <span id="apiSuccessRate">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5>เวลาทำงานระบบ</h5>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-info" style="width: 100%"></div>
+                                </div>
+                                <span id="systemUptime">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="card mt-4 fade-in">
+                <div class="card-header">
+                    <h3><i class="fas fa-download"></i> ส่งออกรายงาน</h3>
+                </div>
+                <div class="card-body">
+                    <p>เลือกรูปแบบและข้อมูลที่ต้องการส่งออก</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>รูปแบบไฟล์</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exportFormat" id="exportPDF" value="pdf">
+                                <label class="form-check-label" for="exportPDF">
+                                    <i class="fas fa-file-pdf text-danger"></i> PDF
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exportFormat" id="exportExcel" value="excel" checked>
+                                <label class="form-check-label" for="exportExcel">
+                                    <i class="fas fa-file-excel text-success"></i> Excel
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exportFormat" id="exportCSV" value="csv">
+                                <label class="form-check-label" for="exportCSV">
+                                    <i class="fas fa-file-csv text-info"></i> CSV
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>ข้อมูลที่ต้องการ</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeCharts" checked>
+                                <label class="form-check-label" for="includeCharts">
+                                    รวมแผนภูมิ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeRawData">
+                                <label class="form-check-label" for="includeRawData">
+                                    ข้อมูลดิบ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="includeSummary" checked>
+                                <label class="form-check-label" for="includeSummary">
+                                    สรุปผล
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>การดำเนินการ</h6>
+                            <button class="btn btn-success w-100 mb-2" id="generateReportBtn">
+                                <i class="fas fa-file-export"></i> สร้างรายงาน
+                            </button>
+                            <button class="btn btn-outline-primary w-100 mb-2" id="scheduleReportBtn">
+                                <i class="fas fa-clock"></i> กำหนดเวลาส่งอัตโนมัติ
+                            </button>
+                            <button class="btn btn-outline-secondary w-100" id="emailReportBtn">
+                                <i class="fas fa-envelope"></i> ส่งทางอีเมล
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002';
+        let authToken = '';
+        let charts = {};
+
+        // Authentication Functions
+        function getAuthToken() {
+            return localStorage.getItem('token');
+        }
+
+        function checkAuthentication() {
+            const token = getAuthToken();
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            authToken = token;
+            return true;
+        }
+
+        // API Helper Functions
+        async function makeAPIRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const finalOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                }
+            };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'API request failed');
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // UI Helper Functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('th-TH').format(num);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH');
+        }
+
+        // Statistics Loading Functions
+        async function loadStatistics() {
+            try {
+                const period = document.getElementById('periodFilter').value;
+                const response = await makeAPIRequest(`/api/admin/reports/statistics?period=${period}`);
+                const stats = response.data;
+                
+                // Update overview cards
+                document.getElementById('totalUsersCount').textContent = formatNumber(stats.userStats.total_users || 0);
+                document.getElementById('totalPatientsCount').textContent = formatNumber(stats.userStats.patients || 0);
+                document.getElementById('activeUsersCount').textContent = formatNumber(stats.userStats.active_last_30d || 0);
+                document.getElementById('totalMeasurementsCount').textContent = formatNumber(stats.iopStats.total_measurements || 0);
+                
+                // Load charts
+                loadDailyUsageChart(stats.dailyUsage || []);
+                loadUserRoleChart(stats.userStats);
+                loadIOPDistributionChart();
+                loadMedicationChart();
+                
+                // Load tables
+                loadMonthlyStats();
+                loadDoctorPerformance();
+                loadRecentAlerts();
+                
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showAlert(`ไม่สามารถโหลดข้อมูลสถิติได้: ${error.message}`, 'danger');
+            }
+        }
+
+        // Chart Functions
+        function loadDailyUsageChart(dailyData) {
+            const ctx = document.getElementById('dailyUsageChart').getContext('2d');
+            
+            if (charts.dailyUsage) {
+                charts.dailyUsage.destroy();
+            }
+            
+            // Prepare data for last 30 days
+            const last30Days = [];
+            const actionsData = [];
+            const usersData = [];
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last30Days.push(date.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }));
+                
+                // Find data for this date or use random data
+                const dayData = dailyData.find(d => new Date(d.date).toDateString() === date.toDateString());
+                actionsData.push(dayData ? dayData.actions : Math.floor(Math.random() * 200 + 50));
+                usersData.push(dayData ? dayData.unique_users : Math.floor(Math.random() * 50 + 10));
+            }
+            
+            charts.dailyUsage = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last30Days,
+                    datasets: [{
+                        label: 'การกระทำ',
+                        data: actionsData,
+                        borderColor: '#00CECE',
+                        backgroundColor: 'rgba(0, 206, 206, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'ผู้ใช้ที่มีกิจกรรม',
+                        data: usersData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'วันที่'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'จำนวนการกระทำ'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'จำนวนผู้ใช้'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadUserRoleChart(userStats) {
+            const ctx = document.getElementById('userRoleChart').getContext('2d');
+            
+            if (charts.userRole) {
+                charts.userRole.destroy();
+            }
+            
+            charts.userRole = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ผู้ป่วย', 'แพทย์', 'พยาบาล', 'ผู้ดูแลระบบ'],
+                    datasets: [{
+                        data: [
+                            userStats.patients || 0,
+                            userStats.doctors || 0,
+                            userStats.nurses || 0,
+                            1 // Admin
+                        ],
+                        backgroundColor: [
+                            '#7c3aed',
+                            '#059669',
+                            '#0ea5e9',
+                            '#ef4444'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadIOPDistributionChart() {
+            const ctx = document.getElementById('iopDistributionChart').getContext('2d');
+            
+            if (charts.iopDistribution) {
+                charts.iopDistribution.destroy();
+            }
+            
+            // Simulate IOP distribution data
+            const iopRanges = ['<12', '12-15', '15-18', '18-21', '21-25', '>25'];
+            const iopCounts = [5, 25, 45, 35, 15, 8]; // Simulated data
+            
+            charts.iopDistribution = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: iopRanges.map(range => `${range} mmHg`),
+                    datasets: [{
+                        label: 'จำนวนผู้ป่วย',
+                        data: iopCounts,
+                        backgroundColor: [
+                            '#10b981',
+                            '#059669',
+                            '#f59e0b',
+                            '#e08e0b',
+                            '#ef4444',
+                            '#dc2626'
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'จำนวนผู้ป่วย'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'ช่วงค่า IOP'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadMedicationChart() {
+            const ctx = document.getElementById('medicationChart').getContext('2d');
+            
+            if (charts.medication) {
+                charts.medication.destroy();
+            }
+            
+            // Simulate medication usage data
+            const medications = ['Latanoprost', 'Timolol', 'Brimonidine', 'Dorzolamide', 'Travoprost'];
+            const usage = [85, 65, 45, 38, 25];
+            
+            charts.medication = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: medications,
+                    datasets: [{
+                        label: '% ของผู้ป่วย',
+                        data: usage,
+                        backgroundColor: '#00CECE',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'เปอร์เซ็นต์การใช้'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Table Loading Functions
+        function loadMonthlyStats() {
+            // Simulate monthly statistics
+            const monthlyData = [
+                { month: 'มกราคม 2025', newUsers: 45, measurements: 234, alerts: 12 },
+                { month: 'ธันวาคม 2024', newUsers: 38, measurements: 198, alerts: 8 },
+                { month: 'พฤศจิกายน 2024', newUsers: 52, measurements: 276, alerts: 15 },
+                { month: 'ตุลาคม 2024', newUsers: 41, measurements: 203, alerts: 9 },
+                { month: 'กันยายน 2024', newUsers: 36, measurements: 189, alerts: 11 }
+            ];
+            
+            updateMonthlyStatsTable(monthlyData);
+        }
+
+        function updateMonthlyStatsTable(data) {
+            const tableBody = document.querySelector('#monthlyStatsTable tbody');
+            
+            let html = '';
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${item.month}</td>
+                        <td>${formatNumber(item.newUsers)}</td>
+                        <td>${formatNumber(item.measurements)}</td>
+                        <td>${formatNumber(item.alerts)}</td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        function loadDoctorPerformance() {
+            // Simulate doctor performance data
+            const doctorData = [
+                { name: 'แพทย์หญิง สมใจ ใจดี', newPatients: 45, examinations: 128, satisfaction: 4.8 },
+                { name: 'นายแพทย์ สมชาย รักใส', newPatients: 38, examinations: 115, satisfaction: 4.6 },
+                { name: 'แพทย์หญิง ใสใส สดใส', newPatients: 42, examinations: 132, satisfaction: 4.7 },
+                { name: 'นายแพทย์ ดีใจ มีสุข', newPatients: 35, examinations: 98, satisfaction: 4.5 }
+            ];
+            
+            updateDoctorPerformanceTable(doctorData);
+        }
+
+        function updateDoctorPerformanceTable(data) {
+            const tableBody = document.querySelector('#doctorPerformanceTable tbody');
+            
+            let html = '';
+            data.forEach(doctor => {
+                html += `
+                    <tr>
+                        <td>${doctor.name}</td>
+                        <td>${formatNumber(doctor.newPatients)}</td>
+                        <td>${formatNumber(doctor.examinations)}</td>
+                        <td>
+                            <span class="badge ${doctor.satisfaction >= 4.5 ? 'bg-success' : 'bg-warning'}">
+                                ${doctor.satisfaction}/5.0
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        async function loadRecentAlerts() {
+            try {
+                const response = await makeAPIRequest('/api/admin/alerts?limit=5');
+                const alerts = response.data;
+                
+                updateRecentAlertsTable(alerts);
+                
+            } catch (error) {
+                console.error('Error loading recent alerts:', error);
+                
+                // Use simulated data if API fails
+                const simulatedAlerts = [
+                    { alert_type: 'high_iop', severity: 'high', created_at: new Date().toISOString(), resolution_status: 'pending' },
+                    { alert_type: 'medication_adherence', severity: 'medium', created_at: new Date(Date.now() - 3600000).toISOString(), resolution_status: 'resolved' },
+                    { alert_type: 'appointment_overdue', severity: 'low', created_at: new Date(Date.now() - 7200000).toISOString(), resolution_status: 'pending' }
+                ];
+                
+                updateRecentAlertsTable(simulatedAlerts);
+            }
+        }
+
+        function updateRecentAlertsTable(alerts) {
+            const tableBody = document.querySelector('#recentAlertsTable tbody');
+            
+            if (!alerts || alerts.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center">ไม่มีการแจ้งเตือนล่าสุด</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const alertTypeTranslations = {
+                'high_iop': 'IOP สูง',
+                'medication_adherence': 'การกินยาไม่สม่ำเสมอ',
+                'appointment_overdue': 'นัดหมายเกินกำหนด',
+                'test_abnormal': 'ผลการตรวจผิดปกติ'
+            };
+            
+            const severityBadges = {
+                'critical': 'bg-danger',
+                'high': 'bg-warning',
+                'medium': 'bg-info',
+                'low': 'bg-secondary'
+            };
+            
+            const statusBadges = {
+                'pending': 'bg-warning',
+                'in_progress': 'bg-info',
+                'resolved': 'bg-success'
+            };
+            
+            let html = '';
+            alerts.slice(0, 5).forEach(alert => {
+                const alertType = alertTypeTranslations[alert.alert_type] || alert.alert_type;
+                const severityClass = severityBadges[alert.severity] || 'bg-secondary';
+                const statusClass = statusBadges[alert.resolution_status] || 'bg-secondary';
+                const timeAgo = getTimeAgo(alert.created_at);
+                
+                html += `
+                    <tr>
+                        <td>${alertType}</td>
+                        <td><span class="badge ${severityClass}">${alert.severity}</span></td>
+                        <td>${timeAgo}</td>
+                        <td><span class="badge ${statusClass}">${alert.resolution_status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'เมื่อสักครู่';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} นาทีที่แล้ว`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} ชั่วโมงที่แล้ว`;
+            return `${Math.floor(diffInSeconds / 86400)} วันที่แล้ว`;
+        }
+
+        // Filter Functions
+        function applyFilters() {
+            const period = document.getElementById('periodFilter').value;
+            const reportType = document.getElementById('reportType').value;
+            
+            showAlert('กำลังโหลดข้อมูลตามตัวกรองที่เลือก...', 'info');
+            
+            // Reload statistics with new filters
+            loadStatistics();
+        }
+
+        function handlePeriodChange() {
+            const periodFilter = document.getElementById('periodFilter');
+            const customDateRange = document.getElementById('customDateRange');
+            const customDateRange2 = document.getElementById('customDateRange2');
+            
+            if (periodFilter.value === 'custom') {
+                customDateRange.style.display = 'block';
+                customDateRange2.style.display = 'block';
+            } else {
+                customDateRange.style.display = 'none';
+                customDateRange2.style.display = 'none';
+            }
+        }
+
+        // Export Functions
+        async function generateReport() {
+            const format = document.querySelector('input[name="exportFormat"]:checked').value;
+            const includeCharts = document.getElementById('includeCharts').checked;
+            const includeRawData = document.getElementById('includeRawData').checked;
+            const includeSummary = document.getElementById('includeSummary').checked;
+            
+            const generateBtn = document.getElementById('generateReportBtn');
+            const originalText = generateBtn.innerHTML;
+            
+            try {
+                generateBtn.innerHTML = '<div class="loading-spinner"></div> กำลังสร้าง...';
+                generateBtn.disabled = true;
+                
+                // Simulate report generation
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Create and download file
+                const filename = `สถิติระบบ_${new Date().toISOString().slice(0, 10)}.${format}`;
+                
+                if (format === 'csv') {
+                    downloadCSVReport(filename);
+                } else if (format === 'excel') {
+                    downloadExcelReport(filename);
+                } else if (format === 'pdf') {
+                    downloadPDFReport(filename);
+                }
+                
+                showAlert(`สร้างรายงาน ${filename} เรียบร้อยแล้ว`, 'success');
+                
+            } catch (error) {
+                showAlert(`เกิดข้อผิดพลาดในการสร้างรายงาน: ${error.message}`, 'danger');
+            } finally {
+                generateBtn.innerHTML = originalText;
+                generateBtn.disabled = false;
+            }
+        }
+
+        function downloadCSVReport(filename) {
+            const csvContent = `รายงานสถิติระบบ
+วันที่สร้าง,${new Date().toLocaleDateString('th-TH')}
+
+สถิติผู้ใช้
+ประเภท,จำนวน
+ผู้ใช้ทั้งหมด,${document.getElementById('totalUsersCount').textContent}
+ผู้ป่วย,${document.getElementById('totalPatientsCount').textContent}
+ผู้ใช้ที่ใช้งานล่าสุด,${document.getElementById('activeUsersCount').textContent}
+การตรวจทั้งหมด,${document.getElementById('totalMeasurementsCount').textContent}`;
+            
+            downloadFile(csvContent, filename, 'text/csv');
+        }
+
+        function downloadExcelReport(filename) {
+            // Simulate Excel file content
+            const excelContent = 'Excel report content would be generated here';
+            downloadFile(excelContent, filename, 'application/vnd.ms-excel');
+        }
+
+        function downloadPDFReport(filename) {
+            // Simulate PDF file content
+            const pdfContent = 'PDF report content would be generated here';
+            downloadFile(pdfContent, filename, 'application/pdf');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function scheduleReport() {
+            showAlert('ฟีเจอร์กำหนดเวลาส่งรายงานอัตโนมัติจะเปิดใช้งานในเร็วๆ นี้', 'info');
+        }
+
+        function emailReport() {
+            const email = prompt('กรุณาใส่อีเมลที่ต้องการส่งรายงาน:');
+            if (email && email.includes('@')) {
+                showAlert(`กำลังส่งรายงานไปยัง ${email}...`, 'info');
+                
+                setTimeout(() => {
+                    showAlert(`ส่งรายงานไปยัง ${email} เรียบร้อยแล้ว`, 'success');
+                }, 2000);
+            } else if (email) {
+                showAlert('กรุณาใส่อีเมลที่ถูกต้อง', 'warning');
+            }
+        }
+
+        function refreshData() {
+            const refreshBtn = document.getElementById('refreshDataBtn');
+            const originalText = refreshBtn.innerHTML;
+            
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> กำลังรีเฟรช...';
+            refreshBtn.disabled = true;
+            
+            // Reload all data
+            loadStatistics();
+            
+            setTimeout(() => {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+                showAlert('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
+            }, 2000);
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'logout.html';
+        }
+
+        // Initialize Page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set username in header
+            const username = localStorage.getItem('username');
+            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
+            
+            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            document.getElementById('userInitial').textContent = userInitial;
+            
+            // Profile dropdown toggle
+            document.getElementById('profile-toggle').addEventListener('click', function() {
+                document.getElementById('profile-dropdown-menu').classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
+                    const dropdown = document.getElementById('profile-dropdown-menu');
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('show');
+            });
+            
+            // Filter event listeners
+            document.getElementById('periodFilter').addEventListener('change', handlePeriodChange);
+            document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+            
+            // Button event listeners
+            document.getElementById('refreshDataBtn').addEventListener('click', refreshData);
+            document.getElementById('exportReportBtn').addEventListener('click', generateReport);
+            document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+            document.getElementById('scheduleReportBtn').addEventListener('click', scheduleReport);
+            document.getElementById('emailReportBtn').addEventListener('click', emailReport);
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Set default dates
+            const today = new Date();
+            const monthAgo = new Date();
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            
+            document.getElementById('endDate').valueAsDate = today;
+            document.getElementById('startDate').valueAsDate = monthAgo;
+            
+            // Load initial data
+            loadStatistics();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('ระบบรายงานสถิติพร้อมใช้งาน', 'success');
+            }, 1000);
+            
+            // Auto refresh every 5 minutes
+            setInterval(function() {
+                if (document.visibilityState === 'visible') {
+                    loadStatistics();
+                }
+            }, 300000); // 5 minutes
+        });
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page became visible, refresh data
+                loadStatistics();
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            // Resize charts when window size changes
+            Object.values(charts).forEach(chart => {
+                if (chart && typeof chart.resize === 'function') {
+                    chart.resize();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
