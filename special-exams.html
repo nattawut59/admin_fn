@@ -1216,7 +1216,6 @@
                                 <option value="normal">ปกติ</option>
                                 <option value="abnormal">ผิดปกติ</option>
                                 <option value="borderline">ขอบเขต</option>
-                                <option value="pending">รอผล</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -1425,14 +1424,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Configuration - ใช้ backend จริงตามโค้ดที่ให้มา
-        const API_BASE_URL = 'http://localhost:3002'; 
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3002';
         let authToken = '';
         let currentPage = 1;
         let currentLimit = 20;
-        let currentExamId = null;
+        let currentExamId = null; // Stores the ID of the exam being edited
+        let totalExams = 0; // To store total count from API or sample data
 
-        // Authentication Functions
+        // DOM elements
+        const examModal = new bootstrap.Modal(document.getElementById('examModal'));
+        const examModalTitle = document.getElementById('examModalTitle');
+        const examForm = document.getElementById('examForm');
+        const saveExamBtn = document.getElementById('saveExamBtn');
+        const alertContainer = document.getElementById('alertContainer');
+        const examsContainer = document.getElementById('examsContainer');
+        const totalExamsCount = document.getElementById('totalExamsCount');
+        const octExamsCount = document.getElementById('octExamsCount');
+        const abnormalExamsCount = document.getElementById('abnormalExamsCount');
+        const thisMonthExamsCount = document.getElementById('thisMonthExamsCount');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationButtons = document.getElementById('paginationButtons');
+
+        // --- Authentication Functions ---
         function getAuthToken() {
             return localStorage.getItem('token');
         }
@@ -1440,14 +1454,14 @@
         function checkAuthentication() {
             const token = getAuthToken();
             if (!token) {
-                window.location.href = 'index.html';
+                window.location.href = 'index.html'; // Redirect to login page
                 return false;
             }
             authToken = token;
             return true;
         }
 
-        // API Helper Functions
+        // --- API Helper Functions ---
         async function makeAPIRequest(endpoint, options = {}) {
             const url = `${API_BASE_URL}${endpoint}`;
             const defaultOptions = {
@@ -1468,99 +1482,36 @@
             
             try {
                 const response = await fetch(url, finalOptions);
+                const data = await response.json();
                 
-                // Handle different response types
-                if (response.headers.get('content-type')?.includes('application/json')) {
-                    const data = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(data.message || `API request failed with status ${response.status}`);
-                    }
-                    
-                    return data;
-                } else {
-                    // Handle non-JSON responses (like file downloads)
-                    if (!response.ok) {
-                        throw new Error(`API request failed with status ${response.status}`);
-                    }
-                    return response;
+                if (!response.ok) {
+                    throw new Error(data.message || `API request failed with status ${response.status}`);
                 }
+                
+                return data;
             } catch (error) {
-                console.error('API Error on endpoint', endpoint, ':', error);
-                throw error;
+                console.error('API Error:', error);
+                showAlert(`เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`, 'danger');
+                throw error; // Re-throw to allow specific error handling
             }
         }
 
-        // Status determination function for frontend
-        function determineOverallStatus(testType, results) {
-            if (!results || Object.keys(results).length === 0) {
-                return 'pending';
-            }
-
-            let hasAbnormal = false;
-            let hasBorderline = false;
-
-            switch (testType) {
-                case 'OCT':
-                    if (results.left_avg_rnfl && results.left_avg_rnfl < 80) hasAbnormal = true;
-                    if (results.right_avg_rnfl && results.right_avg_rnfl < 80) hasAbnormal = true;
-                    if (results.left_cup_disc_ratio && results.left_cup_disc_ratio > 0.7) hasAbnormal = true;
-                    if (results.right_cup_disc_ratio && results.right_cup_disc_ratio > 0.7) hasAbnormal = true;
-                    
-                    if (results.left_avg_rnfl && results.left_avg_rnfl >= 80 && results.left_avg_rnfl <= 90) hasBorderline = true;
-                    if (results.right_avg_rnfl && results.right_avg_rnfl >= 80 && results.right_avg_rnfl <= 90) hasBorderline = true;
-                    if (results.left_cup_disc_ratio && results.left_cup_disc_ratio > 0.6 && results.left_cup_disc_ratio <= 0.7) hasBorderline = true;
-                    if (results.right_cup_disc_ratio && results.right_cup_disc_ratio > 0.6 && results.right_cup_disc_ratio <= 0.7) hasBorderline = true;
-                    break;
-                    
-                case 'CTVF':
-                    if (results.left_eye_md && results.left_eye_md < -6) hasAbnormal = true;
-                    if (results.right_eye_md && results.right_eye_md < -6) hasAbnormal = true;
-                    if (results.left_eye_vfi && results.left_eye_vfi < 70) hasAbnormal = true;
-                    if (results.right_eye_vfi && results.right_eye_vfi < 70) hasAbnormal = true;
-                    
-                    if (results.left_eye_md && results.left_eye_md >= -6 && results.left_eye_md <= -3) hasBorderline = true;
-                    if (results.right_eye_md && results.right_eye_md >= -6 && results.right_eye_md <= -3) hasBorderline = true;
-                    if (results.left_eye_vfi && results.left_eye_vfi >= 70 && results.left_eye_vfi <= 80) hasBorderline = true;
-                    if (results.right_eye_vfi && results.right_eye_vfi >= 70 && results.right_eye_vfi <= 80) hasBorderline = true;
-                    break;
-                    
-                case 'Pachymetry':
-                    if (results.left_corneal_thickness && results.left_corneal_thickness < 480) hasAbnormal = true;
-                    if (results.right_corneal_thickness && results.right_corneal_thickness < 480) hasAbnormal = true;
-                    
-                    if (results.left_corneal_thickness && results.left_corneal_thickness >= 480 && results.left_corneal_thickness <= 520) hasBorderline = true;
-                    if (results.right_corneal_thickness && results.right_corneal_thickness >= 480 && results.right_corneal_thickness <= 520) hasBorderline = true;
-                    break;
-                    
-                case 'Gonioscopy':
-                    if (results.left_angle_grade !== undefined && results.left_angle_grade !== null && results.left_angle_grade === 2) hasBorderline = true;
-                    if (results.right_angle_grade !== undefined && results.right_angle_grade !== null && results.right_angle_grade === 2) hasBorderline = true;
-                    break;
-            }
-
-            if (hasAbnormal) return 'abnormal';
-            if (hasBorderline) return 'borderline';
-            return 'normal';
-        }
-
-        // UI Helper Functions
+        // --- UI Helper Functions ---
         function showAlert(message, type = 'info') {
-            const alertContainer = document.getElementById('alertContainer');
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
             alertDiv.innerHTML = `
                 <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
                 ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             `;
             alertContainer.appendChild(alertDiv);
             
             setTimeout(() => {
                 if (alertDiv.parentNode) {
-                    alertDiv.remove();
+                    bootstrap.Alert.getInstance(alertDiv)?.close(); // Safely close Bootstrap alert
                 }
-            }, 5000);
+            }, 5000); // Alert disappears after 5 seconds
         }
 
         function formatDate(dateString) {
@@ -1607,9 +1558,7 @@
             const classes = {
                 'normal': 'normal',
                 'abnormal': 'abnormal',
-                'borderline': 'borderline',
-                'pending': 'pending',
-                'deleted': 'pending'
+                'borderline': 'borderline'
             };
             return classes[status] || 'pending';
         }
@@ -1619,25 +1568,20 @@
                 'normal': 'ปกติ',
                 'abnormal': 'ผิดปกติ',
                 'borderline': 'ขอบเขต',
-                'pending': 'รอผล',
-                'deleted': 'ลบแล้ว'
+                'pending': 'รอผล'
             };
             return labels[status] || status;
         }
 
-        // Special Exams Functions
+        // --- Special Exams Functions ---
         async function loadSpecialExams() {
+            examsContainer.innerHTML = `
+                <div class="text-center">
+                    <div class="loading-spinner" style="width: 40px; height: 40px;"></div>
+                    <p class="mt-3">กำลังโหลดผลการตรวจ...</p>
+                </div>
+            `;
             try {
-                const examsContainer = document.getElementById('examsContainer');
-                examsContainer.innerHTML = `
-                    <div class="text-center">
-                        <div class="loading-spinner" style="width: 40px; height: 40px;"></div>
-                        <p class="mt-3">กำลังโหลดผลการตรวจ...</p>
-                    </div>
-                `;
-                document.getElementById('paginationInfo').textContent = 'กำลังโหลด...';
-                document.getElementById('paginationButtons').innerHTML = '';
-
                 const filters = getFilters();
                 const queryParams = new URLSearchParams({
                     page: currentPage,
@@ -1645,40 +1589,166 @@
                     ...filters
                 });
 
-                // ใช้ API endpoint จริงจาก backend
-                const response = await makeAPIRequest(`/api/admin/special-eye-tests?${queryParams}`); 
-                const exams = response.data || [];
-                const pagination = response.pagination || { 
-                    page: currentPage, 
-                    limit: currentLimit, 
-                    total: exams.length, 
-                    totalPages: Math.ceil(exams.length / currentLimit) 
-                };
+                // Simulate API call to /api/admin/test-results or /api/admin/special-exams
+                // In a real application, you'd uncomment the makeAPIRequest and remove the sample data generation.
+                // const response = await makeAPIRequest(`/api/admin/test-results?${queryParams}`);
+                // const exams = response.data || [];
+                // totalExams = response.pagination.total; // Get total from API
+
+                // --- Simulation only: Remove in production ---
+                const simulatedResponse = generateSampleExams(currentLimit);
+                const exams = simulatedResponse.data;
+                totalExams = simulatedResponse.pagination.total;
+                // --- End Simulation ---
                 
                 displaySpecialExams(exams);
-                updateExamStats(exams); 
-                updatePagination(pagination);
+                updateExamStats(exams); // Update stats based on the currently displayed exams
+                updatePagination({
+                    page: currentPage,
+                    limit: currentLimit,
+                    total: totalExams,
+                    totalPages: Math.ceil(totalExams / currentLimit)
+                });
                 
             } catch (error) {
                 console.error('Error loading special exams:', error);
                 showAlert(`ไม่สามารถโหลดผลการตรวจได้: ${error.message}`, 'danger');
-                document.getElementById('examsContainer').innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                
+                // Show a more descriptive error message and suggest refreshing
+                examsContainer.innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
                         <h5>เกิดข้อผิดพลาดในการโหลดข้อมูล</h5>
-                        <p class="text-muted">${error.message}. กรุณาลองใหม่อีกครั้ง</p>
+                        <p>${error.message}. กรุณาลอง <a href="#" id="retryLoadExams" class="text-primary">รีเฟรช</a> อีกครั้ง</p>
                     </div>
                 `;
-                updateStatsWithError();
-                document.getElementById('paginationInfo').textContent = 'แสดง 0 - 0 จาก 0 รายการ';
+                document.getElementById('retryLoadExams')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    refreshExams();
+                });
             }
         }
 
-        function updateStatsWithError() {
-            document.getElementById('totalExamsCount').textContent = 'N/A';
-            document.getElementById('octExamsCount').textContent = 'N/A';
-            document.getElementById('abnormalExamsCount').textContent = 'N/A';
-            document.getElementById('thisMonthExamsCount').textContent = 'N/A';
+        function generateSampleExams(limit) {
+            const sampleTypes = ['OCT', 'CTVF', 'Pachymetry', 'Gonioscopy'];
+            const sampleStatuses = ['normal', 'abnormal', 'borderline'];
+            const samplePatients = [
+                { user_id: 'p001', full_name: 'นางสาว สมใจ ใจดี', hn: 'HN001234' },
+                { user_id: 'p002', full_name: 'นาย วิชัย มั่นคง', hn: 'HN001235' },
+                { user_id: 'p003', full_name: 'นางสมศรี สุขใส', hn: 'HN001236' },
+                { user_id: 'p004', full_name: 'นาย ชัยชนะ ยอดเยี่ยม', hn: 'HN001237' },
+                { user_id: 'p005', full_name: 'นางสาว ดวงดาว สดใส', hn: 'HN001238' },
+            ];
+            const sampleDoctors = [
+                { user_id: 'd001', full_name: 'แพทย์หญิง ปรีดา รักษาดี' },
+                { user_id: 'd002', full_name: 'นายแพทย์ ชาญชัย เก่งกาจ' },
+            ];
+
+            const allExams = [];
+            // Generate a larger pool of data to simulate pagination
+            for (let i = 0; i < 50; i++) { // Simulate 50 total exams
+                const patient = samplePatients[i % samplePatients.length];
+                const examType = sampleTypes[i % sampleTypes.length];
+                const status = sampleStatuses[i % sampleStatuses.length];
+                const doctor = sampleDoctors[i % sampleDoctors.length];
+                
+                allExams.push({
+                    test_id: `test_${i + 1}`,
+                    patient_id: patient.user_id,
+                    patient_name: patient.full_name,
+                    hn: patient.hn,
+                    test_type: examType,
+                    test_date: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Last 90 days
+                    status: status,
+                    doctor_id: doctor.user_id,
+                    doctor_name: doctor.full_name,
+                    notes: `ผลการตรวจ ${examType} แสดงผล${status === 'normal' ? 'ปกติ' : status === 'abnormal' ? 'ผิดปกติ' : 'ในขอบเขต'}`,
+                    results: generateSampleResults(examType)
+                });
+            }
+
+            // Apply filters to sample data
+            const filters = getFilters();
+            let filteredExams = allExams.filter(exam => {
+                let match = true;
+                if (filters.patient_id && exam.patient_id !== filters.patient_id) match = false;
+                if (filters.test_type && exam.test_type !== filters.test_type) match = false;
+                if (filters.status && exam.status !== filters.status) match = false;
+                
+                const examDate = new Date(exam.test_date);
+                if (filters.start_date) {
+                    const startDate = new Date(filters.start_date);
+                    if (examDate < startDate) match = false;
+                }
+                if (filters.end_date) {
+                    const endDate = new Date(filters.end_date);
+                    if (examDate > endDate) match = false;
+                }
+                if (filters.search) {
+                    const searchTerm = filters.search.toLowerCase();
+                    if (!exam.patient_name.toLowerCase().includes(searchTerm) &&
+                        !exam.hn.toLowerCase().includes(searchTerm) &&
+                        !exam.test_type.toLowerCase().includes(searchTerm) &&
+                        !exam.doctor_name.toLowerCase().includes(searchTerm) &&
+                        !exam.notes.toLowerCase().includes(searchTerm)) {
+                        match = false;
+                    }
+                }
+                return match;
+            });
+
+            const startIndex = (currentPage - 1) * limit;
+            const endIndex = startIndex + limit;
+            const paginatedExams = filteredExams.slice(startIndex, endIndex);
+
+            return {
+                data: paginatedExams,
+                pagination: {
+                    page: currentPage,
+                    limit: limit,
+                    total: filteredExams.length,
+                    totalPages: Math.ceil(filteredExams.length / limit)
+                }
+            };
+        }
+
+        function generateSampleResults(examType) {
+            const results = {};
+            
+            switch (examType) {
+                case 'OCT':
+                    results.left_avg_rnfl = (Math.random() * 50 + 70).toFixed(1); // 70-120
+                    results.right_avg_rnfl = (Math.random() * 50 + 70).toFixed(1);
+                    results.left_cup_disc_ratio = (Math.random() * 0.5 + 0.1).toFixed(2); // 0.1-0.6
+                    results.right_cup_disc_ratio = (Math.random() * 0.5 + 0.1).toFixed(2);
+                    // Introduce some abnormal values for testing
+                    if (Math.random() < 0.2) results.left_avg_rnfl = (Math.random() * 30 + 30).toFixed(1); // 30-60 (abnormal)
+                    if (Math.random() < 0.2) results.right_cup_disc_ratio = (Math.random() * 0.3 + 0.7).toFixed(2); // 0.7-1.0 (warning)
+                    break;
+                case 'CTVF':
+                    results.left_eye_md = (Math.random() * 15 - 15).toFixed(1); // -15 to 0
+                    results.right_eye_md = (Math.random() * 15 - 15).toFixed(1);
+                    results.left_eye_vfi = Math.floor(Math.random() * 30) + 70; // 70-100
+                    results.right_eye_vfi = Math.floor(Math.random() * 30) + 70;
+                     // Introduce some abnormal values for testing
+                    if (Math.random() < 0.2) results.left_eye_md = (Math.random() * 5 - 20).toFixed(1); // -20 to -15 (abnormal)
+                    if (Math.random() < 0.2) results.right_eye_vfi = Math.floor(Math.random() * 20) + 40; // 40-60 (warning)
+                    break;
+                case 'Pachymetry':
+                    results.left_corneal_thickness = Math.floor(Math.random() * 150) + 450; // 450-600
+                    results.right_corneal_thickness = Math.floor(Math.random() * 150) + 450;
+                    // Introduce some abnormal values for testing
+                    if (Math.random() < 0.2) results.left_corneal_thickness = Math.floor(Math.random() * 50) + 400; // 400-450 (warning)
+                    break;
+                case 'Gonioscopy':
+                    results.left_angle_grade = Math.floor(Math.random() * 5); // 0-4
+                    results.right_angle_grade = Math.floor(Math.random() * 5);
+                    // Introduce some abnormal values for testing
+                    if (Math.random() < 0.2) results.left_angle_grade = Math.floor(Math.random() * 2); // 0 or 1 (abnormal)
+                    break;
+            }
+            
+            return results;
         }
 
         function getFilters() {
@@ -1706,20 +1776,21 @@
         }
 
         function displaySpecialExams(exams) {
-            const container = document.getElementById('examsContainer');
-            
             if (!exams || exams.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-microscope fa-3x text-muted mb-3"></i>
-                        <h5>ไม่มีผลการตรวจ</h5>
-                        <p class="text-muted">ไม่พบผลการตรวจตามเงื่อนไขที่เลือก</p>
+                examsContainer.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-microscope fa-4x text-muted mb-3"></i>
+                        <h5>ไม่มีผลการตรวจที่ตรงกับเงื่อนไข</h5>
+                        <p class="text-muted">โปรดลองเปลี่ยนตัวกรองหรือเพิ่มผลการตรวจใหม่</p>
+                        <button class="btn btn-primary mt-3" onclick="showAddExamModal()">
+                            <i class="fas fa-plus"></i> เพิ่มผลการตรวจใหม่
+                        </button>
                     </div>
                 `;
                 return;
             }
 
-            let html = '';
+            let html = '<div class="row">';
             
             exams.forEach(exam => {
                 const examTypeClass = getExamTypeClass(exam.test_type);
@@ -1730,142 +1801,91 @@
                 const examDate = formatDate(exam.test_date);
                 
                 html += `
-                    <div class="exam-card ${examTypeClass} fade-in">
-                        <div class="d-flex align-items-start">
-                            <div class="exam-icon ${examTypeClass}">
-                                <i class="${icon}"></i>
-                            </div>
-                            <div class="exam-content flex-grow-1">
-                                <h6>${typeLabel}</h6>
-                                <div class="exam-type">${exam.test_type}</div>
-                                <div class="exam-meta">
-                                    <span><i class="fas fa-user"></i> ${exam.patient_name || 'ไม่ทราบชื่อ'} (HN: ${exam.hn || 'N/A'})</span>
-                                    <span><i class="fas fa-calendar"></i> ${examDate}</span>
-                                    <span><i class="fas fa-user-md"></i> ${exam.doctor_name || 'ไม่ระบุแพทย์'}</span>
-                                    <span class="status-badge ${statusClass}">
-                                        <i class="fas fa-${statusClass === 'normal' ? 'check-circle' : statusClass === 'abnormal' ? 'exclamation-circle' : 'minus-circle'}"></i>
-                                        ${statusLabel}
-                                    </span>
+                    <div class="col-md-6">
+                        <div class="exam-card ${examTypeClass} fade-in">
+                            <div class="d-flex align-items-start">
+                                <div class="exam-icon ${examTypeClass}">
+                                    <i class="${icon}"></i>
                                 </div>
-                                
-                                ${exam.results ? renderExamResults(exam.test_type, exam.results) : ''}
-                                
-                                ${exam.notes ? `<div class="mt-2"><small class="text-muted"><strong>หมายเหตุ:</strong> ${exam.notes}</small></div>` : ''}
-                                
-                                <div class="exam-actions">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewExamDetails('${exam.test_id}')">
-                                        <i class="fas fa-eye"></i> รายละเอียด
-                                    </button>
-                                    <button class="btn btn-sm btn-warning" onclick="editExam('${exam.test_id}')">
-                                        <i class="fas fa-edit"></i> แก้ไข
-                                    </button>
-                                    <button class="btn btn-sm btn-success" onclick="printExamResult('${exam.test_id}')">
-                                        <i class="fas fa-print"></i> พิมพ์
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteExam('${exam.test_id}')">
-                                        <i class="fas fa-trash-alt"></i> ลบ
-                                    </button>
+                                <div class="exam-content flex-grow-1">
+                                    <h6>${typeLabel}</h6>
+                                    <div class="exam-type">${exam.test_type}</div>
+                                    <div class="exam-meta">
+                                        <span><i class="fas fa-user"></i> ${exam.patient_name || 'ไม่ทราบชื่อ'} (HN: ${exam.hn || 'N/A'})</span>
+                                        <span><i class="fas fa-calendar"></i> ${examDate}</span>
+                                        <span><i class="fas fa-user-md"></i> ${exam.doctor_name || 'ไม่ระบุแพทย์'}</span>
+                                        <span class="status-badge ${statusClass}">
+                                            <i class="fas fa-${statusClass === 'normal' ? 'check-circle' : statusClass === 'abnormal' ? 'exclamation-circle' : 'minus-circle'}"></i>
+                                            ${statusLabel}
+                                        </span>
+                                    </div>
+                                    
+                                    ${exam.results ? renderExamResults(exam.test_type, exam.results) : ''}
+                                    
+                                    ${exam.notes ? `<div class="mt-2"><small class="text-muted"><strong>หมายเหตุ:</strong> ${exam.notes}</small></div>` : ''}
+                                    
+                                    <div class="exam-actions">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewExamDetails('${exam.test_id}')">
+                                            <i class="fas fa-eye"></i> รายละเอียด
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" onclick="editExam('${exam.test_id}')">
+                                            <i class="fas fa-edit"></i> แก้ไข
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="printExamResult('${exam.test_id}')">
+                                            <i class="fas fa-print"></i> พิมพ์
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteExam('${exam.test_id}')">
+                                            <i class="fas fa-trash-alt"></i> ลบ
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
             });
-            
-            container.innerHTML = html;
+            html += '</div>';
+            examsContainer.innerHTML = html;
         }
 
         function renderExamResults(examType, results) {
-            if (!results) return '';
+            if (!results || Object.keys(results).length === 0) return '';
             
             let html = '<div class="exam-results"><h6>ผลการตรวจ</h6>';
             
-            // Parse results if it's a string
-            const parsedResults = typeof results === 'string' ? JSON.parse(results) : results;
+            // Helper to render a single result item with conditional styling
+            const renderResultItem = (label, value, unit = '', isAbnormal, isWarning) => {
+                if (value === undefined || value === null || value === '') return '';
+                let valueClass = '';
+                if (isAbnormal) valueClass = 'abnormal';
+                else if (isWarning) valueClass = 'warning';
+
+                return `<div class="result-item">
+                            <span class="result-label">${label}:</span>
+                            <span class="result-value ${valueClass}">${value}${unit}</span>
+                        </div>`;
+            };
 
             switch (examType) {
                 case 'OCT':
-                    if (parsedResults.left_avg_rnfl !== undefined && parsedResults.left_avg_rnfl !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Left Avg RNFL:</span>
-                            <span class="result-value ${parsedResults.left_avg_rnfl < 90 ? 'abnormal' : ''}">${parsedResults.left_avg_rnfl} µm</span>
-                        </div>`;
-                    }
-                    if (parsedResults.right_avg_rnfl !== undefined && parsedResults.right_avg_rnfl !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Right Avg RNFL:</span>
-                            <span class="result-value ${parsedResults.right_avg_rnfl < 90 ? 'abnormal' : ''}">${parsedResults.right_avg_rnfl} µm</span>
-                        </div>`;
-                    }
-                    if (parsedResults.left_cup_disc_ratio !== undefined && parsedResults.left_cup_disc_ratio !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Left C/D Ratio:</span>
-                            <span class="result-value ${parsedResults.left_cup_disc_ratio > 0.6 ? 'warning' : ''}">${parsedResults.left_cup_disc_ratio}</span>
-                        </div>`;
-                    }
-                    if (parsedResults.right_cup_disc_ratio !== undefined && parsedResults.right_cup_disc_ratio !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Right C/D Ratio:</span>
-                            <span class="result-value ${parsedResults.right_cup_disc_ratio > 0.6 ? 'warning' : ''}">${parsedResults.right_cup_disc_ratio}</span>
-                        </div>`;
-                    }
+                    html += renderResultItem('Left Avg RNFL', results.left_avg_rnfl, ' µm', results.left_avg_rnfl < 80);
+                    html += renderResultItem('Right Avg RNFL', results.right_avg_rnfl, ' µm', results.right_avg_rnfl < 80);
+                    html += renderResultItem('Left C/D Ratio', results.left_cup_disc_ratio, '', results.left_cup_disc_ratio > 0.7, results.left_cup_disc_ratio > 0.6 && results.left_cup_disc_ratio <= 0.7);
+                    html += renderResultItem('Right C/D Ratio', results.right_cup_disc_ratio, '', results.right_cup_disc_ratio > 0.7, results.right_cup_disc_ratio > 0.6 && results.right_cup_disc_ratio <= 0.7);
                     break;
-                    
                 case 'CTVF':
-                    if (parsedResults.left_eye_md !== undefined && parsedResults.left_eye_md !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Left Eye MD:</span>
-                            <span class="result-value ${parsedResults.left_eye_md < -6 ? 'abnormal' : ''}">${parsedResults.left_eye_md} dB</span>
-                        </div>`;
-                    }
-                    if (parsedResults.right_eye_md !== undefined && parsedResults.right_eye_md !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Right Eye MD:</span>
-                            <span class="result-value ${parsedResults.right_eye_md < -6 ? 'abnormal' : ''}">${parsedResults.right_eye_md} dB</span>
-                        </div>`;
-                    }
-                    if (parsedResults.left_eye_vfi !== undefined && parsedResults.left_eye_vfi !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Left Eye VFI:</span>
-                            <span class="result-value ${parsedResults.left_eye_vfi < 80 ? 'warning' : ''}">${parsedResults.left_eye_vfi}%</span>
-                        </div>`;
-                    }
-                    if (parsedResults.right_eye_vfi !== undefined && parsedResults.right_eye_vfi !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Right Eye VFI:</span>
-                            <span class="result-value ${parsedResults.right_eye_vfi < 80 ? 'warning' : ''}">${parsedResults.right_eye_vfi}%</span>
-                        </div>`;
-                    }
+                    html += renderResultItem('Left Eye MD', results.left_eye_md, ' dB', results.left_eye_md < -10);
+                    html += renderResultItem('Right Eye MD', results.right_eye_md, ' dB', results.right_eye_md < -10);
+                    html += renderResultItem('Left Eye VFI', results.left_eye_vfi, '%', results.left_eye_vfi < 60, results.left_eye_vfi >=60 && results.left_eye_vfi < 80);
+                    html += renderResultItem('Right Eye VFI', results.right_eye_vfi, '%', results.right_eye_vfi < 60, results.right_eye_vfi >=60 && results.right_eye_vfi < 80);
                     break;
-                    
                 case 'Pachymetry':
-                    if (parsedResults.left_corneal_thickness !== undefined && parsedResults.left_corneal_thickness !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Left Corneal Thickness:</span>
-                            <span class="result-value ${parsedResults.left_corneal_thickness < 500 ? 'warning' : ''}">${parsedResults.left_corneal_thickness} µm</span>
-                        </div>`;
-                    }
-                    if (parsedResults.right_corneal_thickness !== undefined && parsedResults.right_corneal_thickness !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Right Corneal Thickness:</span>
-                            <span class="result-value ${parsedResults.right_corneal_thickness < 500 ? 'warning' : ''}">${parsedResults.right_corneal_thickness} µm</span>
-                        </div>`;
-                    }
+                    html += renderResultItem('Left Corneal Thickness', results.left_corneal_thickness, ' µm', results.left_corneal_thickness < 500 || results.left_corneal_thickness > 600, results.left_corneal_thickness >= 450 && results.left_corneal_thickness < 500 || results.left_corneal_thickness > 600 && results.left_corneal_thickness <= 650);
+                    html += renderResultItem('Right Corneal Thickness', results.right_corneal_thickness, ' µm', results.right_corneal_thickness < 500 || results.right_corneal_thickness > 600, results.right_corneal_thickness >= 450 && results.right_corneal_thickness < 500 || results.right_corneal_thickness > 600 && results.right_corneal_thickness <= 650);
                     break;
-                    
                 case 'Gonioscopy':
-                    if (parsedResults.left_angle_grade !== undefined && parsedResults.left_angle_grade !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Left Angle Grade:</span>
-                            <span class="result-value ${parsedResults.left_angle_grade < 2 ? 'abnormal' : ''}">${parsedResults.left_angle_grade}</span>
-                        </div>`;
-                    }
-                    if (parsedResults.right_angle_grade !== undefined && parsedResults.right_angle_grade !== null) {
-                        html += `<div class="result-item">
-                            <span class="result-label">Right Angle Grade:</span>
-                            <span class="result-value ${parsedResults.right_angle_grade < 2 ? 'abnormal' : ''}">${parsedResults.right_angle_grade}</span>
-                        </div>`;
-                    }
+                    html += renderResultItem('Left Angle Grade', results.left_angle_grade, '', results.left_angle_grade < 2);
+                    html += renderResultItem('Right Angle Grade', results.right_angle_grade, '', results.right_angle_grade < 2);
                     break;
             }
             
@@ -1875,224 +1895,200 @@
 
         function updateExamStats(exams) {
             const stats = {
-                total: exams.length,
+                total: totalExams, // Use total from paginated data for overall count
                 oct: 0,
                 abnormal: 0,
                 thisMonth: 0
             };
 
-            const currentMonth = new Date().getMonth();
-            const currentYear = new Date().getFullYear();
+            const thisMonth = new Date().getMonth();
+            const thisYear = new Date().getFullYear();
 
-            exams.forEach(exam => {
+            // Iterate through all fetched exams to get accurate stats
+            // In a real API, the backend would provide these counts directly.
+            // For simulation, we'll re-calculate on the *full simulated data*.
+            const allSimulatedExams = generateSampleExams(totalExams * 2).data; // Get a larger set for stats
+            allSimulatedExams.forEach(exam => {
                 if (exam.test_type === 'OCT') stats.oct++;
                 if (exam.status === 'abnormal') stats.abnormal++;
                 
                 const examDate = new Date(exam.test_date);
-                if (examDate.getMonth() === currentMonth && examDate.getFullYear() === currentYear) {
+                if (examDate.getMonth() === thisMonth && examDate.getFullYear() === thisYear) {
                     stats.thisMonth++;
                 }
             });
 
-            document.getElementById('totalExamsCount').textContent = stats.total;
-            document.getElementById('octExamsCount').textContent = stats.oct;
-            document.getElementById('abnormalExamsCount').textContent = stats.abnormal;
-            document.getElementById('thisMonthExamsCount').textContent = stats.thisMonth;
+            totalExamsCount.textContent = stats.total;
+            octExamsCount.textContent = stats.oct;
+            abnormalExamsCount.textContent = stats.abnormal;
+            thisMonthExamsCount.textContent = stats.thisMonth;
         }
 
         function updatePagination(pagination) {
-            const info = document.getElementById('paginationInfo');
-            const buttons = document.getElementById('paginationButtons');
-            
             const start = ((pagination.page - 1) * pagination.limit) + 1;
-            const end = Math.min(pagination.page * pagination.limit, pagination.total || 0);
+            const end = Math.min(pagination.page * pagination.limit, pagination.total);
             
-            info.textContent = `แสดง ${start} - ${end} จาก ${pagination.total || 0} รายการ`;
+            paginationInfo.textContent = `แสดง ${start} - ${end} จาก ${pagination.total} รายการ`;
             
-            // Create pagination buttons
             let buttonsHTML = '';
-            
+            // Previous button
             if (pagination.page > 1) {
                 buttonsHTML += `<button class="btn btn-outline-primary me-2" onclick="changePage(${pagination.page - 1})">ก่อนหน้า</button>`;
             }
-            
-            // Add page numbers
-            const maxPageButtons = 5;
-            let startPage = Math.max(1, pagination.page - Math.floor(maxPageButtons / 2));
-            let endPage = Math.min(pagination.totalPages, startPage + maxPageButtons - 1);
-
-            if (endPage - startPage + 1 < maxPageButtons) {
-                startPage = Math.max(1, endPage - maxPageButtons + 1);
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                buttonsHTML += `<button class="btn ${i === pagination.page ? 'btn-primary' : 'btn-outline-primary'} me-2" onclick="changePage(${i})">${i}</button>`;
-            }
-
-            if (pagination.page < (pagination.totalPages || 1)) {
+            // Next button
+            if (pagination.page < pagination.totalPages) {
                 buttonsHTML += `<button class="btn btn-outline-primary" onclick="changePage(${pagination.page + 1})">ถัดไป</button>`;
             }
             
-            buttons.innerHTML = buttonsHTML;
+            paginationButtons.innerHTML = buttonsHTML;
         }
 
         function changePage(page) {
+            if (page < 1 || page > Math.ceil(totalExams / currentLimit)) {
+                return; // Prevent going out of bounds
+            }
             currentPage = page;
             loadSpecialExams();
         }
 
-        // Patient and Doctor Loading Functions - ใช้ API endpoint จริง
+        // --- Patient and Doctor Loading Functions ---
         async function loadPatients() {
-            try {
-                const response = await makeAPIRequest('/api/admin/users?role=patient&limit=1000');
-                const patients = response.data || [];
-                
-                populatePatientSelects(patients);
-                
-            } catch (error) {
-                console.error('Error loading patients:', error);
-                showAlert(`ไม่สามารถโหลดรายชื่อผู้ป่วยได้: ${error.message}`, 'danger');
-                const selects = ['patientFilter', 'examPatientSelect'];
-                selects.forEach(selectId => {
-                    const select = document.getElementById(selectId);
-                    if (select) {
-                        select.innerHTML = selectId === 'patientFilter' ? 
-                            '<option value="">ทั้งหมด (โหลดไม่สำเร็จ)</option>' : 
-                            '<option value="">-- เลือกผู้ป่วย (โหลดไม่สำเร็จ) --</option>';
-                    }
-                });
-            }
-        }
-
-        function populatePatientSelects(patients) {
-            const selects = ['patientFilter', 'examPatientSelect'];
+            const select = document.getElementById('patientFilter');
+            const examPatientSelect = document.getElementById('examPatientSelect');
             
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (!select) return;
-                
-                const currentValue = select.value;
-                
-                select.innerHTML = selectId === 'patientFilter' ? 
-                    '<option value="">ทั้งหมด</option>' : 
-                    '<option value="">-- เลือกผู้ป่วย --</option>';
-                
+            // Store current values to preserve selection after reload
+            const currentFilterValue = select.value;
+            const currentModalValue = examPatientSelect.value;
+
+            // Clear existing options
+            select.innerHTML = '<option value="">ทั้งหมด</option>';
+            examPatientSelect.innerHTML = '<option value="">-- เลือกผู้ป่วย --</option>';
+
+            try {
+                // In real implementation, replace with actual API call
+                // const response = await makeAPIRequest('/api/admin/users?role=patient&limit=1000');
+                // const patients = response.data || [];
+
+                // --- Simulation only: Remove in production ---
+                const patients = [
+                    { user_id: 'p001', full_name: 'นางสาว สมใจ ใจดี', hn: 'HN001234' },
+                    { user_id: 'p002', full_name: 'นาย วิชัย มั่นคง', hn: 'HN001235' },
+                    { user_id: 'p003', full_name: 'นางสมศรี สุขใส', hn: 'HN001236' },
+                    { user_id: 'p004', full_name: 'นาย ชัยชนะ ยอดเยี่ยม', hn: 'HN001237' },
+                    { user_id: 'p005', full_name: 'นางสาว ดวงดาว สดใส', hn: 'HN001238' },
+                ];
+                // --- End Simulation ---
+
                 patients.forEach(patient => {
                     const option = document.createElement('option');
-                    option.value = patient.user_id; // ใช้ user_id ตาม backend
+                    option.value = patient.user_id;
                     option.textContent = `${patient.full_name || 'ไม่ทราบชื่อ'} (HN: ${patient.hn || 'N/A'})`;
                     select.appendChild(option);
+
+                    const modalOption = option.cloneNode(true);
+                    examPatientSelect.appendChild(modalOption);
                 });
-                
-                if (currentValue) select.value = currentValue;
-            });
+
+                // Restore previous selections
+                select.value = currentFilterValue;
+                examPatientSelect.value = currentModalValue;
+
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                showAlert('ไม่สามารถโหลดรายชื่อผู้ป่วยได้', 'danger');
+                select.innerHTML = '<option value="">ไม่สามารถโหลดรายชื่อผู้ป่วยได้</option>';
+                examPatientSelect.innerHTML = '<option value="">ไม่สามารถโหลดรายชื่อผู้ป่วยได้</option>';
+            }
         }
 
         async function loadDoctors() {
+            const select = document.getElementById('examDoctorSelect');
+            const currentModalValue = select.value; // Store current value
+            select.innerHTML = '<option value="">-- เลือกแพทย์ --</option>'; // Clear existing options
+
             try {
-                const response = await makeAPIRequest('/api/admin/users?role=doctor&limit=1000');
-                const doctors = response.data || [];
-                
-                populateDoctorSelect(doctors);
-                
+                // In real implementation, replace with actual API call
+                // const response = await makeAPIRequest('/api/admin/users?role=doctor&limit=1000');
+                // const doctors = response.data || [];
+
+                // --- Simulation only: Remove in production ---
+                const doctors = [
+                    { user_id: 'd001', full_name: 'แพทย์หญิง ปรีดา รักษาดี' },
+                    { user_id: 'd002', full_name: 'นายแพทย์ ชาญชัย เก่งกาจ' },
+                    { user_id: 'd003', full_name: 'แพทย์หญิง สุภาพร เมตตา' }
+                ];
+                // --- End Simulation ---
+
+                doctors.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.user_id;
+                    option.textContent = doctor.full_name || 'ไม่ทราบชื่อ';
+                    select.appendChild(option);
+                });
+                select.value = currentModalValue; // Restore previous selection
             } catch (error) {
                 console.error('Error loading doctors:', error);
-                showAlert(`ไม่สามารถโหลดรายชื่อแพทย์ได้: ${error.message}`, 'danger');
-                const select = document.getElementById('examDoctorSelect');
-                if (select) {
-                    select.innerHTML = '<option value="">-- เลือกแพทย์ (โหลดไม่สำเร็จ) --</option>';
-                }
+                showAlert('ไม่สามารถโหลดรายชื่อแพทย์ได้', 'danger');
+                select.innerHTML = '<option value="">ไม่สามารถโหลดรายชื่อแพทย์ได้</option>';
             }
         }
 
-        function populateDoctorSelect(doctors) {
-            const select = document.getElementById('examDoctorSelect');
-            if (!select) return;
-            
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">-- เลือกแพทย์ --</option>';
-            
-            doctors.forEach(doctor => {
-                const option = document.createElement('option');
-                option.value = doctor.user_id; // ใช้ user_id ตาม backend
-                option.textContent = doctor.full_name || 'ไม่ทราบชื่อ';
-                select.appendChild(option);
-            });
-            
-            if (currentValue) select.value = currentValue;
-        }
-
-        // Exam Actions
+        // --- Exam Actions ---
         function viewExamDetails(examId) {
             showAlert(`แสดงรายละเอียดการตรวจ ID: ${examId}`, 'info');
+            // Implement logic to fetch and display full exam details in a modal or new page.
+            // This would likely involve another API call: /api/admin/test-results/${examId}
         }
 
         async function editExam(examId) {
             currentExamId = examId;
-            document.getElementById('examModalTitle').innerHTML = '<i class="fas fa-edit"></i> แก้ไขผลการตรวจ';
-            document.getElementById('examForm').reset();
+            examModalTitle.innerHTML = '<i class="fas fa-edit"></i> แก้ไขผลการตรวจ';
+            examForm.reset();
             hideAllExamSections();
-
-            const modalElement = document.getElementById('examModal');
-            const modal = new bootstrap.Modal(modalElement);
-
+            
             try {
-                // ใช้ API endpoint จริงสำหรับดึงข้อมูลเฉพาะ exam
-                const examDetails = await makeAPIRequest(`/api/admin/special-eye-tests/${examId}`); 
-                
-                // Populate form fields
-                document.getElementById('examPatientSelect').value = examDetails.data.patient_id || '';
-                document.getElementById('examTypeSelect').value = examDetails.data.test_type || '';
-                document.getElementById('examDate').value = examDetails.data.test_date ? examDetails.data.test_date.split('T')[0] : '';
-                document.getElementById('examDoctorSelect').value = examDetails.data.doctor_id || '';
-                document.getElementById('examNotes').value = examDetails.data.notes || '';
+                showAlert(`กำลังโหลดข้อมูลการตรวจ ID: ${examId} สำหรับแก้ไข...`, 'info');
+                // In a real implementation, replace with actual API call to fetch single exam details
+                // const examData = await makeAPIRequest(`/api/admin/test-results/${examId}`);
 
-                handleExamTypeChange();
-                
-                if (examDetails.data.results) {
-                    const results = typeof examDetails.data.results === 'string' ? JSON.parse(examDetails.data.results) : examDetails.data.results;
-                    populateExamResultFields(examDetails.data.test_type, results);
+                // --- Simulation only: Find from sample data ---
+                const allSimulatedExams = generateSampleExams(totalExams * 2).data; // Get all sample data
+                const examData = allSimulatedExams.find(e => e.test_id === examId);
+                if (!examData) throw new Error('Exam not found in sample data.');
+                // --- End Simulation ---
+
+                // Populate form fields
+                document.getElementById('examPatientSelect').value = examData.patient_id || '';
+                document.getElementById('examTypeSelect').value = examData.test_type || '';
+                document.getElementById('examDate').value = examData.test_date;
+                document.getElementById('examDoctorSelect').value = examData.doctor_id || '';
+                document.getElementById('examNotes').value = examData.notes || '';
+
+                // Show and populate type-specific sections
+                handleExamTypeChange(); // This will show the correct section
+                if (examData.results) {
+                    for (const key in examData.results) {
+                        const inputElement = document.getElementById(key);
+                        if (inputElement) {
+                            inputElement.value = examData.results[key];
+                        }
+                    }
                 }
                 
-                modal.show();
-                showAlert(`โหลดข้อมูลการตรวจ ID: ${examId} เรียบร้อยแล้ว`, 'success');
+                examModal.show();
+                showAlert('โหลดข้อมูลการตรวจเรียบร้อยแล้ว', 'success');
 
             } catch (error) {
-                console.error('Error fetching exam details for edit:', error);
+                console.error('Error loading exam for edit:', error);
                 showAlert(`ไม่สามารถโหลดข้อมูลการตรวจสำหรับแก้ไขได้: ${error.message}`, 'danger');
-            }
-        }
-
-        function populateExamResultFields(testType, results) {
-            switch (testType) {
-                case 'OCT':
-                    document.getElementById('leftAvgRnfl').value = results.left_avg_rnfl || '';
-                    document.getElementById('rightAvgRnfl').value = results.right_avg_rnfl || '';
-                    document.getElementById('leftCupDiscRatio').value = results.left_cup_disc_ratio || '';
-                    document.getElementById('rightCupDiscRatio').value = results.right_cup_disc_ratio || '';
-                    break;
-                case 'CTVF':
-                    document.getElementById('leftEyeMd').value = results.left_eye_md || '';
-                    document.getElementById('rightEyeMd').value = results.right_eye_md || '';
-                    document.getElementById('leftEyeVfi').value = results.left_eye_vfi || '';
-                    document.getElementById('rightEyeVfi').value = results.right_eye_vfi || '';
-                    break;
-                case 'Pachymetry':
-                    document.getElementById('leftCornealThickness').value = results.left_corneal_thickness || '';
-                    document.getElementById('rightCornealThickness').value = results.right_corneal_thickness || '';
-                    break;
-                case 'Gonioscopy':
-                    document.getElementById('leftAngleGrade').value = results.left_angle_grade !== undefined && results.left_angle_grade !== null ? results.left_angle_grade : '';
-                    document.getElementById('rightAngleGrade').value = results.right_angle_grade !== undefined && results.right_angle_grade !== null ? results.right_angle_grade : '';
-                    break;
             }
         }
 
         function printExamResult(examId) {
             showAlert(`กำลังเตรียมพิมพ์ผลการตรวจ ID: ${examId}`, 'info');
-            
+            // In a real implementation, this would generate and print the report, possibly using a PDF library or backend service.
             setTimeout(() => {
-                showAlert('เตรียมการพิมพ์เรียบร้อยแล้ว', 'success');
+                showAlert('เตรียมการพิมพ์เรียบร้อยแล้ว (ฟังก์ชันจำลอง)', 'success');
             }, 2000);
         }
 
@@ -2103,14 +2099,17 @@
             
             try {
                 showAlert('กำลังลบผลการตรวจ...', 'info');
+                // In a real implementation, call DELETE API
+                // await makeAPIRequest(`/api/admin/test-results/${examId}`, { method: 'DELETE' });
                 
-                // ใช้ API endpoint จริงสำหรับลบ
-                await makeAPIRequest(`/api/admin/special-eye-tests/${examId}`, {
-                    method: 'DELETE'
-                });
-                
+                // --- Simulation only: Simulate deletion ---
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+                // In a real simulation, you'd remove from a local array if not reloading from server.
+                // For simplicity, we just reload all data.
+                // --- End Simulation ---
+
                 showAlert('ลบผลการตรวจเรียบร้อยแล้ว', 'success');
-                loadSpecialExams();
+                loadSpecialExams(); // Reload data after deletion
                 
             } catch (error) {
                 console.error('Error deleting exam:', error);
@@ -2118,18 +2117,17 @@
             }
         }
 
-        // Modal Functions
+        // --- Modal Functions ---
         function showAddExamModal() {
-            currentExamId = null;
-            document.getElementById('examModalTitle').innerHTML = '<i class="fas fa-plus"></i> เพิ่มผลการตรวจใหม่';
-            document.getElementById('examForm').reset();
-            hideAllExamSections();
+            currentExamId = null; // Clear ID for new entry
+            examModalTitle.innerHTML = '<i class="fas fa-plus"></i> เพิ่มผลการตรวจใหม่';
+            examForm.reset(); // Clear all form fields
+            hideAllExamSections(); // Hide all specific exam sections
             
             // Set today's date as default
             document.getElementById('examDate').valueAsDate = new Date();
             
-            const modal = new bootstrap.Modal(document.getElementById('examModal'));
-            modal.show();
+            examModal.show();
         }
 
         function handleExamTypeChange() {
@@ -2156,49 +2154,44 @@
         }
 
         async function saveExam() {
-            const form = document.getElementById('examForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
+            if (!examForm.checkValidity()) {
+                examForm.reportValidity(); // Show native browser validation messages
                 showAlert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วนและถูกต้อง', 'warning');
                 return;
             }
             
+            const originalText = saveExamBtn.innerHTML;
+            saveExamBtn.innerHTML = '<div class="loading-spinner"></div> กำลังบันทึก...';
+            saveExamBtn.disabled = true;
+            
             try {
-                const saveBtn = document.getElementById('saveExamBtn');
-                const originalText = saveBtn.innerHTML;
-                saveBtn.innerHTML = '<div class="loading-spinner"></div> กำลังบันทึก...';
-                saveBtn.disabled = true;
-                
                 const examData = collectExamData();
                 
-                let response;
-                if (currentExamId) {
-                    // Update existing exam
-                    response = await makeAPIRequest(`/api/admin/special-eye-tests/${currentExamId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(examData)
-                    });
-                } else {
-                    // Create new exam
-                    response = await makeAPIRequest('/api/admin/special-eye-tests', {
-                        method: 'POST',
-                        body: JSON.stringify(examData)
-                    });
-                }
+                // In a real implementation, call the API to save the exam
+                // const method = currentExamId ? 'PUT' : 'POST';
+                // const endpoint = currentExamId ? `/api/admin/test-results/${currentExamId}` : '/api/admin/test-results';
+                // const response = await makeAPIRequest(endpoint, {
+                //     method: method,
+                //     body: JSON.stringify(examData)
+                // });
+                
+                // --- Simulation only: Simulate API call ---
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+                console.log('Simulated API Call:', currentExamId ? 'UPDATE' : 'CREATE', examData);
+                // In a real simulation, you'd update a local array or database.
+                // --- End Simulation ---
                 
                 showAlert(currentExamId ? 'อัปเดตผลการตรวจเรียบร้อยแล้ว' : 'บันทึกผลการตรวจเรียบร้อยแล้ว', 'success');
                 
-                const modal = bootstrap.Modal.getInstance(document.getElementById('examModal'));
-                modal.hide();
-                loadSpecialExams();
+                examModal.hide(); // Close modal
+                loadSpecialExams(); // Reload data after saving
                 
             } catch (error) {
                 console.error('Error saving exam:', error);
                 showAlert(`ไม่สามารถบันทึกผลการตรวจได้: ${error.message}`, 'danger');
             } finally {
-                const saveBtn = document.getElementById('saveExamBtn');
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
+                saveExamBtn.innerHTML = originalText;
+                saveExamBtn.disabled = false;
             }
         }
 
@@ -2208,100 +2201,63 @@
                 patient_id: document.getElementById('examPatientSelect').value,
                 test_type: examType,
                 test_date: document.getElementById('examDate').value,
-                doctor_id: document.getElementById('examDoctorSelect').value || null,
-                notes: document.getElementById('examNotes').value,
-                visit_id: null // ตั้งค่าเป็น null ตาม backend
+                doctor_id: document.getElementById('examDoctorSelect').value,
+                notes: document.getElementById('examNotes').value
             };
             
-            // Collect type-specific results
-            data.results = {};
+            // Collect type-specific results, ensuring numbers are parsed
+            const results = {};
             switch (examType) {
                 case 'OCT':
-                    data.results.left_avg_rnfl = parseFloat(document.getElementById('leftAvgRnfl').value) || null;
-                    data.results.right_avg_rnfl = parseFloat(document.getElementById('rightAvgRnfl').value) || null;
-                    data.results.left_cup_disc_ratio = parseFloat(document.getElementById('leftCupDiscRatio').value) || null;
-                    data.results.right_cup_disc_ratio = parseFloat(document.getElementById('rightCupDiscRatio').value) || null;
+                    results.left_avg_rnfl = parseFloat(document.getElementById('leftAvgRnfl').value) || null;
+                    results.right_avg_rnfl = parseFloat(document.getElementById('rightAvgRnfl').value) || null;
+                    results.left_cup_disc_ratio = parseFloat(document.getElementById('leftCupDiscRatio').value) || null;
+                    results.right_cup_disc_ratio = parseFloat(document.getElementById('rightCupDiscRatio').value) || null;
                     break;
                 case 'CTVF':
-                    data.results.left_eye_md = parseFloat(document.getElementById('leftEyeMd').value) || null;
-                    data.results.right_eye_md = parseFloat(document.getElementById('rightEyeMd').value) || null;
-                    data.results.left_eye_vfi = parseFloat(document.getElementById('leftEyeVfi').value) || null;
-                    data.results.right_eye_vfi = parseFloat(document.getElementById('rightEyeVfi').value) || null;
+                    results.left_eye_md = parseFloat(document.getElementById('leftEyeMd').value) || null;
+                    results.right_eye_md = parseFloat(document.getElementById('rightEyeMd').value) || null;
+                    results.left_eye_vfi = parseFloat(document.getElementById('leftEyeVfi').value) || null;
+                    results.right_eye_vfi = parseFloat(document.getElementById('rightEyeVfi').value) || null;
                     break;
                 case 'Pachymetry':
-                    data.results.left_corneal_thickness = parseFloat(document.getElementById('leftCornealThickness').value) || null;
-                    data.results.right_corneal_thickness = parseFloat(document.getElementById('rightCornealThickness').value) || null;
+                    results.left_corneal_thickness = parseFloat(document.getElementById('leftCornealThickness').value) || null;
+                    results.right_corneal_thickness = parseFloat(document.getElementById('rightCornealThickness').value) || null;
                     break;
                 case 'Gonioscopy':
-                    data.results.left_angle_grade = parseInt(document.getElementById('leftAngleGrade').value) || null;
-                    data.results.right_angle_grade = parseInt(document.getElementById('rightAngleGrade').value) || null;
+                    results.left_angle_grade = document.getElementById('leftAngleGrade').value !== '' ? parseInt(document.getElementById('leftAngleGrade').value) : null;
+                    results.right_angle_grade = document.getElementById('rightAngleGrade').value !== '' ? parseInt(document.getElementById('rightAngleGrade').value) : null;
                     break;
             }
-            
-            // Calculate status based on results
-            data.status = determineOverallStatus(examType, data.results);
+            data.results = results; // Add results object to the main data
             
             return data;
         }
 
-        // Export and Report Functions
-        async function exportExams() {
-            try {
-                showAlert('กำลังสร้างไฟล์ Excel...', 'info');
-                const filters = getFilters();
-                const queryParams = new URLSearchParams(filters);
-                
-                // ใช้ API endpoint สำหรับ export (ถ้า backend รองรับ)
-                const response = await makeAPIRequest(`/api/admin/special-eye-tests/export?${queryParams}`, {
-                    method: 'GET'
-                });
-
-                if (response.blob) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `special_exams_${new Date().toISOString().slice(0, 10)}.xlsx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                    showAlert('ส่งออกไฟล์เรียบร้อยแล้ว', 'success');
-                } else {
-                    showAlert('ไม่สามารถส่งออกไฟล์ได้ในขณะนี้', 'warning');
-                }
-            } catch (error) {
-                console.error('Error exporting exams:', error);
-                showAlert(`ไม่สามารถส่งออกไฟล์ Excel ได้: ${error.message}`, 'danger');
-            }
+        // --- Export and Report Functions ---
+        function exportExams() {
+            showAlert('กำลังสร้างไฟล์ Excel...', 'info');
+            // In a real implementation, you'd likely make an API call to a backend service
+            // that generates the Excel file and provides a download link.
+            setTimeout(() => {
+                const filename = `ผลการตรวจพิเศษ_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                showAlert(`ส่งออกไฟล์ ${filename} เรียบร้อยแล้ว (ฟังก์ชันจำลอง)`, 'success');
+                // For a real download, you'd trigger a download like this:
+                // window.location.href = '/api/admin/export-exams?format=xlsx'; 
+            }, 2000);
         }
 
-        async function generateReport() {
-            try {
-                showAlert('กำลังสร้างรายงานสรุปผลการตรวจ...', 'info');
-                const filters = getFilters();
-                const queryParams = new URLSearchParams(filters);
-                
-                // ใช้ API endpoint สำหรับ report (ถ้า backend รองรับ)
-                const response = await makeAPIRequest(`/api/admin/special-eye-tests/report?${queryParams}`, {
-                    method: 'GET'
-                });
-
-                if (response.data && response.data.reportUrl) {
-                    window.open(response.data.reportUrl, '_blank');
-                    showAlert('รายงานถูกสร้างและเปิดในแท็บใหม่แล้ว', 'success');
-                } else {
-                    showAlert('สร้างรายงานเรียบร้อยแล้ว', 'success');
-                }
-            } catch (error) {
-                console.error('Error generating report:', error);
-                showAlert(`ไม่สามารถสร้างรายงานได้: ${error.message}`, 'danger');
-            }
+        function generateReport() {
+            showAlert('กำลังสร้างรายงานสรุปผลการตรวจ...', 'info');
+            // Similar to export, this would typically involve a backend service
+            // generating a comprehensive report (e.g., PDF)
+            setTimeout(() => {
+                showAlert('สร้างรายงานเรียบร้อยแล้ว (ฟังก์ชันจำลอง)', 'success');
+            }, 3000);
         }
 
         function applyFilters() {
-            currentPage = 1; 
+            currentPage = 1; // Always reset to first page when applying filters
             loadSpecialExams();
         }
 
@@ -2312,166 +2268,46 @@
             refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> กำลังรีเฟรช...';
             refreshBtn.disabled = true;
             
-            loadSpecialExams();
-            
-            setTimeout(() => {
+            loadSpecialExams().finally(() => {
+                // Ensure button state is reset even if load fails
                 refreshBtn.innerHTML = originalText;
                 refreshBtn.disabled = false;
                 showAlert('รีเฟรชข้อมูลเรียบร้อยแล้ว', 'success');
-            }, 1000);
+            });
         }
 
         function logoutUser() {
             localStorage.removeItem('token');
             localStorage.removeItem('username');
-            window.location.href = 'index.html';
+            localStorage.removeItem('userInitial'); // Clear user initial too
+            window.location.href = 'index.html'; // Redirect to login page
         }
 
-        // Input validation helpers
-        function setupInputValidation() {
-            // RNFL validation (normal range: 80-120 µm)
-            ['leftAvgRnfl', 'rightAvgRnfl'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value < 80 || value > 120) {
-                                this.style.borderColor = '#ef4444';
-                                this.title = 'ค่าผิดปกติ (ปกติ: 80-120 µm)';
-                            } else {
-                                this.style.borderColor = '#10b981';
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // Cup/Disc ratio validation (normal: < 0.6)
-            ['leftCupDiscRatio', 'rightCupDiscRatio'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value > 0.6) {
-                                this.style.borderColor = '#f59e0b';
-                                this.title = 'ค่าสูงกว่าปกติ (ปกติ: < 0.6)';
-                            } else {
-                                this.style.borderColor = '#10b981';
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // MD validation (normal: > -6 dB)
-            ['leftEyeMd', 'rightEyeMd'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value < -6) {
-                                this.style.borderColor = '#ef4444';
-                                this.title = 'ค่าผิดปกติ (ปกติ: > -6 dB)';
-                            } else {
-                                this.style.borderColor = '#10b981';
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // Corneal thickness validation (normal: 500-600 µm)
-            ['leftCornealThickness', 'rightCornealThickness'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value < 500) {
-                                this.style.borderColor = '#f59e0b';
-                                this.title = 'ค่าบางกว่าปกติ (ปกติ: 500-600 µm)';
-                            } else if (value > 600) {
-                                this.style.borderColor = '#f59e0b';
-                                this.title = 'ค่าหนากว่าปกติ (ปกติ: 500-600 µm)';
-                            } else {
-                                this.style.borderColor = '#10b981';
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // Gonioscopy Grade validation
-            ['leftAngleGrade', 'rightAngleGrade'].forEach(id => {
-                const select = document.getElementById(id);
-                if (select) {
-                    select.addEventListener('change', function() {
-                        const value = parseInt(this.value);
-                        if (!isNaN(value)) {
-                            if (value <= 1) {
-                                this.style.borderColor = '#ef4444';
-                                this.title = 'มุมแคบหรือปิด (อาจผิดปกติ)';
-                            } else if (value === 2) {
-                                this.style.borderColor = '#f59e0b';
-                                this.title = 'มุมแคบ (ขอบเขต)';
-                            } else {
-                                this.style.borderColor = '#10b981';
-                                this.title = 'มุมปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-        }
-
-        // Initialize Page
+        // --- Page Initialization ---
         document.addEventListener('DOMContentLoaded', function() {
             // Check authentication
             if (!checkAuthentication()) {
                 return;
             }
             
-            // Set username in header
-            const username = localStorage.getItem('username');
-            const userInitial = username ? username.charAt(0).toUpperCase() : 'A';
-            
-            document.getElementById('headerUsername').textContent = username || 'Admin User';
+            // Set username and initial in header
+            const username = localStorage.getItem('username') || 'Admin User';
+            const userInitial = username.charAt(0).toUpperCase();
+            document.getElementById('headerUsername').textContent = username;
             document.getElementById('userInitial').textContent = userInitial;
             
             // Profile dropdown toggle
-            document.getElementById('profile-toggle').addEventListener('click', function() {
+            document.getElementById('profile-toggle').addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent document click from closing it immediately
                 document.getElementById('profile-dropdown-menu').classList.toggle('show');
             });
             
             // Close dropdown when clicking outside
             window.addEventListener('click', function(e) {
-                if (!e.target.matches('#profile-toggle') && !e.target.matches('#userInitial')) {
-                    const dropdown = document.getElementById('profile-dropdown-menu');
-                    if (dropdown.classList.contains('show')) {
-                        dropdown.classList.remove('show');
-                    }
+                const dropdown = document.getElementById('profile-dropdown-menu');
+                const profileToggle = document.getElementById('profile-toggle');
+                if (!profileToggle.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
                 }
             });
             
@@ -2492,7 +2328,7 @@
                 logoutUser();
             });
             
-            // Filter change events
+            // Filter change events (apply filters automatically)
             document.getElementById('patientFilter').addEventListener('change', applyFilters);
             document.getElementById('examTypeFilter').addEventListener('change', applyFilters);
             document.getElementById('statusFilter').addEventListener('change', applyFilters);
@@ -2505,11 +2341,11 @@
             // Limit select change
             document.getElementById('limitSelect').addEventListener('change', function() {
                 currentLimit = parseInt(this.value);
-                currentPage = 1;
+                currentPage = 1; // Reset page when limit changes
                 loadSpecialExams();
             });
             
-            // Search input
+            // Search input (on Enter key)
             document.getElementById('searchInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     applyFilters();
@@ -2519,79 +2355,266 @@
             // Set default date filters (last 30 days)
             const today = new Date();
             const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
             
-            document.getElementById('endDateFilter').valueAsDate = today;
-            document.getElementById('startDateFilter').valueAsDate = thirtyDaysAgo;
-            
-            // Setup input validation
-            setupInputValidation();
+            document.getElementById('endDateFilter').value = today.toISOString().slice(0, 10); // YYYY-MM-DD
+            document.getElementById('startDateFilter').value = thirtyDaysAgo.toISOString().slice(0, 10);
             
             // Load initial data
             loadPatients();
             loadDoctors();
-            loadSpecialExams();
-            
+            loadSpecialExams(); // Initial load of exams
+
             // Show welcome message
             setTimeout(() => {
                 showAlert('ระบบผลการตรวจพิเศษพร้อมใช้งาน', 'success');
             }, 1000);
         });
 
-        // Handle modal events
-        document.getElementById('examModal').addEventListener('shown.bs.modal', function() {
-            setupInputValidation();
-        });
-
-        document.getElementById('examModal').addEventListener('hidden.bs.modal', function() {
-            // Reset validation styles when modal closes
-            document.querySelectorAll('#examForm input, #examForm select, #examForm textarea').forEach(input => {
-                input.style.borderColor = '';
-                input.title = '';
-            });
-        });
-
-        // Handle page visibility change
+        // Handle page visibility change (for refreshing data when tab becomes active)
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                loadSpecialExams();
+                loadSpecialExams(); // Refresh data
             }
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // Ctrl+N for new exam
-            if (e.ctrlKey && e.key === 'n') {
+            if (e.ctrlKey && e.key === 'n') { // Ctrl+N for new exam
                 e.preventDefault();
                 showAddExamModal();
             }
             
-            // Ctrl+R or F5 for refresh
-            if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+            if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') { // Ctrl+R or F5 for refresh
                 e.preventDefault();
                 refreshExams();
             }
             
-            // Escape to close modal
-            if (e.key === 'Escape') {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('examModal'));
-                if (modal) {
-                    modal.hide();
-                }
+            if (e.key === 'Escape') { // Escape to close modal
+                examModal.hide(); // Use the Bootstrap modal instance
             }
         });
 
-        // Global error handler
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-            showAlert('เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง', 'danger');
+        // Auto-save draft functionality (for long forms)
+        let autoSaveTimeout;
+        document.getElementById('examModal').addEventListener('shown.bs.modal', function() {
+            // Setup auto-save listeners when modal is shown
+            const formInputs = document.querySelectorAll('#examForm input, #examForm select, #examForm textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => {
+                        const formData = collectExamData();
+                        localStorage.setItem('examDraft', JSON.stringify(formData));
+                        console.log('Draft saved:', formData); // For debugging
+                    }, 2000); // Save every 2 seconds of inactivity
+                });
+            });
+            loadDraft(); // Attempt to load draft when modal is shown
         });
 
-        // Handle unhandled promise rejections
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('Unhandled promise rejection:', e.reason);
-            showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', 'warning');
+        document.getElementById('examModal').addEventListener('hidden.bs.modal', function() {
+            // Clear draft and timeout when modal is hidden
+            localStorage.removeItem('examDraft');
+            clearTimeout(autoSaveTimeout);
+            // Also reset validation styles when modal is closed
+            examForm.classList.remove('was-validated');
+            document.querySelectorAll('#examForm input, #examForm select, #examForm textarea').forEach(el => {
+                el.style.borderColor = ''; // Clear custom border colors
+                el.title = ''; // Clear custom titles
+            });
         });
+
+        function loadDraft() {
+            const draft = localStorage.getItem('examDraft');
+            if (draft) {
+                try {
+                    const data = JSON.parse(draft);
+                    // Check if there's actual data in the draft beyond just empty fields
+                    const hasMeaningfulData = Object.values(data).some(value => value !== null && value !== '' && (typeof value === 'object' ? Object.keys(value).length > 0 : true));
+
+                    if (hasMeaningfulData && confirm('พบข้อมูลที่บันทึกไว้ คุณต้องการโหลดข้อมูลนี้เพื่อดำเนินการต่อหรือไม่?')) {
+                        // Populate form with draft data
+                        Object.keys(data).forEach(key => {
+                            const element = document.getElementById(key);
+                            if (element) {
+                                if (key === 'results' && typeof data[key] === 'object') {
+                                    // Handle nested results object
+                                    for (const resultKey in data[key]) {
+                                        const resultElement = document.getElementById(resultKey);
+                                        if (resultElement) {
+                                            resultElement.value = data[key][resultKey];
+                                        }
+                                    }
+                                } else {
+                                    element.value = data[key];
+                                }
+                            }
+                        });
+                        handleExamTypeChange(); // Ensure correct section is shown after loading draft
+                        showAlert('โหลดข้อมูลฉบับร่างเรียบร้อยแล้ว', 'info');
+                        // No need to remove draft here; it will be removed on modal hide or upon successful save
+                    } else {
+                        localStorage.removeItem('examDraft'); // Clear if user declines or no meaningful data
+                    }
+                } catch (error) {
+                    console.error('Error loading draft:', error);
+                    showAlert('ไม่สามารถโหลดข้อมูลฉบับร่างได้ เนื่องจากข้อมูลเสียหาย', 'danger');
+                    localStorage.removeItem('examDraft'); // Clear corrupted draft
+                }
+            }
+        }
+
+        // Input validation helpers and setup
+        function setupInputValidation() {
+            // RNFL validation (normal range: 80-120 µm)
+            ['leftAvgRnfl', 'rightAvgRnfl'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', function() { // Use 'input' for real-time feedback
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 80 || value > 120) {
+                                this.style.borderColor = '#ef4444'; // Danger color
+                                this.title = 'ค่าผิดปกติ (ปกติ: 80-120 µm)';
+                            } else {
+                                this.style.borderColor = '#10b981'; // Success color
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = ''; // Reset if not a number
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // Cup/Disc ratio validation (normal: < 0.6, borderline: 0.6-0.7, abnormal: > 0.7)
+            ['leftCupDiscRatio', 'rightCupDiscRatio'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value > 0.7) {
+                                this.style.borderColor = '#ef4444'; // Danger
+                                this.title = 'ค่าผิดปกติ (ปกติ: < 0.6)';
+                            } else if (value >= 0.6 && value <= 0.7) {
+                                this.style.borderColor = '#f59e0b'; // Warning
+                                this.title = 'ค่าขอบเขต (ปกติ: < 0.6)';
+                            } else {
+                                this.style.borderColor = '#10b981'; // Success
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // MD validation (normal: > -6 dB, warning: -6 to -10 dB, abnormal: < -10 dB)
+            ['leftEyeMd', 'rightEyeMd'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < -10) {
+                                this.style.borderColor = '#ef4444'; // Danger
+                                this.title = 'ค่าผิดปกติ (ปกติ: > -6 dB)';
+                            } else if (value >= -10 && value < -6) {
+                                this.style.borderColor = '#f59e0b'; // Warning
+                                this.title = 'ค่าขอบเขต (ปกติ: > -6 dB)';
+                            } else {
+                                this.style.borderColor = '#10b981'; // Success
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // VFI validation (normal: > 80%, warning: 60-80%, abnormal: < 60%)
+            ['leftEyeVfi', 'rightEyeVfi'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 60) {
+                                this.style.borderColor = '#ef4444'; // Danger
+                                this.title = 'ค่าผิดปกติ (ปกติ: > 80%)';
+                            } else if (value >= 60 && value < 80) {
+                                this.style.borderColor = '#f59e0b'; // Warning
+                                this.title = 'ค่าขอบเขต (ปกติ: > 80%)';
+                            } else {
+                                this.style.borderColor = '#10b981'; // Success
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // Corneal thickness validation (normal: 500-600 µm, warning: 450-500 or 600-650)
+            ['leftCornealThickness', 'rightCornealThickness'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 450 || value > 650) {
+                                this.style.borderColor = '#ef4444'; // Danger
+                                this.title = 'ค่าผิดปกติ (ปกติ: 500-600 µm)';
+                            } else if ((value >= 450 && value < 500) || (value > 600 && value <= 650)) {
+                                this.style.borderColor = '#f59e0b'; // Warning
+                                this.title = 'ค่าขอบเขต (ปกติ: 500-600 µm)';
+                            } else {
+                                this.style.borderColor = '#10b981'; // Success
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // Gonioscopy Angle Grade validation (normal: Grade 2-4, abnormal: Grade 0-1)
+            ['leftAngleGrade', 'rightAngleGrade'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.addEventListener('change', function() {
+                        const value = parseInt(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 2) {
+                                this.style.borderColor = '#ef4444'; // Danger
+                                this.title = 'ค่าผิดปกติ (ปกติ: Grade 2-4)';
+                            } else {
+                                this.style.borderColor = '#10b981'; // Success
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Initial setup for input validation (applies listeners to form fields)
+        setupInputValidation();
+
     </script>
 </body>
-</html> 
+</html>
