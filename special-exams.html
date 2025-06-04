@@ -7,7 +7,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* ... (Your existing CSS here, no changes needed) ... */
         :root {
             --primary-color: #324047;
             --primary-dark: #273238;
@@ -1426,14 +1425,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Configuration
-        // **IMPORTANT**: CHANGE THIS TO YOUR ACTUAL BACKEND URL
+        // Configuration - ใช้ backend จริงตามโค้ดที่ให้มา
         const API_BASE_URL = 'http://localhost:3002'; 
         let authToken = '';
         let currentPage = 1;
         let currentLimit = 20;
         let currentExamId = null;
-        // let examTypes = []; // Not directly used in this script, but good to keep if you fetch dynamically
 
         // Authentication Functions
         function getAuthToken() {
@@ -1471,22 +1468,80 @@
             
             try {
                 const response = await fetch(url, finalOptions);
-                // Handle file downloads separately, don't parse JSON if it's a file
-                if (finalOptions.method === 'GET' && endpoint.includes('/export')) {
-                    return response; // Return response directly for blob handling
-                }
-
-                const data = await response.json();
                 
-                if (!response.ok) {
-                    throw new Error(data.message || `API request failed with status ${response.status}`);
+                // Handle different response types
+                if (response.headers.get('content-type')?.includes('application/json')) {
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || `API request failed with status ${response.status}`);
+                    }
+                    
+                    return data;
+                } else {
+                    // Handle non-JSON responses (like file downloads)
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    return response;
                 }
-                
-                return data;
             } catch (error) {
                 console.error('API Error on endpoint', endpoint, ':', error);
                 throw error;
             }
+        }
+
+        // Status determination function for frontend
+        function determineOverallStatus(testType, results) {
+            if (!results || Object.keys(results).length === 0) {
+                return 'pending';
+            }
+
+            let hasAbnormal = false;
+            let hasBorderline = false;
+
+            switch (testType) {
+                case 'OCT':
+                    if (results.left_avg_rnfl && results.left_avg_rnfl < 80) hasAbnormal = true;
+                    if (results.right_avg_rnfl && results.right_avg_rnfl < 80) hasAbnormal = true;
+                    if (results.left_cup_disc_ratio && results.left_cup_disc_ratio > 0.7) hasAbnormal = true;
+                    if (results.right_cup_disc_ratio && results.right_cup_disc_ratio > 0.7) hasAbnormal = true;
+                    
+                    if (results.left_avg_rnfl && results.left_avg_rnfl >= 80 && results.left_avg_rnfl <= 90) hasBorderline = true;
+                    if (results.right_avg_rnfl && results.right_avg_rnfl >= 80 && results.right_avg_rnfl <= 90) hasBorderline = true;
+                    if (results.left_cup_disc_ratio && results.left_cup_disc_ratio > 0.6 && results.left_cup_disc_ratio <= 0.7) hasBorderline = true;
+                    if (results.right_cup_disc_ratio && results.right_cup_disc_ratio > 0.6 && results.right_cup_disc_ratio <= 0.7) hasBorderline = true;
+                    break;
+                    
+                case 'CTVF':
+                    if (results.left_eye_md && results.left_eye_md < -6) hasAbnormal = true;
+                    if (results.right_eye_md && results.right_eye_md < -6) hasAbnormal = true;
+                    if (results.left_eye_vfi && results.left_eye_vfi < 70) hasAbnormal = true;
+                    if (results.right_eye_vfi && results.right_eye_vfi < 70) hasAbnormal = true;
+                    
+                    if (results.left_eye_md && results.left_eye_md >= -6 && results.left_eye_md <= -3) hasBorderline = true;
+                    if (results.right_eye_md && results.right_eye_md >= -6 && results.right_eye_md <= -3) hasBorderline = true;
+                    if (results.left_eye_vfi && results.left_eye_vfi >= 70 && results.left_eye_vfi <= 80) hasBorderline = true;
+                    if (results.right_eye_vfi && results.right_eye_vfi >= 70 && results.right_eye_vfi <= 80) hasBorderline = true;
+                    break;
+                    
+                case 'Pachymetry':
+                    if (results.left_corneal_thickness && results.left_corneal_thickness < 480) hasAbnormal = true;
+                    if (results.right_corneal_thickness && results.right_corneal_thickness < 480) hasAbnormal = true;
+                    
+                    if (results.left_corneal_thickness && results.left_corneal_thickness >= 480 && results.left_corneal_thickness <= 520) hasBorderline = true;
+                    if (results.right_corneal_thickness && results.right_corneal_thickness >= 480 && results.right_corneal_thickness <= 520) hasBorderline = true;
+                    break;
+                    
+                case 'Gonioscopy':
+                    if (results.left_angle_grade !== undefined && results.left_angle_grade !== null && results.left_angle_grade === 2) hasBorderline = true;
+                    if (results.right_angle_grade !== undefined && results.right_angle_grade !== null && results.right_angle_grade === 2) hasBorderline = true;
+                    break;
+            }
+
+            if (hasAbnormal) return 'abnormal';
+            if (hasBorderline) return 'borderline';
+            return 'normal';
         }
 
         // UI Helper Functions
@@ -1553,8 +1608,8 @@
                 'normal': 'normal',
                 'abnormal': 'abnormal',
                 'borderline': 'borderline',
-                'pending': 'pending', // Added pending status for UI
-                'deleted': 'pending' // Treat deleted as pending/archived in UI
+                'pending': 'pending',
+                'deleted': 'pending'
             };
             return classes[status] || 'pending';
         }
@@ -1565,7 +1620,7 @@
                 'abnormal': 'ผิดปกติ',
                 'borderline': 'ขอบเขต',
                 'pending': 'รอผล',
-                'deleted': 'ลบแล้ว' // Added deleted status for UI
+                'deleted': 'ลบแล้ว'
             };
             return labels[status] || status;
         }
@@ -1590,10 +1645,15 @@
                     ...filters
                 });
 
-                // **CHANGE API ENDPOINT HERE**
+                // ใช้ API endpoint จริงจาก backend
                 const response = await makeAPIRequest(`/api/admin/special-eye-tests?${queryParams}`); 
                 const exams = response.data || [];
-                const pagination = response.pagination || { page: 1, limit: exams.length, total: exams.length, totalPages: 1 }; // Fallback for pagination
+                const pagination = response.pagination || { 
+                    page: currentPage, 
+                    limit: currentLimit, 
+                    total: exams.length, 
+                    totalPages: Math.ceil(exams.length / currentLimit) 
+                };
                 
                 displaySpecialExams(exams);
                 updateExamStats(exams); 
@@ -1609,15 +1669,17 @@
                         <p class="text-muted">${error.message}. กรุณาลองใหม่อีกครั้ง</p>
                     </div>
                 `;
-                document.getElementById('totalExamsCount').textContent = 'N/A';
-                document.getElementById('octExamsCount').textContent = 'N/A';
-                document.getElementById('abnormalExamsCount').textContent = 'N/A';
-                document.getElementById('thisMonthExamsCount').textContent = 'N/A';
+                updateStatsWithError();
                 document.getElementById('paginationInfo').textContent = 'แสดง 0 - 0 จาก 0 รายการ';
             }
         }
 
-        // Removed generateSampleExams and generateSampleResults
+        function updateStatsWithError() {
+            document.getElementById('totalExamsCount').textContent = 'N/A';
+            document.getElementById('octExamsCount').textContent = 'N/A';
+            document.getElementById('abnormalExamsCount').textContent = 'N/A';
+            document.getElementById('thisMonthExamsCount').textContent = 'N/A';
+        }
 
         function getFilters() {
             const filters = {};
@@ -1718,7 +1780,7 @@
             
             let html = '<div class="exam-results"><h6>ผลการตรวจ</h6>';
             
-            // Ensure results is an object, not a string
+            // Parse results if it's a string
             const parsedResults = typeof results === 'string' ? JSON.parse(results) : results;
 
             switch (examType) {
@@ -1855,11 +1917,10 @@
             }
             
             // Add page numbers
-            const maxPageButtons = 5; // Max number of page buttons to show
+            const maxPageButtons = 5;
             let startPage = Math.max(1, pagination.page - Math.floor(maxPageButtons / 2));
             let endPage = Math.min(pagination.totalPages, startPage + maxPageButtons - 1);
 
-            // Adjust startPage if we're near the end
             if (endPage - startPage + 1 < maxPageButtons) {
                 startPage = Math.max(1, endPage - maxPageButtons + 1);
             }
@@ -1867,7 +1928,6 @@
             for (let i = startPage; i <= endPage; i++) {
                 buttonsHTML += `<button class="btn ${i === pagination.page ? 'btn-primary' : 'btn-outline-primary'} me-2" onclick="changePage(${i})">${i}</button>`;
             }
-
 
             if (pagination.page < (pagination.totalPages || 1)) {
                 buttonsHTML += `<button class="btn btn-outline-primary" onclick="changePage(${pagination.page + 1})">ถัดไป</button>`;
@@ -1881,7 +1941,7 @@
             loadSpecialExams();
         }
 
-        // Patient and Doctor Loading Functions
+        // Patient and Doctor Loading Functions - ใช้ API endpoint จริง
         async function loadPatients() {
             try {
                 const response = await makeAPIRequest('/api/admin/users?role=patient&limit=1000');
@@ -1919,7 +1979,7 @@
                 
                 patients.forEach(patient => {
                     const option = document.createElement('option');
-                    option.value = patient.user_id; // patient_id in DB is user_id
+                    option.value = patient.user_id; // ใช้ user_id ตาม backend
                     option.textContent = `${patient.full_name || 'ไม่ทราบชื่อ'} (HN: ${patient.hn || 'N/A'})`;
                     select.appendChild(option);
                 });
@@ -1954,7 +2014,7 @@
             
             doctors.forEach(doctor => {
                 const option = document.createElement('option');
-                option.value = doctor.user_id; // doctor_id in DB is user_id
+                option.value = doctor.user_id; // ใช้ user_id ตาม backend
                 option.textContent = doctor.full_name || 'ไม่ทราบชื่อ';
                 select.appendChild(option);
             });
@@ -1964,19 +2024,7 @@
 
         // Exam Actions
         function viewExamDetails(examId) {
-            showAlert(`แสดงรายละเอียดการตรวจ ID: ${examId} (ฟังก์ชันนี้จะเปิด Modal แสดงรายละเอียด)`, 'info');
-            // A more complete implementation would fetch the specific exam details and display them in a read-only modal.
-            // Example:
-            // async function viewExamDetails(examId) {
-            //     try {
-            //         const examDetails = await makeAPIRequest(`/api/admin/special-eye-tests/${examId}`);
-            //         // Then populate a read-only modal with examDetails
-            //         // Example: document.getElementById('viewModalPatientName').textContent = examDetails.patient_name;
-            //         // new bootstrap.Modal(document.getElementById('viewExamDetailsModal')).show();
-            //     } catch (error) {
-            //         showAlert(`ไม่สามารถโหลดรายละเอียดการตรวจได้: ${error.message}`, 'danger');
-            //     }
-            // }
+            showAlert(`แสดงรายละเอียดการตรวจ ID: ${examId}`, 'info');
         }
 
         async function editExam(examId) {
@@ -1989,49 +2037,21 @@
             const modal = new bootstrap.Modal(modalElement);
 
             try {
-                showAlert(`กำลังโหลดข้อมูลการตรวจ ID: ${examId} สำหรับแก้ไข...`, 'info');
-                // **CHANGE API ENDPOINT HERE**
+                // ใช้ API endpoint จริงสำหรับดึงข้อมูลเฉพาะ exam
                 const examDetails = await makeAPIRequest(`/api/admin/special-eye-tests/${examId}`); 
                 
-                // Populate form fields with fetched data
-                document.getElementById('examPatientSelect').value = examDetails.patient_id || '';
-                document.getElementById('examTypeSelect').value = examDetails.test_type || '';
-                // Ensure date is in YYYY-MM-DD format for input type="date"
-                document.getElementById('examDate').value = examDetails.test_date ? examDetails.test_date.split('T')[0] : '';
-                document.getElementById('examDoctorSelect').value = examDetails.doctor_id || '';
-                document.getElementById('examNotes').value = examDetails.notes || '';
+                // Populate form fields
+                document.getElementById('examPatientSelect').value = examDetails.data.patient_id || '';
+                document.getElementById('examTypeSelect').value = examDetails.data.test_type || '';
+                document.getElementById('examDate').value = examDetails.data.test_date ? examDetails.data.test_date.split('T')[0] : '';
+                document.getElementById('examDoctorSelect').value = examDetails.data.doctor_id || '';
+                document.getElementById('examNotes').value = examDetails.data.notes || '';
 
-                // Show and populate specific exam results section
-                handleExamTypeChange(); // This will show the correct section based on examTypeSelect value
-                if (examDetails.results) {
-                    const results = typeof examDetails.results === 'string' ? JSON.parse(examDetails.results) : examDetails.results; // Ensure results is an object
-                    switch (examDetails.test_type) {
-                        case 'OCT':
-                            document.getElementById('leftAvgRnfl').value = results.left_avg_rnfl || '';
-                            document.getElementById('rightAvgRnfl').value = results.right_avg_rnfl || '';
-                            document.getElementById('leftCupDiscRatio').value = results.left_cup_disc_ratio || '';
-                            document.getElementById('rightCupDiscRatio').value = results.right_cup_disc_ratio || '';
-                            break;
-                        case 'CTVF':
-                            document.getElementById('leftEyeMd').value = results.left_eye_md || '';
-                            document.getElementById('rightEyeMd').value = results.right_eye_md || '';
-                            document.getElementById('leftEyeVfi').value = results.left_eye_vfi || '';
-                            document.getElementById('rightEyeVfi').value = results.right_eye_vfi || '';
-                            break;
-                        case 'Pachymetry':
-                            document.getElementById('leftCornealThickness').value = results.left_corneal_thickness || '';
-                            document.getElementById('rightCornealThickness').value = results.right_corneal_thickness || '';
-                            break;
-                        case 'Gonioscopy':
-                            // Handle undefined/null explicitly as 0 is a valid grade
-                            document.getElementById('leftAngleGrade').value = results.left_angle_grade !== undefined && results.left_angle_grade !== null ? results.left_angle_grade : '';
-                            document.getElementById('rightAngleGrade').value = results.right_angle_grade !== undefined && results.right_angle_grade !== null ? results.right_angle_grade : '';
-                            break;
-                    }
-                    // Trigger validation on loaded inputs if needed
-                    document.querySelectorAll('.exam-section input, .exam-section select').forEach(input => {
-                        input.dispatchEvent(new Event('blur')); // Trigger blur to run validation logic
-                    });
+                handleExamTypeChange();
+                
+                if (examDetails.data.results) {
+                    const results = typeof examDetails.data.results === 'string' ? JSON.parse(examDetails.data.results) : examDetails.data.results;
+                    populateExamResultFields(examDetails.data.test_type, results);
                 }
                 
                 modal.show();
@@ -2043,10 +2063,34 @@
             }
         }
 
+        function populateExamResultFields(testType, results) {
+            switch (testType) {
+                case 'OCT':
+                    document.getElementById('leftAvgRnfl').value = results.left_avg_rnfl || '';
+                    document.getElementById('rightAvgRnfl').value = results.right_avg_rnfl || '';
+                    document.getElementById('leftCupDiscRatio').value = results.left_cup_disc_ratio || '';
+                    document.getElementById('rightCupDiscRatio').value = results.right_cup_disc_ratio || '';
+                    break;
+                case 'CTVF':
+                    document.getElementById('leftEyeMd').value = results.left_eye_md || '';
+                    document.getElementById('rightEyeMd').value = results.right_eye_md || '';
+                    document.getElementById('leftEyeVfi').value = results.left_eye_vfi || '';
+                    document.getElementById('rightEyeVfi').value = results.right_eye_vfi || '';
+                    break;
+                case 'Pachymetry':
+                    document.getElementById('leftCornealThickness').value = results.left_corneal_thickness || '';
+                    document.getElementById('rightCornealThickness').value = results.right_corneal_thickness || '';
+                    break;
+                case 'Gonioscopy':
+                    document.getElementById('leftAngleGrade').value = results.left_angle_grade !== undefined && results.left_angle_grade !== null ? results.left_angle_grade : '';
+                    document.getElementById('rightAngleGrade').value = results.right_angle_grade !== undefined && results.right_angle_grade !== null ? results.right_angle_grade : '';
+                    break;
+            }
+        }
+
         function printExamResult(examId) {
             showAlert(`กำลังเตรียมพิมพ์ผลการตรวจ ID: ${examId}`, 'info');
             
-            // In a real implementation, this would generate and print the report
             setTimeout(() => {
                 showAlert('เตรียมการพิมพ์เรียบร้อยแล้ว', 'success');
             }, 2000);
@@ -2060,7 +2104,7 @@
             try {
                 showAlert('กำลังลบผลการตรวจ...', 'info');
                 
-                // **CHANGE API ENDPOINT HERE**
+                // ใช้ API endpoint จริงสำหรับลบ
                 await makeAPIRequest(`/api/admin/special-eye-tests/${examId}`, {
                     method: 'DELETE'
                 });
@@ -2128,7 +2172,6 @@
                 const examData = collectExamData();
                 
                 let response;
-                // **CHANGE API ENDPOINT HERE**
                 if (currentExamId) {
                     // Update existing exam
                     response = await makeAPIRequest(`/api/admin/special-eye-tests/${currentExamId}`, {
@@ -2165,14 +2208,12 @@
                 patient_id: document.getElementById('examPatientSelect').value,
                 test_type: examType,
                 test_date: document.getElementById('examDate').value,
-                doctor_id: document.getElementById('examDoctorSelect').value || null, // Ensure null for empty
+                doctor_id: document.getElementById('examDoctorSelect').value || null,
                 notes: document.getElementById('examNotes').value,
-                // Assuming you've altered SpecialEyeTests table to include uploaded_by and status
-                // uploaded_by will be set by backend based on JWT
-                // status will be calculated by backend
+                visit_id: null // ตั้งค่าเป็น null ตาม backend
             };
             
-            // Collect type-specific results into a 'results' object
+            // Collect type-specific results
             data.results = {};
             switch (examType) {
                 case 'OCT':
@@ -2192,12 +2233,13 @@
                     data.results.right_corneal_thickness = parseFloat(document.getElementById('rightCornealThickness').value) || null;
                     break;
                 case 'Gonioscopy':
-                    data.results.left_angle_grade = parseInt(document.getElementById('leftAngleGrade').value) || null; // Use parseInt for grades
+                    data.results.left_angle_grade = parseInt(document.getElementById('leftAngleGrade').value) || null;
                     data.results.right_angle_grade = parseInt(document.getElementById('rightAngleGrade').value) || null;
                     break;
             }
-            // For now, visit_id is not collected from frontend. Backend might set it to NULL or link to a default.
-            data.visit_id = null; // Assuming visit_id is now nullable in DB and not directly from frontend.
+            
+            // Calculate status based on results
+            data.status = determineOverallStatus(examType, data.results);
             
             return data;
         }
@@ -2209,37 +2251,26 @@
                 const filters = getFilters();
                 const queryParams = new URLSearchParams(filters);
                 
-                // **CHANGE API ENDPOINT HERE**
+                // ใช้ API endpoint สำหรับ export (ถ้า backend รองรับ)
                 const response = await makeAPIRequest(`/api/admin/special-eye-tests/export?${queryParams}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
+                    method: 'GET'
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to export data.');
+                if (response.blob) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `special_exams_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showAlert('ส่งออกไฟล์เรียบร้อยแล้ว', 'success');
+                } else {
+                    showAlert('ไม่สามารถส่งออกไฟล์ได้ในขณะนี้', 'warning');
                 }
-
-                const contentDisposition = response.headers.get('Content-Disposition');
-                let filename = `special_exams_${new Date().toISOString().slice(0, 10)}.xlsx`;
-                if (contentDisposition && contentDisposition.includes('filename=')) {
-                    filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
-                }
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-
-                showAlert(`ส่งออกไฟล์ ${filename} เรียบร้อยแล้ว`, 'success');
             } catch (error) {
                 console.error('Error exporting exams:', error);
                 showAlert(`ไม่สามารถส่งออกไฟล์ Excel ได้: ${error.message}`, 'danger');
@@ -2252,16 +2283,16 @@
                 const filters = getFilters();
                 const queryParams = new URLSearchParams(filters);
                 
-                // **CHANGE API ENDPOINT HERE** (Backend should provide this)
+                // ใช้ API endpoint สำหรับ report (ถ้า backend รองรับ)
                 const response = await makeAPIRequest(`/api/admin/special-eye-tests/report?${queryParams}`, {
                     method: 'GET'
                 });
 
-                if (response.reportUrl) { // Assuming backend returns a URL to the report
-                    window.open(response.reportUrl, '_blank');
+                if (response.data && response.data.reportUrl) {
+                    window.open(response.data.reportUrl, '_blank');
                     showAlert('รายงานถูกสร้างและเปิดในแท็บใหม่แล้ว', 'success');
                 } else {
-                    showAlert('สร้างรายงานเรียบร้อยแล้ว (แต่ไม่ได้เปิดอัตโนมัติ อาจต้องดาวน์โหลดเอง)', 'success');
+                    showAlert('สร้างรายงานเรียบร้อยแล้ว', 'success');
                 }
             } catch (error) {
                 console.error('Error generating report:', error);
@@ -2293,7 +2324,126 @@
         function logoutUser() {
             localStorage.removeItem('token');
             localStorage.removeItem('username');
-            window.location.href = 'index.html'; // Redirect to login page
+            window.location.href = 'index.html';
+        }
+
+        // Input validation helpers
+        function setupInputValidation() {
+            // RNFL validation (normal range: 80-120 µm)
+            ['leftAvgRnfl', 'rightAvgRnfl'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 80 || value > 120) {
+                                this.style.borderColor = '#ef4444';
+                                this.title = 'ค่าผิดปกติ (ปกติ: 80-120 µm)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // Cup/Disc ratio validation (normal: < 0.6)
+            ['leftCupDiscRatio', 'rightCupDiscRatio'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value > 0.6) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'ค่าสูงกว่าปกติ (ปกติ: < 0.6)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // MD validation (normal: > -6 dB)
+            ['leftEyeMd', 'rightEyeMd'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < -6) {
+                                this.style.borderColor = '#ef4444';
+                                this.title = 'ค่าผิดปกติ (ปกติ: > -6 dB)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // Corneal thickness validation (normal: 500-600 µm)
+            ['leftCornealThickness', 'rightCornealThickness'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            if (value < 500) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'ค่าบางกว่าปกติ (ปกติ: 500-600 µm)';
+                            } else if (value > 600) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'ค่าหนากว่าปกติ (ปกติ: 500-600 µm)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'ค่าปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
+
+            // Gonioscopy Grade validation
+            ['leftAngleGrade', 'rightAngleGrade'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.addEventListener('change', function() {
+                        const value = parseInt(this.value);
+                        if (!isNaN(value)) {
+                            if (value <= 1) {
+                                this.style.borderColor = '#ef4444';
+                                this.title = 'มุมแคบหรือปิด (อาจผิดปกติ)';
+                            } else if (value === 2) {
+                                this.style.borderColor = '#f59e0b';
+                                this.title = 'มุมแคบ (ขอบเขต)';
+                            } else {
+                                this.style.borderColor = '#10b981';
+                                this.title = 'มุมปกติ';
+                            }
+                        } else {
+                            this.style.borderColor = '';
+                            this.title = '';
+                        }
+                    });
+                }
+            });
         }
 
         // Initialize Page
@@ -2374,6 +2524,9 @@
             document.getElementById('endDateFilter').valueAsDate = today;
             document.getElementById('startDateFilter').valueAsDate = thirtyDaysAgo;
             
+            // Setup input validation
+            setupInputValidation();
+            
             // Load initial data
             loadPatients();
             loadDoctors();
@@ -2383,6 +2536,19 @@
             setTimeout(() => {
                 showAlert('ระบบผลการตรวจพิเศษพร้อมใช้งาน', 'success');
             }, 1000);
+        });
+
+        // Handle modal events
+        document.getElementById('examModal').addEventListener('shown.bs.modal', function() {
+            setupInputValidation();
+        });
+
+        document.getElementById('examModal').addEventListener('hidden.bs.modal', function() {
+            // Reset validation styles when modal closes
+            document.querySelectorAll('#examForm input, #examForm select, #examForm textarea').forEach(input => {
+                input.style.borderColor = '';
+                input.title = '';
+            });
         });
 
         // Handle page visibility change
@@ -2415,204 +2581,17 @@
             }
         });
 
-        // Auto-save draft functionality (for long forms)
-        let autoSaveTimeout;
-        function setupAutoSave() {
-            const formInputs = document.querySelectorAll('#examForm input, #examForm select, #examForm textarea');
-            
-            formInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    clearTimeout(autoSaveTimeout);
-                    autoSaveTimeout = setTimeout(() => {
-                        // Save draft to localStorage
-                        const formData = collectExamData();
-                        localStorage.setItem('examDraft', JSON.stringify(formData));
-                        // console.log('Draft saved:', formData); // For debugging
-                    }, 2000);
-                });
-            });
-        }
-
-        function loadDraft() {
-            const draft = localStorage.getItem('examDraft');
-            if (draft && confirm('พบข้อมูลที่บันทึกไว้ คุณต้องการโหลดข้อมูลนี้หรือไม่?')) {
-                try {
-                    const data = JSON.parse(draft);
-                    // Populate form with draft data
-                    document.getElementById('examPatientSelect').value = data.patient_id || '';
-                    document.getElementById('examTypeSelect').value = data.test_type || '';
-                    document.getElementById('examDate').value = data.test_date || '';
-                    document.getElementById('examDoctorSelect').value = data.doctor_id || '';
-                    document.getElementById('examNotes').value = data.notes || '';
-
-                    // Trigger exam type change to show correct section
-                    handleExamTypeChange();
-
-                    if (data.results) {
-                        // Populate specific results fields
-                        if (data.test_type === 'OCT') {
-                            document.getElementById('leftAvgRnfl').value = data.results.left_avg_rnfl || '';
-                            document.getElementById('rightAvgRnfl').value = data.results.right_avg_rnfl || '';
-                            document.getElementById('leftCupDiscRatio').value = data.results.left_cup_disc_ratio || '';
-                            document.getElementById('rightCupDiscRatio').value = data.results.right_cup_disc_ratio || '';
-                        } else if (data.test_type === 'CTVF') {
-                            document.getElementById('leftEyeMd').value = data.results.left_eye_md || '';
-                            document.getElementById('rightEyeMd').value = data.results.right_eye_md || '';
-                            document.getElementById('leftEyeVfi').value = data.results.left_eye_vfi || '';
-                            document.getElementById('rightEyeVfi').value = data.results.right_eye_vfi || '';
-                        } else if (data.test_type === 'Pachymetry') {
-                            document.getElementById('leftCornealThickness').value = data.results.left_corneal_thickness || '';
-                            document.getElementById('rightCornealThickness').value = data.results.right_corneal_thickness || '';
-                        } else if (data.test_type === 'Gonioscopy') {
-                            document.getElementById('leftAngleGrade').value = data.results.left_angle_grade !== undefined && data.results.left_angle_grade !== null ? data.results.left_angle_grade : '';
-                            document.getElementById('rightAngleGrade').value = data.results.right_angle_grade !== undefined && data.results.right_angle_grade !== null ? data.results.right_angle_grade : '';
-                        }
-                    }
-                    localStorage.removeItem('examDraft'); // Clear draft after loading
-                    showAlert('โหลดข้อมูลที่บันทึกไว้เรียบร้อยแล้ว', 'info');
-                } catch (error) {
-                    console.error('Error loading draft:', error);
-                    showAlert('ไม่สามารถโหลดข้อมูลที่บันทึกไว้ได้ อาจเสียหาย', 'danger');
-                }
-            }
-        }
-
-        // Input validation helpers
-        function setupInputValidation() {
-            // RNFL validation (normal range: 80-120 µm)
-            ['leftAvgRnfl', 'rightAvgRnfl'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value < 80 || value > 120) {
-                                this.style.borderColor = '#ef4444'; // Danger color
-                                this.title = 'ค่าผิดปกติ (ปกติ: 80-120 µm)';
-                            } else {
-                                this.style.borderColor = '#10b981'; // Success color
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = ''; // Reset if empty or not a number
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // Cup/Disc ratio validation (normal: < 0.6)
-            ['leftCupDiscRatio', 'rightCupDiscRatio'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value > 0.6) {
-                                this.style.borderColor = '#f59e0b'; // Warning color
-                                this.title = 'ค่าสูงกว่าปกติ (ปกติ: < 0.6)';
-                            } else {
-                                this.style.borderColor = '#10b981'; // Success color
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // MD validation (normal: > -6 dB)
-            ['leftEyeMd', 'rightEyeMd'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value < -6) {
-                                this.style.borderColor = '#ef4444'; // Danger color
-                                this.title = 'ค่าผิดปกติ (ปกติ: > -6 dB)';
-                            } else {
-                                this.style.borderColor = '#10b981'; // Success color
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // Corneal thickness validation (normal: 500-600 µm)
-            ['leftCornealThickness', 'rightCornealThickness'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input) {
-                    input.addEventListener('blur', function() {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            if (value < 500) {
-                                this.style.borderColor = '#f59e0b'; // Warning color
-                                this.title = 'ค่าบางกว่าปกติ (ปกติ: 500-600 µm)';
-                            } else if (value > 600) {
-                                this.style.borderColor = '#f59e0b'; // Warning color
-                                this.title = 'ค่าหนากว่าปกติ (ปกติ: 500-600 µm)';
-                            } else {
-                                this.style.borderColor = '#10b981'; // Success color
-                                this.title = 'ค่าปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-
-            // Gonioscopy Grade validation (Grade 0 or 1 might be problematic)
-            ['leftAngleGrade', 'rightAngleGrade'].forEach(id => {
-                const select = document.getElementById(id);
-                if (select) {
-                    select.addEventListener('change', function() {
-                        const value = parseInt(this.value);
-                        if (!isNaN(value)) {
-                            if (value <= 1) { // Grade 0 or 1 usually indicates narrow/closed angle
-                                this.style.borderColor = '#ef4444'; // Danger color
-                                this.title = 'มุมแคบหรือปิด (อาจผิดปกติ)';
-                            } else if (value === 2) { // Grade 2 is narrow, borderline
-                                this.style.borderColor = '#f59e0b'; // Warning color
-                                this.title = 'มุมแคบ (ขอบเขต)';
-                            } else { // Grade 3 or 4 is normal/wide open
-                                this.style.borderColor = '#10b981'; // Success color
-                                this.title = 'มุมปกติ';
-                            }
-                        } else {
-                            this.style.borderColor = '';
-                            this.title = '';
-                        }
-                    });
-                }
-            });
-        }
-
-        // Initialize additional features when modal is shown
-        document.getElementById('examModal').addEventListener('shown.bs.modal', function() {
-            setupAutoSave();
-            setupInputValidation();
-            loadDraft();
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            showAlert('เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง', 'danger');
         });
 
-        // Clear draft when modal is hidden
-        document.getElementById('examModal').addEventListener('hidden.bs.modal', function() {
-            localStorage.removeItem('examDraft');
-            clearTimeout(autoSaveTimeout);
-            // Also reset validation styles when modal closes
-            document.querySelectorAll('#examForm input, #examForm select, #examForm textarea').forEach(input => {
-                input.style.borderColor = '';
-                input.title = '';
-            });
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', 'warning');
         });
     </script>
 </body>
-</html>
+</html> 
